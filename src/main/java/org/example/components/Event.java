@@ -13,8 +13,12 @@ public final class Event implements Comparable<Event> {
 	private final Set<Condition> preset;
 	private final Set<Condition> postset = new HashSet<>();
 	private final Predicate predicate;
-	private final transient int depth;
-	private final transient Configuration coneConfiguration;
+	private final int depth;
+	private boolean isCutoff = false;
+	private final Configuration coneConfiguration;
+	//private final Set<Condition> conePreset;
+	//private final Set<Condition> conePostset;
+	//private final Set<Condition> coneCut;
 
 	public Event(int index, Transition transition, List<Condition> preset, Predicate predicate) {
 		this.index = index;
@@ -55,6 +59,14 @@ public final class Event implements Comparable<Event> {
 
 	public int depth() {
 		return depth;
+	}
+
+	public boolean isCutoff() {
+		return isCutoff;
+	}
+
+	public void setCutoff() {
+		this.isCutoff = true;
 	}
 
 	public Configuration coneConfiguration() {

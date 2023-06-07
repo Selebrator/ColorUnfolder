@@ -36,10 +36,6 @@ public final class Configuration {
 		return foata;
 	}
 
-	public Cut cut() {
-		return null;
-	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
