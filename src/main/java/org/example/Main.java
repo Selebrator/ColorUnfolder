@@ -54,7 +54,7 @@ public class Main {
 		BoundedUnfolding unf = BoundedUnfolding.unfold(net, 4);
 		try (StringWriter stringWriter = new StringWriter()) {
 			unf.render(stringWriter);
-			System.out.println(stringWriter.toString());
+			System.out.println(stringWriter);
 		}
 	}
 
