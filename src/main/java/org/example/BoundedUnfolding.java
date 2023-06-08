@@ -45,13 +45,13 @@ public class BoundedUnfolding {
 		for (Condition initialCondition : initialConditions) {
 			this.addCondition(initialCondition);
 		}
-		Set<Event> cutoff = new HashSet<>();
 		System.out.println("Initialization done");
 
 		Event e;
 		System.out.println("Possible Extensions: " + this.possibleExtensions);
 		while ((e = this.possibleExtensions.poll()) != null) {
-			if (!Collections.disjoint(e.coneConfiguration().events(), cutoff)) {
+			if (e.coneConfiguration().events().stream().anyMatch(Event::isCutoff)) {
+				// if (!Collections.disjoint(e.coneConfiguration().events(), cutoff))
 				continue;
 			}
 			this.addEvent(e);
@@ -60,7 +60,6 @@ public class BoundedUnfolding {
 			}
 
 			if (isCutoff(e)) {
-				cutoff.add(e);
 				e.setCutoff();
 			}
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
