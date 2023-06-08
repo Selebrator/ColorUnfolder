@@ -15,7 +15,7 @@ public record Condition(int index, String name, Place place, Optional<Event> pre
 	}
 
 	public Set<Condition> prepre() {
-		return preset.map(Event::preset).orElseGet(Collections::emptySet);
+		return this.preset.map(Event::preset).orElseGet(Collections::emptySet);
 	}
 
 	@Override

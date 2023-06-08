@@ -73,8 +73,8 @@ public class BoundedUnfolding {
 
 	private void addCondition(Condition condition) {
 		System.out.println("add condition " + condition);
-		condition.preset().ifPresent(event -> event.postset().add(condition));
 		this.concurrencyMatrix.add(condition);
+		condition.preset().ifPresent(event -> event.postset().add(condition));
 
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
@@ -102,9 +102,9 @@ public class BoundedUnfolding {
 					.map(this::get)
 					.reduce(Sets::intersection)
 					.orElseGet(Collections::emptySet);
-			Set<Condition> post = newCondition.preset().map(Event::postset).orElse(initialConditions).stream()
-					.filter(this.storage::containsKey)
-					.collect(Collectors.toSet());
+			Set<Condition> post = newCondition.preset()
+					.map(Event::postset)
+					.orElseGet(() -> Sets.intersection(initialConditions, this.storage.keySet()));
 			Set<Condition> result = new HashSet<>(Sets.union(cob, post));
 			this.storage.put(newCondition, result);
 			for (Condition condition : result) {
