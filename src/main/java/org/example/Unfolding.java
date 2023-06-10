@@ -1,7 +1,6 @@
 package org.example;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import org.example.components.*;
@@ -98,21 +97,11 @@ public class Unfolding {
 		if (placeToConditions.containsKey(condition.place())) throw new AssertionError();
 		placeToConditions.put(condition.place(), List.of(condition));
 		for (Transition transition : condition.place().postSet()) {
-			for (List<Condition> candidate : Lists.cartesianProduct(transition.preSet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
+			for (Condition[] candidate : new CartesianProduct<>(Condition[]::new, transition.preSet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
 				if (!this.concurrencyMatrix.isCoset(candidate)) {
-					//StringWriter stringWriter = new StringWriter();
-					//try {
-					//	render(stringWriter);
-					//} catch (IOException e) {
-					//	throw new RuntimeException(e);
-					//}
-					//System.out.println(transition);
-					//System.out.println(placeToConditions);
-					//System.out.println(candidate);
-					//System.out.println(stringWriter.toString());
 					continue;
 				}
-				this.possibleExtensions.add(new Event(this.eventIndex++, transition, candidate, new Predicate()));
+				this.possibleExtensions.add(new Event(this.eventIndex++, transition, List.of(candidate), new Predicate()));
 			}
 		}
 	}
@@ -147,12 +136,13 @@ public class Unfolding {
 			//}
 		}
 
-		public boolean isCoset(Collection<Condition> candidate) {
-			List<Condition> remaining = new ArrayList<>(candidate);
-			while (!remaining.isEmpty()) {
-				Condition next = remaining.remove(remaining.size() - 1);
-				if (!co(next).containsAll(remaining)) {
-					return false;
+		public boolean isCoset(Condition[] candidate) {
+			for (int i = candidate.length - 1; i >= 1; i--) {
+				Set<Condition> co = co(candidate[i]);
+				for (int j = 0; j < i; j++) {
+					if (!co.contains(candidate[j])) {
+						return false;
+					}
 				}
 			}
 			return true;
