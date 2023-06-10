@@ -12,33 +12,31 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class BoundedUnfolding {
+public class Unfolding {
 
 	private final int depthBound;
 
-	private int eventIndex = 0;
-	private int conditionIndex = 0;
+	private int eventIndex = 1;
+	private int conditionIndex = 1;
 
 	private final Net net;
 	private final Set<Condition> initialConditions; // Min(O)
 	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(Comparator.comparing(Event::coneConfiguration, Order::compare));
+	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
-	public static BoundedUnfolding unfold(Net net, int depth) {
-		BoundedUnfolding ans = new BoundedUnfolding(net, depth);
+	public static Unfolding unfold(Net net, int depth) {
+		Unfolding ans = new Unfolding(net, depth);
 		ans.construct();
 		return ans;
 	}
 
-	private BoundedUnfolding(Net original, int depthBound) {
+	private Unfolding(Net original, int depthBound) {
 		this.depthBound = depthBound;
 		this.net = original;
 		this.initialConditions = this.net.initialMarking().tokens().keySet().stream()
+				.sorted(Comparator.comparingInt(Place::index))
 				.map(place -> new Condition(this.conditionIndex++, place, Optional.empty(), new Predicate()))
-				.collect(Collectors.toUnmodifiableSet());
-	}
-
-	private boolean isCutoff(Event event) {
-		return event.depth() > this.depthBound;
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	private void construct() {
@@ -50,18 +48,18 @@ public class BoundedUnfolding {
 		Event e;
 		System.out.println("Possible Extensions: " + this.possibleExtensions);
 		while ((e = this.possibleExtensions.poll()) != null) {
+			System.out.println("Next event " + e + " with preset " + e.preset());
 			if (e.coneConfiguration().events().stream().anyMatch(Event::isCutoff)) {
 				// if (!Collections.disjoint(e.coneConfiguration().events(), cutoff))
 				continue;
 			}
-			this.addEvent(e);
 			for (Place place : e.transition().postSet()) {
 				this.addCondition(new Condition(this.conditionIndex++, place, Optional.of(e), new Predicate()));
 			}
-
-			if (isCutoff(e)) {
-				e.setCutoff();
-			}
+			this.addEvent(e);
+			//if (e.depth() >= depthBound) {
+			//	e.setCutoff();
+			//}
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
 		}
 	}
@@ -69,6 +67,25 @@ public class BoundedUnfolding {
 	private void addEvent(Event event) {
 		System.out.println("Add event " + event + " with preset " + event.preset());
 		event.preset().forEach(condition -> condition.postset().add(event));
+		event.calcContext(initialConditions);
+
+		Set<Place> mark = mark(event);
+		if (this.marks.containsKey(mark)) {
+			Set<Event> events = this.marks.get(mark);
+			events.stream()
+					.filter(o -> Order.compare(o.coneConfiguration(), event.coneConfiguration()) < 0)
+					.findAny()
+					.ifPresent(event::setCutoff);
+			events.add(event);
+		} else {
+			this.marks.put(mark, new HashSet<>(Set.of(event)));
+		}
+	}
+
+	private Set<Place> mark(Event event) {
+		return event.coneCut().stream()
+				.map(Condition::place)
+				.collect(Collectors.toSet());
 	}
 
 	private void addCondition(Condition condition) {
@@ -76,13 +93,26 @@ public class BoundedUnfolding {
 		this.concurrencyMatrix.add(condition);
 		condition.preset().ifPresent(event -> event.postset().add(condition));
 
-		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
+		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.co(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
 		if (placeToConditions.containsKey(condition.place())) throw new AssertionError();
 		placeToConditions.put(condition.place(), List.of(condition));
 		for (Transition transition : condition.place().postSet()) {
-			for (List<Condition> coset : Lists.cartesianProduct(transition.preSet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
-				this.possibleExtensions.add(new Event(this.eventIndex++, transition, coset, new Predicate()));
+			for (List<Condition> candidate : Lists.cartesianProduct(transition.preSet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
+				if (!this.concurrencyMatrix.isCoset(candidate)) {
+					//StringWriter stringWriter = new StringWriter();
+					//try {
+					//	render(stringWriter);
+					//} catch (IOException e) {
+					//	throw new RuntimeException(e);
+					//}
+					//System.out.println(transition);
+					//System.out.println(placeToConditions);
+					//System.out.println(candidate);
+					//System.out.println(stringWriter.toString());
+					continue;
+				}
+				this.possibleExtensions.add(new Event(this.eventIndex++, transition, candidate, new Predicate()));
 			}
 		}
 	}
@@ -93,13 +123,13 @@ public class BoundedUnfolding {
 	private class ConcurrencyMatrix {
 		private final Map<Condition, Set<Condition>> storage = new HashMap<>();
 
-		public Set<Condition> get(Condition key) {
+		public Set<Condition> co(Condition key) {
 			return this.storage.computeIfAbsent(key, k -> new HashSet<>());
 		}
 
 		public void add(Condition newCondition) {
 			Set<Condition> cob = newCondition.prepre().stream()
-					.map(this::get)
+					.map(this::co)
 					.reduce(Sets::intersection)
 					.orElseGet(Collections::emptySet);
 			Set<Condition> post = newCondition.preset()
@@ -108,8 +138,24 @@ public class BoundedUnfolding {
 			Set<Condition> result = new HashSet<>(Sets.union(cob, post));
 			this.storage.put(newCondition, result);
 			for (Condition condition : result) {
-				this.get(condition).add(newCondition);
+				this.co(condition).add(newCondition);
 			}
+			//try {
+			//	System.out.println(this);
+			//} catch (Exception e) {
+			//	System.out.println("matrix: " + this.storage);
+			//}
+		}
+
+		public boolean isCoset(Collection<Condition> candidate) {
+			List<Condition> remaining = new ArrayList<>(candidate);
+			while (!remaining.isEmpty()) {
+				Condition next = remaining.remove(remaining.size() - 1);
+				if (!co(next).containsAll(remaining)) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		public Table<Condition, Condition, Boolean> toTable() {
@@ -177,8 +223,19 @@ public class BoundedUnfolding {
 				for (var node : events) {
 					writer
 							.append("\"").append(node.toString()).append("\"");
+					Map<String, String> options = new HashMap<>();
 					if (node.isCutoff()) {
-						writer.append("[color=\"red\"]");
+						options.put("color", "red");
+					}
+					if (node.isCutoff()) {
+						options.put("xlabel", node.cutoffReason.toString());
+					} else {
+						options.put("xlabel", mark(node).toString());
+					}
+					if (!options.isEmpty()) {
+						writer.append(options.entrySet().stream()
+								.map(e -> e.getKey() + "=\"" + e.getValue() + "\"")
+								.collect(Collectors.joining(",", "[", "]")));
 					}
 					writer.append("\n");
 				}

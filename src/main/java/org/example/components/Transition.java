@@ -1,10 +1,19 @@
 package org.example.components;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public record Transition(int index, String name, Set<Place> preSet, Set<Place> postSet) {
+
+	public Transition(int index) {
+		this(index, Collections.emptySet());
+	}
+
+	public Transition(int index, String name) {
+		this(index, name, Collections.emptySet());
+	}
 
 	public Transition(int index, Set<Place> preSet) {
 		this(index, "t" + index, preSet);

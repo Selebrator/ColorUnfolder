@@ -1,10 +1,20 @@
 package org.example.components;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 public record Place(int index, String name, Set<Transition> preSet, Set<Transition> postSet) {
+
+	public Place(int index) {
+		this(index, Collections.emptySet());
+	}
+
+	public Place(int index, String name) {
+		this(index, name, Collections.emptySet());
+	}
+
 	public Place(int index, Set<Transition> preSet) {
 		this(index, "p" + index, preSet);
 	}
@@ -16,9 +26,7 @@ public record Place(int index, String name, Set<Transition> preSet, Set<Transiti
 
 	@Override
 	public String toString() {
-		return "Place{" +
-				"name='" + name + '\'' +
-				'}';
+		return name;
 	}
 
 	@Override

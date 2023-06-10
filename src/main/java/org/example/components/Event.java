@@ -1,9 +1,8 @@
 package org.example.components;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import com.google.common.collect.Sets;
+
+import java.util.*;
 
 /* Transition (t, X, pred) in E */
 public final class Event implements Comparable<Event> {
@@ -14,11 +13,11 @@ public final class Event implements Comparable<Event> {
 	private final Set<Condition> postset = new HashSet<>();
 	private final Predicate predicate;
 	private final int depth;
-	private boolean isCutoff = false;
+	public Event cutoffReason = null;
 	private final Configuration coneConfiguration;
-	//private final Set<Condition> conePreset;
-	//private final Set<Condition> conePostset;
-	//private final Set<Condition> coneCut;
+	private Set<Condition> conePreset;
+	private Set<Condition> conePostset;
+	private Set<Condition> coneCut;
 
 	public Event(int index, Transition transition, List<Condition> preset, Predicate predicate) {
 		this.index = index;
@@ -37,6 +36,13 @@ public final class Event implements Comparable<Event> {
 		this.coneConfiguration = new Configuration(cone);
 	}
 
+	public void calcContext(Set<Condition> initialConditions) {
+		List<Event> prepre = preset.stream().flatMap(condition -> condition.preset().stream()).toList();
+		this.conePreset = Set.copyOf(Sets.union(this.preset, prepre.stream().map(event -> event.conePreset).reduce(Sets::union).orElseGet(Collections::emptySet)));
+		this.conePostset = Sets.union(this.postset, prepre.stream().map(event -> event.conePostset).reduce(Sets::union).orElseGet(Collections::emptySet));
+		this.coneCut = Sets.difference(Sets.union(initialConditions, conePostset), conePreset);
+	}
+
 	public String name() {
 		return name;
 	}
@@ -53,6 +59,10 @@ public final class Event implements Comparable<Event> {
 		return postset;
 	}
 
+	public Set<Condition> coneCut() {
+		return coneCut;
+	}
+
 	public Predicate predicate() {
 		return predicate;
 	}
@@ -62,11 +72,11 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public boolean isCutoff() {
-		return isCutoff;
+		return cutoffReason != null;
 	}
 
-	public void setCutoff() {
-		this.isCutoff = true;
+	public void setCutoff(Event reason) {
+		this.cutoffReason = reason;
 	}
 
 	public Configuration coneConfiguration() {
