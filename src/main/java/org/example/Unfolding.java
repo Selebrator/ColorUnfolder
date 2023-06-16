@@ -1,8 +1,6 @@
 package org.example;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Table;
 import org.example.components.*;
 import org.example.net.Net;
 
@@ -148,27 +146,12 @@ public class Unfolding {
 			return true;
 		}
 
-		public Table<Condition, Condition, Boolean> toTable() {
-			OptionalInt max = this.storage.values().stream()
-					.mapToInt(Set::size)
-					.max();
-			Table<Condition, Condition, Boolean> table = HashBasedTable.create(this.storage.size(), max.orElse(0));
-
-			for (Map.Entry<Condition, Set<Condition>> e : this.storage.entrySet()) {
-				Condition row = e.getKey();
-				for (Condition col : e.getValue()) {
-					table.put(row, col, true);
-				}
-			}
-			return table;
-		}
-
 		@Override
 		public String toString() {
 			List<Condition> order = this.storage.keySet().stream()
 					.sorted(Comparator.comparingInt(Condition::index))
 					.toList();
-			return Main.renderTable(this.toTable(), order, order);
+			return Main.renderTable(Main.toTable(this.storage), order, order);
 		}
 	}
 
