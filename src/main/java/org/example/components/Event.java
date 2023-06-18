@@ -9,9 +9,10 @@ public final class Event implements Comparable<Event> {
 	private final int index;
 	private final String name;
 	private final Transition transition;
-	private final Set<Condition> preset;
+	private final Map<Condition, Variable> preset;
 	private final Set<Condition> postset = new HashSet<>();
-	private final Predicate predicate;
+	private final Predicate localPred;
+	private final Predicate conePred;
 	private final int depth;
 	public Event cutoffReason = null;
 	private final Configuration coneConfiguration;
@@ -19,26 +20,42 @@ public final class Event implements Comparable<Event> {
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
 
-	public Event(int index, Transition transition, List<Condition> preset, Predicate predicate) {
+	public Event(int index, Transition transition, Map<Condition, Variable> preset) {
 		this.index = index;
 		this.name = "e" + index;
 		this.transition = transition;
-		this.preset = Set.copyOf(preset);
-		this.predicate = predicate;
-		this.depth = 1 + preset.stream()
+		this.preset = Map.copyOf(preset);
+		this.depth = 1 + preset.keySet().stream()
 				.mapToInt(condition -> condition.preset().map(Event::depth).orElse(0))
 				.max().orElse(0);
 		Set<Event> cone = new HashSet<>();
 		cone.add(this);
-		for (Condition inputCondition : preset) {
+		for (Condition inputCondition : preset.keySet()) {
 			inputCondition.preset().ifPresent(event -> cone.addAll(event.coneConfiguration.events()));
 		}
 		this.coneConfiguration = new Configuration(cone);
+		Predicate localPred = preset.entrySet().stream()
+				.map(conditionVariableEntry -> Predicate.eq(
+						conditionVariableEntry.getValue().local(name),
+						conditionVariableEntry.getKey().preset()
+								.map(preEvent -> conditionVariableEntry.getKey().preVariable().local(preEvent.name()))
+								.orElse(conditionVariableEntry.getKey().preVariable())
+				))
+				.reduce(Predicate::and).orElse(Predicate.TRUE);
+		if (transition.guard().isPresent()) {
+			localPred = localPred.and(transition.guard().get().local(name));
+		}
+		this.localPred = localPred;
+		this.conePred = preset.keySet().stream()
+				.flatMap(condition -> condition.preset().stream())
+				.map(Event::conePredicate)
+				.reduce(Predicate::and).orElse(Predicate.TRUE)
+				.and(localPred);
 	}
 
 	public void calcContext(Set<Condition> initialConditions) {
-		List<Event> prepre = preset.stream().flatMap(condition -> condition.preset().stream()).toList();
-		this.conePreset = Set.copyOf(Sets.union(this.preset, prepre.stream().map(event -> event.conePreset).reduce(Sets::union).orElseGet(Collections::emptySet)));
+		List<Event> prepre = preset.keySet().stream().flatMap(condition -> condition.preset().stream()).toList();
+		this.conePreset = Set.copyOf(Sets.union(this.preset.keySet(), prepre.stream().map(event -> event.conePreset).reduce(Sets::union).orElseGet(Collections::emptySet)));
 		this.conePostset = Sets.union(this.postset, prepre.stream().map(event -> event.conePostset).reduce(Sets::union).orElseGet(Collections::emptySet));
 		this.coneCut = Sets.difference(Sets.union(initialConditions, conePostset), conePreset);
 	}
@@ -51,7 +68,7 @@ public final class Event implements Comparable<Event> {
 		return transition;
 	}
 
-	public Set<Condition> preset() {
+	public Map<Condition, Variable> preset() {
 		return preset;
 	}
 
@@ -63,8 +80,12 @@ public final class Event implements Comparable<Event> {
 		return coneCut;
 	}
 
-	public Predicate predicate() {
-		return predicate;
+	public Predicate localPredicate() {
+		return localPred;
+	}
+
+	public Predicate conePredicate() {
+		return conePred;
 	}
 
 	public int depth() {

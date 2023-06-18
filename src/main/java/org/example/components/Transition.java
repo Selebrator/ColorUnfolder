@@ -1,27 +1,27 @@
 package org.example.components;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
 
-public record Transition(int index, String name, Set<Place> preSet, Set<Place> postSet) {
+public record Transition(int index, String name, Map<Place, Variable> preSet, Map<Place, Variable> postSet,
+						 Optional<Predicate> guard) {
 
 	public Transition(int index) {
-		this(index, Collections.emptySet());
+		this(index, "t" + index);
+	}
+
+	public Transition(int index, Predicate guard) {
+		this(index, "t" + index, guard);
 	}
 
 	public Transition(int index, String name) {
-		this(index, name, Collections.emptySet());
+		this(index, name, null);
 	}
 
-	public Transition(int index, Set<Place> preSet) {
-		this(index, "t" + index, preSet);
-	}
-
-	public Transition(int index, String name, Set<Place> preSet) {
-		this(index, name, new HashSet<>(preSet), new HashSet<>());
-		preSet.forEach(pre -> pre.postSet().add(this));
+	public Transition(int index, String name, Predicate guard) {
+		this(index, name, new HashMap<>(), new HashMap<>(), Optional.ofNullable(guard));
 	}
 
 	@Override

@@ -4,9 +4,9 @@ package org.example.components;
 import java.util.*;
 
 /* Place (p, e, pred) in B */
-public record Condition(int index, String name, Place place, Optional<Event> preset, Set<Event> postset, Predicate predicate) {
-	public Condition(int index, Place place, Optional<Event> preset, Predicate predicate) {
-		this(index, "b" + index, place, preset, new HashSet<>(), predicate);
+public record Condition(int index, String name, Place place, Optional<Event> preset, Variable preVariable) {
+	public Condition(int index, Place place, Optional<Event> preset, Variable variable) {
+		this(index, "b" + index, place, preset, variable);
 	}
 
 	@Override
@@ -15,7 +15,7 @@ public record Condition(int index, String name, Place place, Optional<Event> pre
 	}
 
 	public Set<Condition> prepre() {
-		return this.preset.map(Event::preset).orElseGet(Collections::emptySet);
+		return this.preset.map(Event::preset).map(Map::keySet).orElseGet(Collections::emptySet);
 	}
 
 	@Override
