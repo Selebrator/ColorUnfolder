@@ -1,13 +1,12 @@
 package org.example.logic.generic.formula;
 
-import com.google.common.collect.Sets;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.expression.ArithmeticExpression;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class ComparisonFormula<A> extends StateFormula<A> {
 
@@ -38,8 +37,9 @@ public class ComparisonFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Set<A> support() {
-		return Sets.union(this.e1.support(), this.e2.support());
+	protected void collectSupport(Set<A> accumulator) {
+		accumulator.addAll(this.e1.support());
+		accumulator.addAll(this.e2.support());
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class ComparisonFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 		return solver.mkTerm(operator.toCvc5(), e1.toCvc5(solver, atoms), e2.toCvc5(solver, atoms));
 	}
 

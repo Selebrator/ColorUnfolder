@@ -32,13 +32,13 @@ public record Predicate(StateFormula<Variable> formula) {
 		solver.setOption("produce-models", "true");
 		Sort integer = solver.getIntegerSort();
 		Map<Variable, Term> atoms = formula.support().stream().collect(Collectors.toMap(Function.identity(), variable -> solver.mkConst(integer, variable.name())));
-		Term cvc5Formula = formula.toCvc5(solver, atoms);
+		Term cvc5Formula = formula.toCvc5(solver, atoms::get);
 		solver.assertFormula(cvc5Formula);
 		Result result = solver.checkSat();
-		System.out.println(result + " " + this + " encoded: " + cvc5Formula);
+		//System.out.println(result + " " + this + " encoded: " + cvc5Formula);
 		if (result.isSat()) {
 			for (Term atom : atoms.values()) {
-				System.out.println(atom + " = " + solver.getValue(atom));
+				//System.out.println(atom + " = " + solver.getValue(atom));
 			}
 		}
 		if (result.isNull() || result.isUnknown()) {

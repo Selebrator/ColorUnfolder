@@ -1,11 +1,10 @@
 package org.example;
 
-import io.github.cvc5.*;
 import org.example.components.Place;
 import org.example.components.Predicate;
 import org.example.components.Transition;
 import org.example.components.Variable;
-import org.example.logic.generic.ComparisonOperator;
+import org.example.logic.generic.expression.CalculationExpression;
 import org.example.logic.generic.expression.ConstantExpression;
 import org.example.logic.generic.formula.ComparisonFormula;
 import org.example.net.Marking;
@@ -16,13 +15,17 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
+import static org.example.logic.generic.CalculationOperator.MINUS;
+import static org.example.logic.generic.CalculationOperator.PLUS;
+import static org.example.logic.generic.ComparisonOperator.*;
+
 public class Examples {
 
 	static Variable VAR = new Variable("⊻");
 
 	@Test
 	void example() throws IOException {
-		renderAndClip(Unfolding.unfold(colorConflict(), 3));
+		renderAndClip(Unfolding.unfold(colorConflict(), 5));
 		//Solver solver = new Solver();
 		//solver.setOption("produce-models", "true"); // Produce Models
 		//Sort integer = solver.getIntegerSort();
@@ -151,9 +154,9 @@ public class Examples {
 				p2 = new Place(2),
 				p3 = new Place(3);
 		Transition
-				t1 = new Transition(1, new Predicate(ComparisonFormula.of(l, ComparisonOperator.EQUALS, ConstantExpression.of(1)))),
-				t2 = new Transition(2, new Predicate(ComparisonFormula.of(ll, ComparisonOperator.NOT_EQUALS, ConstantExpression.of(0)))),
-				t3 = new Transition(3, new Predicate(ComparisonFormula.of(k, ComparisonOperator.EQUALS, ConstantExpression.of(0))));
+				t1 = new Transition(1, new Predicate(ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1)))),
+				t2 = new Transition(2, new Predicate(ComparisonFormula.of(ll, NOT_EQUALS, ConstantExpression.of(0)))),
+				t3 = new Transition(3, new Predicate(ComparisonFormula.of(k, EQUALS, ConstantExpression.of(0))));
 
 		link(p1, t1, k);
 		link(t1, p2, l);
@@ -179,8 +182,8 @@ public class Examples {
 				p7 = new Place(7),
 				p8 = new Place(8);
 		Transition
-				t1 = new Transition(1, new Predicate(ComparisonFormula.of(y, ComparisonOperator.GREATER_THEN, ConstantExpression.of(0))
-				.and(ComparisonFormula.of(z, ComparisonOperator.LESS_THEN, ConstantExpression.of(0))))),
+				t1 = new Transition(1, new Predicate(ComparisonFormula.of(y, GREATER_THEN, ConstantExpression.of(0))
+				.and(ComparisonFormula.of(z, LESS_THEN, ConstantExpression.of(0))))),
 				t2 = new Transition(2),
 				t3 = new Transition(3),
 				t4 = new Transition(4),
@@ -221,6 +224,153 @@ public class Examples {
 	//	p5.preSet().add(t6);
 	//	return new Net(new Marking(Map.of(p0, 1, p1, 1, p2, 1)));
 	//}
+
+	Net aoc22_19() {
+		ConstantExpression<Variable> _1 = ConstantExpression.of(1);
+		ConstantExpression<Variable> _2 = ConstantExpression.of(2);
+		ConstantExpression<Variable> _3 = ConstantExpression.of(3);
+		ConstantExpression<Variable> _4 = ConstantExpression.of(4);
+		ConstantExpression<Variable> _7 = ConstantExpression.of(7);
+		ConstantExpression<Variable> _14 = ConstantExpression.of(14);
+		Variable
+				O = new Variable("O"),
+				C = new Variable("C"),
+				S = new Variable("S"),
+				G = new Variable("G"),
+				O_ = new Variable("O'"),
+				C_ = new Variable("C'"),
+				S_ = new Variable("S'"),
+				G_ = new Variable("G'"),
+				o = new Variable("o"),
+				c = new Variable("c"),
+				s = new Variable("s"),
+				g = new Variable("g"),
+				o_ = new Variable("o'"),
+				c_ = new Variable("c'"),
+				s_ = new Variable("s'"),
+				g_ = new Variable("g'"),
+				x = new Variable("x"),
+				v = new Variable("v");
+		Place
+				oreMiner = new Place(1, "OreMiner"),
+				playMiner = new Place(2, "ClayMiner"),
+				obsidianMiner = new Place(3, "ObsidianMiner"),
+				geodeMiner = new Place(4, "GeodeMiner"),
+				ore = new Place(5, "Ore"),
+				clay = new Place(6, "Clay"),
+				obsidian = new Place(7, "Obsidian"),
+				geodes = new Place(8, "Geode"),
+				r = new Place(9, "ready"),
+				i = new Place(10, "inter");
+		Transition
+				t = new Transition(1, "t", new Predicate(
+				ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, PLUS, O))
+						.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, PLUS, C)))
+						.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, PLUS, S)))
+						.and(ComparisonFormula.of(g_, EQUALS, CalculationExpression.of(g, PLUS, G)))
+		)),
+				mo = new Transition(2, "MakeOreMiner", new Predicate(
+						ComparisonFormula.of(O_, EQUALS, CalculationExpression.of(O, PLUS, _1))
+								.and(ComparisonFormula.of(o, GREATER_EQUALS, _4))
+								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _4)))
+				)),
+				mc = new Transition(3, "MakeClayMiner", new Predicate(
+						ComparisonFormula.of(C_, EQUALS, CalculationExpression.of(C, PLUS, _1))
+								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
+								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
+				)),
+				ms = new Transition(4, "MakeObsidianMiner", new Predicate(
+						ComparisonFormula.of(S_, EQUALS, CalculationExpression.of(S, PLUS, _1))
+								.and(ComparisonFormula.of(o, GREATER_EQUALS, _3))
+								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _3)))
+								.and(ComparisonFormula.of(c, GREATER_EQUALS, _14))
+								.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, MINUS, _14)))
+				)),
+				mg = new Transition(5, "MakeGeodeMiner", new Predicate(
+						ComparisonFormula.of(G_, EQUALS, CalculationExpression.of(G, PLUS, _1))
+								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
+								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
+								.and(ComparisonFormula.of(s, GREATER_EQUALS, _7))
+								.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, MINUS, _7)))
+				)),
+				skip = new Transition(6, "Skip");
+		// t
+		link(oreMiner, t, O);
+		link(t, oreMiner, O);
+		link(ore, t, o);
+		link(t, ore, o_);
+
+		link(playMiner, t, C);
+		link(t, playMiner, C);
+		link(clay, t, c);
+		link(t, clay, c_);
+
+		link(obsidianMiner, t, S);
+		link(t, obsidianMiner, S);
+		link(obsidian, t, s);
+		link(t, obsidian, s_);
+
+		link(geodeMiner, t, G);
+		link(t, geodeMiner, G);
+		link(geodes, t, g);
+		link(t, geodes, g_);
+
+		// Make Ore Miner
+		link(ore, mo, o);
+		link(mo, ore, o_);
+		link(oreMiner, mo, O);
+		link(mo, oreMiner, O_);
+
+		// Make Clay Miner
+		link(ore, mc, o);
+		link(mc, ore, o_);
+		link(playMiner, mc, C);
+		link(mc, playMiner, C_);
+
+		// Make Obsidian Miner
+		link(ore, ms, o);
+		link(ms, ore, o_);
+		link(clay, ms, c);
+		link(ms, clay, c_);
+		link(obsidianMiner, ms, S);
+		link(ms, obsidianMiner, S_);
+
+		// Make Geode Miner
+		link(ore, mg, o);
+		link(mg, ore, o_);
+		link(obsidian, mg, s);
+		link(mg, obsidian, s_);
+		link(geodeMiner, mg, G);
+		link(mg, geodeMiner, G_);
+
+		// clock
+		link(r, mo, v);
+		link(r, mc, v);
+		link(r, ms, v);
+		link(r, mg, v);
+		link(r, skip, v);
+
+		link(mo, i, v);
+		link(mc, i, v);
+		link(ms, i, v);
+		link(mg, i, v);
+		link(skip, i, v);
+
+		link(i, t, v);
+		link(t, r, v);
+
+		return new Net(new Marking(Map.of(
+				oreMiner, 1,
+				playMiner, 0,
+				obsidianMiner, 0,
+				geodeMiner, 0,
+				ore, 0,
+				clay, 0,
+				obsidian, 0,
+				geodes, 0,
+				r, 1
+		)));
+	}
 
 	void renderAndClip(Unfolding unf) throws IOException {
 		try (StringWriter stringWriter = new StringWriter()) {

@@ -1,12 +1,14 @@
 package org.example.logic.generic.formula;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.BinaryLogicOperator;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -90,11 +92,10 @@ public class CompositionFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Set<A> support() {
-		return this.formulas.stream()
-				.map(StateFormula::support)
-				.reduce(Sets::union)
-				.orElseGet(Collections::emptySet);
+	protected void collectSupport(Set<A> accumulator) {
+		for (StateFormula<A> formula : this.formulas) {
+			accumulator.addAll(formula.support());
+		}
 	}
 
 	@Override
@@ -107,7 +108,7 @@ public class CompositionFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 		return solver.mkTerm(operator.toCvc5(), formulas.stream()
 				.map(formula -> formula.toCvc5(solver, atoms))
 				.toArray(Term[]::new));

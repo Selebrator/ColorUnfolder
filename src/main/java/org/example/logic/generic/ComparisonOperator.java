@@ -11,25 +11,25 @@ public enum ComparisonOperator implements BiPredicate<Long, Long> {
 			return x < y;
 		}
 	},
-	LESS_EQUALS("<=", Kind.LEQ, true) {
+	LESS_EQUALS("≤", Kind.LEQ, true) {
 		@Override
 		public boolean test(Long x, Long y) {
 			return x <= y;
 		}
 	},
-	EQUALS("==", Kind.EQUAL, false) {
+	EQUALS("=", Kind.EQUAL, false) {
 		@Override
 		public boolean test(Long x, Long y) {
 			return x.equals(y);
 		}
 	},
-	NOT_EQUALS("!=", Kind.DISTINCT, false) {
+	NOT_EQUALS("≠", Kind.DISTINCT, false) {
 		@Override
 		public boolean test(Long x, Long y) {
 			return !x.equals(y);
 		}
 	},
-	GREATER_EQUALS(">=", Kind.GEQ, true) {
+	GREATER_EQUALS("≥", Kind.GEQ, true) {
 		@Override
 		public boolean test(Long x, Long y) {
 			return x >= y;

@@ -27,7 +27,7 @@ public class Unfolding {
 	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(Comparator.comparing(Event::coneConfiguration, Order::compare));
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
-	private final Map<Condition, Set<Event>> cPost = new HashMap<>();
+	private final Map<Condition, Set<Event>> conditionPostset = new HashMap<>();
 
 	public static Unfolding unfold(Net net, int depth) {
 		Unfolding ans = new Unfolding(net, depth);
@@ -58,8 +58,9 @@ public class Unfolding {
 		Event e;
 		System.out.println("Possible Extensions: " + this.possibleExtensions);
 		while ((e = this.possibleExtensions.poll()) != null) {
-			System.out.println("Next event " + e + " with preset " + e.preset());
+			System.out.println("Next event " + e + " with preset " + e.preset().keySet());
 			if (e.coneConfiguration().events().stream().anyMatch(Event::isCutoff)) {
+				System.out.println("  is cut-off");
 				// if (!Collections.disjoint(e.coneConfiguration().events(), cutoff))
 				continue;
 			}
@@ -75,8 +76,8 @@ public class Unfolding {
 	}
 
 	private void addEvent(Event event) {
-		System.out.println("Add event " + event + " with preset " + event.preset());
-		event.preset().forEach((condition, variable) -> cPost.computeIfAbsent(condition, c -> new HashSet<>()).add(event));
+		//System.out.println("Add event " + event + " with preset " + event.preset().keySet());
+		event.preset().forEach((condition, variable) -> conditionPostset.computeIfAbsent(condition, c -> new HashSet<>()).add(event));
 		if (CUTOFF) {
 			event.calcContext(initialConditions);
 			Set<Place> mark = mark(event);
@@ -100,27 +101,31 @@ public class Unfolding {
 	}
 
 	private void addCondition(Condition condition) {
-		System.out.println("add condition " + condition);
+		System.out.println("Add condition " + condition);
 		this.concurrencyMatrix.add(condition);
 		condition.preset().ifPresent(event -> event.postset().add(condition));
 
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.co(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
-		if (placeToConditions.containsKey(condition.place())) throw new AssertionError();
+		if (placeToConditions.containsKey(condition.place())) {
+			throw new AssertionError("no " + condition.place() + " in " + placeToConditions);
+		}
 		placeToConditions.put(condition.place(), List.of(condition));
 		for (Transition transition : condition.place().postSet()) {
 			for (Condition[] candidate : new CartesianProduct<>(Condition[]::new, transition.preSet().keySet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
 				if (!this.concurrencyMatrix.isCoset(candidate)) {
+					System.out.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				Map<Condition, Variable> preset = Arrays.stream(candidate)
 						.collect(Collectors.toMap(Function.identity(), cond -> transition.preSet().get(cond.place())));
 				Event event = new Event(this.eventIndex, transition, preset);
 				if (!initialPredicate.and(event.conePredicate()).isSatisfiable()) {
-					// color conflict
+					System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				this.eventIndex++;
+				System.out.println("  Extend PE with " + event + " " + Arrays.toString(candidate));
 				this.possibleExtensions.add(event);
 			}
 		}
@@ -187,7 +192,7 @@ public class Unfolding {
 
 		private void collectNodes(Condition condition) {
 			conditions.add(condition);
-			for (Event event : cPost.getOrDefault(condition, Collections.emptySet())) {
+			for (Event event : conditionPostset.getOrDefault(condition, Collections.emptySet())) {
 				collectNodes(event);
 			}
 		}
@@ -222,15 +227,15 @@ public class Unfolding {
 					if (node.isCutoff()) {
 						options.put("color", "red");
 					}
-					StringBuilder xlabel = new StringBuilder();
+					StringJoiner xlabel = new StringJoiner("\n");
 					if (CUTOFF) {
 						if (node.isCutoff()) {
-							xlabel.append("mark same as ").append(node.cutoffReason).append("\n");
+							xlabel.add("mark same as " + node.cutoffReason);
 						} else {
-							xlabel.append("mark: ").append(mark(node).toString()).append("\n");
+							xlabel.add("mark: " + mark(node).toString());
 						}
 					}
-					xlabel.append(node.localPredicate().formula());
+					node.transition().guard().ifPresent(guard -> xlabel.add(guard.formula().toString()));
 					options.put("xlabel", xlabel.toString());
 					if (!options.isEmpty()) {
 						writer.append(options.entrySet().stream()

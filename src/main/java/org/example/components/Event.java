@@ -3,6 +3,8 @@ package org.example.components;
 import com.google.common.collect.Sets;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /* Transition (t, X, pred) in E */
 public final class Event implements Comparable<Event> {
@@ -28,29 +30,25 @@ public final class Event implements Comparable<Event> {
 		this.depth = 1 + preset.keySet().stream()
 				.mapToInt(condition -> condition.preset().map(Event::depth).orElse(0))
 				.max().orElse(0);
-		Set<Event> cone = new HashSet<>();
-		cone.add(this);
-		for (Condition inputCondition : preset.keySet()) {
-			inputCondition.preset().ifPresent(event -> cone.addAll(event.coneConfiguration.events()));
-		}
-		this.coneConfiguration = new Configuration(cone);
-		Predicate localPred = preset.entrySet().stream()
+		this.coneConfiguration = new Configuration(Stream.concat(
+				Stream.of(this),
+				preset.keySet().stream().flatMap(condition -> condition.preset().stream())
+		).collect(Collectors.toUnmodifiableSet()));
+		this.localPred = preset.entrySet().stream()
 				.map(conditionVariableEntry -> Predicate.eq(
 						conditionVariableEntry.getValue().local(name),
 						conditionVariableEntry.getKey().preset()
 								.map(preEvent -> conditionVariableEntry.getKey().preVariable().local(preEvent.name()))
 								.orElse(conditionVariableEntry.getKey().preVariable())
 				))
-				.reduce(Predicate::and).orElse(Predicate.TRUE);
-		if (transition.guard().isPresent()) {
-			localPred = localPred.and(transition.guard().get().local(name));
-		}
-		this.localPred = localPred;
+				.reduce(Predicate::and).orElse(Predicate.TRUE)
+				.and(transition.guard().orElse(Predicate.TRUE).local(name));
 		this.conePred = preset.keySet().stream()
 				.flatMap(condition -> condition.preset().stream())
+				.distinct()
 				.map(Event::conePredicate)
 				.reduce(Predicate::and).orElse(Predicate.TRUE)
-				.and(localPred);
+				.and(this.localPred);
 	}
 
 	public void calcContext(Set<Condition> initialConditions) {

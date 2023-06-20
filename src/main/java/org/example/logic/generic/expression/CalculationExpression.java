@@ -5,8 +5,8 @@ import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.CalculationOperator;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class CalculationExpression<A> implements ArithmeticExpression<A> {
 	private final ArithmeticExpression<A> e1;
@@ -46,7 +46,7 @@ public class CalculationExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 		return solver.mkTerm(operator.toCvc5(), e1.toCvc5(solver, atoms), e2.toCvc5(solver, atoms));
 	}
 

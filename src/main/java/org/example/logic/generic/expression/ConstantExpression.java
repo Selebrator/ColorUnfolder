@@ -4,8 +4,8 @@ import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class ConstantExpression<A> implements ArithmeticExpression<A> {
 	private final long constant;
@@ -33,7 +33,7 @@ public class ConstantExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 		return solver.mkInteger(constant);
 	}
 

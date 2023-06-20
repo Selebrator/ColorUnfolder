@@ -5,16 +5,23 @@ import io.github.cvc5.Term;
 import org.example.logic.generic.BinaryLogicOperator;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 public abstract class StateFormula<A> {
 
-	public abstract Set<A> support();
+	public final Set<A> support() {
+		Set<A> ans = new HashSet<>();
+		collectSupport(ans);
+		return Collections.unmodifiableSet(ans);
+	}
+
+	protected abstract void collectSupport(Set<A> accumulator);
 
 	public abstract StateFormula<A> local(String discriminator);
 
-	public abstract Term toCvc5(Solver solver, Map<A, Term> atoms);
+	public abstract Term toCvc5(Solver solver, Function<A, Term> atoms);
 
 	private static final Top TOP = new Top();
 
@@ -25,8 +32,8 @@ public abstract class StateFormula<A> {
 	private static final class Top<A> extends StateFormula<A> {
 
 		@Override
-		public Set<A> support() {
-			return Collections.emptySet();
+		protected void collectSupport(Set<A> accumulator) {
+			// no-op
 		}
 
 		@Override
@@ -35,7 +42,7 @@ public abstract class StateFormula<A> {
 		}
 
 		@Override
-		public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+		public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 			return solver.mkTrue();
 		}
 
@@ -69,8 +76,8 @@ public abstract class StateFormula<A> {
 	public static final class Bottom<A> extends StateFormula<A> {
 
 		@Override
-		public Set<A> support() {
-			return Collections.emptySet();
+		protected void collectSupport(Set<A> accumulator) {
+			// no-op
 		}
 
 		@Override
@@ -79,7 +86,7 @@ public abstract class StateFormula<A> {
 		}
 
 		@Override
-		public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+		public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 			return solver.mkFalse();
 		}
 

@@ -4,7 +4,7 @@ import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.expression.Atom;
 
-import java.util.Map;
+import java.util.function.Function;
 
 public record Variable(String name) implements Atom<Variable> {
 
@@ -13,8 +13,8 @@ public record Variable(String name) implements Atom<Variable> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<Variable, Term> atoms) {
-		return atoms.get(this);
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
+		return atoms.apply(this);
 	}
 
 	@Override

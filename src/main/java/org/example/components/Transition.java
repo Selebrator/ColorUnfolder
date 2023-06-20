@@ -26,9 +26,7 @@ public record Transition(int index, String name, Map<Place, Variable> preSet, Ma
 
 	@Override
 	public String toString() {
-		return "Transition{" +
-				"name='" + name + '\'' +
-				'}';
+		return name;
 	}
 
 	@Override

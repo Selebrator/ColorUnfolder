@@ -3,8 +3,8 @@ package org.example.logic.generic.expression;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public interface ArithmeticExpression<A> {
 
@@ -12,5 +12,5 @@ public interface ArithmeticExpression<A> {
 
 	ArithmeticExpression<A> local(String discriminator);
 
-	Term toCvc5(Solver solver, Map<A, Term> atoms);
+	Term toCvc5(Solver solver, Function<A, Term> atoms);
 }

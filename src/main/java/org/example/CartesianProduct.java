@@ -9,13 +9,9 @@ public class CartesianProduct<T> implements Iterable<T[]> {
 	private final Iterable<T>[] iterables;
 	private final Function<Integer, T[]> arrayConstructor;
 
-	public CartesianProduct(Function<Integer, T[]> arrayConstructor, Iterable<T>... iterables) {
-		this.arrayConstructor = arrayConstructor;
-		this.iterables = iterables;
-	}
-
 	public CartesianProduct(Function<Integer, T[]> arrayConstructor, List<? extends Iterable<T>> iterables) {
-		this(arrayConstructor, iterables.toArray(Iterable[]::new));
+		this.arrayConstructor = arrayConstructor;
+		this.iterables = iterables.toArray(Iterable[]::new);
 	}
 
 	@Override
@@ -65,7 +61,7 @@ public class CartesianProduct<T> implements Iterable<T[]> {
 
 		@Override
 		public T[] next() {
-			// Find first in reverse order iterator the has a next element
+			// Find first in reverse order iterator that has a next element
 			int cursor;
 			for (cursor = size - 1; cursor >= 0; cursor--) {
 				if (iterators[cursor].hasNext()) break;

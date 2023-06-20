@@ -3,8 +3,8 @@ package org.example.logic.generic.formula;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class NegatedFormula<A> extends StateFormula<A> {
 	private final StateFormula<A> f;
@@ -26,8 +26,8 @@ public class NegatedFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Set<A> support() {
-		return this.f.support();
+	protected void collectSupport(Set<A> accumulator) {
+		accumulator.addAll(this.f.support());
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class NegatedFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Map<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
 		return f.toCvc5(solver, atoms).notTerm();
 	}
 
