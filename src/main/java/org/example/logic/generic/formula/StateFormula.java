@@ -3,11 +3,12 @@ package org.example.logic.generic.formula;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.BinaryLogicOperator;
+import org.example.logic.generic.ComparisonOperator;
+import org.example.logic.generic.expression.Atom;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 public abstract class StateFormula<A> {
 
@@ -20,6 +21,8 @@ public abstract class StateFormula<A> {
 	protected abstract void collectSupport(Set<A> accumulator);
 
 	public abstract StateFormula<A> local(String discriminator);
+
+	public abstract StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map);
 
 	public abstract Term toCvc5(Solver solver, Function<A, Term> atoms);
 
@@ -38,6 +41,11 @@ public abstract class StateFormula<A> {
 
 		@Override
 		public StateFormula<A> local(String discriminator) {
+			return this;
+		}
+
+		@Override
+		public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
 			return this;
 		}
 
@@ -82,6 +90,11 @@ public abstract class StateFormula<A> {
 
 		@Override
 		public StateFormula<A> local(String discriminator) {
+			return this;
+		}
+
+		@Override
+		public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
 			return this;
 		}
 
@@ -131,5 +144,18 @@ public abstract class StateFormula<A> {
 			return this;
 		}
 		return CompositionFormula.of(this, BinaryLogicOperator.OR, rhs);
+	}
+
+	public static <A> StateFormula<A> allEquals(List<Atom<A>> atoms) {
+		if (atoms.size() <= 1) {
+			return top();
+		}
+		List<ComparisonFormula<A>> comparisons = IntStream.range(1, atoms.size())
+				.mapToObj(i -> ComparisonFormula.of(atoms.get(i - 1), ComparisonOperator.EQUALS, atoms.get(i)))
+				.toList();
+		if (comparisons.size() == 1) {
+			return comparisons.get(0);
+		}
+		return new CompositionFormula<>(BinaryLogicOperator.AND, comparisons);
 	}
 }

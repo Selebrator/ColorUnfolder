@@ -25,27 +25,24 @@ public class Examples {
 
 	@Test
 	void example() throws IOException {
-		renderAndClip(Unfolding.unfold(colorConflict(), 5));
-		//Solver solver = new Solver();
-		//solver.setOption("produce-models", "true"); // Produce Models
-		//Sort integer = solver.getIntegerSort();
-		//Term x = solver.mkConst(integer, "x");
-		//Term y = solver.mkConst(integer, "y");
-		//Term z = solver.mkConst(integer, "z");
-		//Term zero = solver.mkInteger(0);
-		//Term yG0 = solver.mkTerm(Kind.GT, y, zero);
-		//Term zL0 = solver.mkTerm(Kind.LT, z, zero);
-		//Term xEy = solver.mkTerm(Kind.EQUAL, x, y);
-		//Term xEz = solver.mkTerm(Kind.EQUAL, x, z);
-		//Term term = solver.mkTerm(Kind.AND, new Term[]{yG0, zL0, xEy, xEz});
-		//System.out.println(term);
-		//solver.assertFormula(term);
-		//Result result = solver.checkSat();
-		//System.out.println(result);
-		//System.out.println("x = " + solver.getValue(x));
-		//System.out.println("y = " + solver.getValue(y));
-		//System.out.println("z = " + solver.getValue(z));
-
+		//Variable
+		//		x = new Variable("x"),
+		//		y = new Variable("y"),
+		//		z = new Variable("z");
+		//Place
+		//		p1 = new Place(1),
+		//		p2 = new Place(2),
+		//		p3 = new Place(3);
+		//Transition
+		//		t = new Transition(1, new Predicate(ComparisonFormula.of(x, EQUALS, ConstantExpression.of(1)).and(ComparisonFormula.of(z, EQUALS, y))));
+		//link(p1, t, x);
+		//link(p2, t, y);
+		//link(t, p3, z);
+		//Net net = new Net(new Marking(Map.of(p1, 1, p2, 0)));
+		Net net = colorConflict();
+		renderAndClip(net);
+		renderAndClip(Unfolding.unfold(net, 7, false));
+		renderAndClip(Unfolding.unfold(net, 7, true));
 	}
 
 	Net mutex() {
@@ -178,17 +175,13 @@ public class Examples {
 				p3 = new Place(3),
 				p4 = new Place(4),
 				p5 = new Place(5),
-				p6 = new Place(6),
-				p7 = new Place(7),
-				p8 = new Place(8);
+				p6 = new Place(6);
 		Transition
 				t1 = new Transition(1, new Predicate(ComparisonFormula.of(y, GREATER_THEN, ConstantExpression.of(0))
 				.and(ComparisonFormula.of(z, LESS_THEN, ConstantExpression.of(0))))),
-				t2 = new Transition(2),
+				t2 = new Transition(2, new Predicate(ComparisonFormula.of(x, NOT_EQUALS, ConstantExpression.of(0)))),
 				t3 = new Transition(3),
-				t4 = new Transition(4),
-				t5 = new Transition(5),
-				t6 = new Transition(6);
+				t4 = new Transition(4);
 		link(p1, t1, x);
 		link(t1, p2, y);
 		link(t1, p3, z);
@@ -199,7 +192,7 @@ public class Examples {
 		link(p2, t3, x);
 		link(p3, t3, x);
 		link(t3, p5, x);
-		return new Net(new Marking(Map.of(p1, 0)));
+		return new Net(new Marking(Map.of(p1, 1)));
 	}
 
 	//Net xiang() {
@@ -370,6 +363,17 @@ public class Examples {
 				geodes, 0,
 				r, 1
 		)));
+	}
+
+	void renderAndClip(Net net) throws IOException {
+		try (StringWriter stringWriter = new StringWriter()) {
+			net.render(stringWriter);
+			System.out.println(stringWriter);
+			Process clip = new ProcessBuilder("xclip", "-sel", "clip").start();
+			try (var out = clip.outputWriter()) {
+				out.append(stringWriter.toString()).flush();
+			}
+		}
 	}
 
 	void renderAndClip(Unfolding unf) throws IOException {

@@ -5,6 +5,7 @@ import org.example.components.*;
 import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.expression.ConstantExpression;
 import org.example.logic.generic.formula.ComparisonFormula;
+import org.example.logic.generic.formula.StateFormula;
 import org.example.net.Net;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ public class Unfolding {
 
 	private final int depthBound;
 	private final boolean CUTOFF = false;
+	private final boolean SHOW_INTERNAL_VARIABLES;
 
 	private int eventIndex = 1;
 	private int conditionIndex = 1;
@@ -29,15 +31,16 @@ public class Unfolding {
 
 	private final Map<Condition, Set<Event>> conditionPostset = new HashMap<>();
 
-	public static Unfolding unfold(Net net, int depth) {
-		Unfolding ans = new Unfolding(net, depth);
+	public static Unfolding unfold(Net net, int depth, boolean showInternalVariables) {
+		Unfolding ans = new Unfolding(net, depth, showInternalVariables);
 		ans.construct();
 		return ans;
 	}
 
-	private Unfolding(Net original, int depthBound) {
+	private Unfolding(Net original, int depthBound, boolean showInternalVariables) {
 		this.depthBound = depthBound;
 		this.net = original;
+		this.SHOW_INTERNAL_VARIABLES = showInternalVariables;
 		this.initialConditions = this.net.initialMarking().tokens().keySet().stream()
 				.sorted(Comparator.comparingInt(Place::index))
 				.map(place -> new Condition(this.conditionIndex++, place, Optional.empty(), new Variable(place.name() + "_init")))
@@ -65,14 +68,23 @@ public class Unfolding {
 				continue;
 			}
 			for (Map.Entry<Place, Variable> post : e.transition().postSet().entrySet()) {
-				this.addCondition(new Condition(this.conditionIndex++, post.getKey(), Optional.of(e), post.getValue()));
+				this.addCondition(makeCondition(e, post.getKey(), post.getValue()));
 			}
 			this.addEvent(e);
-			if (!CUTOFF && e.depth() >= depthBound) {
-				e.setCutoff(e);
-			}
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
 		}
+	}
+
+	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
+		Variable eventToConditionVariable = preEvent.transition().preSet().entrySet().stream()
+				.filter(entry -> entry.getValue().equals(transitionToPlaceVariable))
+				.findAny()
+				.map(tEntry -> preEvent.preset().entrySet().stream()
+						.filter(eEntry -> eEntry.getKey().place().equals(tEntry.getKey()))
+						.findAny().orElseThrow(() -> new AssertionError("such a condition must exist"))
+						.getValue())
+				.orElseGet(() -> transitionToPlaceVariable.local(preEvent.name()));
+		return new Condition(this.conditionIndex++, correspondingPlace, Optional.of(preEvent), eventToConditionVariable);
 	}
 
 	private void addEvent(Event event) {
@@ -91,6 +103,8 @@ public class Unfolding {
 			} else {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
+		} else if (event.depth() >= depthBound) {
+			event.setCutoff(event);
 		}
 	}
 
@@ -118,7 +132,7 @@ public class Unfolding {
 					continue;
 				}
 				Map<Condition, Variable> preset = Arrays.stream(candidate)
-						.collect(Collectors.toMap(Function.identity(), cond -> transition.preSet().get(cond.place())));
+						.collect(Collectors.toMap(Function.identity(), Condition::preVariable));
 				Event event = new Event(this.eventIndex, transition, preset);
 				if (!initialPredicate.and(event.conePredicate()).isSatisfiable()) {
 					System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
@@ -235,7 +249,16 @@ public class Unfolding {
 							xlabel.add("mark: " + mark(node).toString());
 						}
 					}
-					node.transition().guard().ifPresent(guard -> xlabel.add(guard.formula().toString()));
+					if (SHOW_INTERNAL_VARIABLES) {
+						if (!StateFormula.top().equals(node.localPredicate().formula())) {
+							xlabel.add(node.localPredicate().formula().toString());
+						}
+					} else {
+						if (!StateFormula.top().equals(node.transition().guard().formula())) {
+							xlabel.add(node.transition().guard().formula().toString());
+						}
+					}
+
 					options.put("xlabel", xlabel.toString());
 					if (!options.isEmpty()) {
 						writer.append(options.entrySet().stream()
@@ -248,10 +271,17 @@ public class Unfolding {
 
 			for (var to : conditions) {
 				if (to.preset().isPresent()) {
-					writer.append("\"").append(to.preset().get().toString())
+					var from = to.preset().get();
+					writer.append("\"").append(from.toString())
 							.append("\" -> \"")
 							.append(to.toString()).append("\"")
-							.append(" [label=\"").append(to.preVariable().name()).append("\"]")
+							.append(" [label=\"");
+					if (SHOW_INTERNAL_VARIABLES) {
+						writer.append(to.preVariable().name());
+					} else {
+						writer.append(from.transition().postSet().get(to.place()).name());
+					}
+					writer.append("\"]")
 							.append("\n");
 				}
 			}
@@ -260,7 +290,14 @@ public class Unfolding {
 					writer.append("\"").append(from.getKey().toString())
 							.append("\" -> \"")
 							.append(to.toString()).append("\"")
-							.append(" [label=\"").append(from.getValue().name()).append("\"]")
+							.append(" [label=\"");
+					if (SHOW_INTERNAL_VARIABLES) {
+						writer.append(from.getValue().name());
+					} else {
+						writer.append(to.transition().preSet().get(from.getKey().place()).name());
+					}
+					writer
+							.append("\"]")
 							.append("\n");
 				}
 			}

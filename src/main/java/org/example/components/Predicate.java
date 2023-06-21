@@ -8,9 +8,8 @@ import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.formula.ComparisonFormula;
 import org.example.logic.generic.formula.StateFormula;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public record Predicate(StateFormula<Variable> formula) {
 	public static Predicate TRUE = new Predicate(StateFormula.top());
@@ -31,16 +30,16 @@ public record Predicate(StateFormula<Variable> formula) {
 		Solver solver = new Solver();
 		solver.setOption("produce-models", "true");
 		Sort integer = solver.getIntegerSort();
-		Map<Variable, Term> atoms = formula.support().stream().collect(Collectors.toMap(Function.identity(), variable -> solver.mkConst(integer, variable.name())));
-		Term cvc5Formula = formula.toCvc5(solver, atoms::get);
+		Map<Variable, Term> atoms = new HashMap<>();
+		Term cvc5Formula = formula.toCvc5(solver, v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name())));
 		solver.assertFormula(cvc5Formula);
 		Result result = solver.checkSat();
 		//System.out.println(result + " " + this + " encoded: " + cvc5Formula);
-		if (result.isSat()) {
-			for (Term atom : atoms.values()) {
-				//System.out.println(atom + " = " + solver.getValue(atom));
-			}
-		}
+		//if (result.isSat()) {
+		//	for (Term atom : atoms.values()) {
+		//		System.out.println(atom + " = " + solver.getValue(atom));
+		//	}
+		//}
 		if (result.isNull() || result.isUnknown()) {
 			throw new AssertionError("result is " + result);
 		}

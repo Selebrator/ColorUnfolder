@@ -3,10 +3,9 @@ package org.example.components;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 public record Transition(int index, String name, Map<Place, Variable> preSet, Map<Place, Variable> postSet,
-						 Optional<Predicate> guard) {
+						 Predicate guard) {
 
 	public Transition(int index) {
 		this(index, "t" + index);
@@ -17,11 +16,11 @@ public record Transition(int index, String name, Map<Place, Variable> preSet, Ma
 	}
 
 	public Transition(int index, String name) {
-		this(index, name, null);
+		this(index, name, Predicate.TRUE);
 	}
 
 	public Transition(int index, String name, Predicate guard) {
-		this(index, name, new HashMap<>(), new HashMap<>(), Optional.ofNullable(guard));
+		this(index, name, new HashMap<>(), new HashMap<>(), guard);
 	}
 
 	@Override

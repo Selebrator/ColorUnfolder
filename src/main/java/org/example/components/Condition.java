@@ -5,8 +5,8 @@ import java.util.*;
 
 /* Place (p, e, pred) in B */
 public record Condition(int index, String name, Place place, Optional<Event> preset, Variable preVariable) {
-	public Condition(int index, Place place, Optional<Event> preset, Variable variable) {
-		this(index, "b" + index, place, preset, variable);
+	public Condition(int index, Place place, Optional<Event> preset, Variable preVariable) {
+		this(index, "b" + index, place, preset, preVariable);
 	}
 
 	@Override

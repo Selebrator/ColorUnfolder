@@ -4,9 +4,11 @@ import com.google.common.base.Preconditions;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.BinaryLogicOperator;
+import org.example.logic.generic.expression.Atom;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,7 +25,7 @@ public class CompositionFormula<A> extends StateFormula<A> {
 		this.operator = operator;
 	}
 
-	private CompositionFormula(BinaryLogicOperator operator, Collection<? extends StateFormula<A>> formulas) {
+	protected CompositionFormula(BinaryLogicOperator operator, Collection<? extends StateFormula<A>> formulas) {
 		Preconditions.checkArgument(formulas.size() >= 2, operator.name() + " has to be applied to at least 2 arguments");
 		this.formulas = List.copyOf(formulas);
 		this.operator = operator;
@@ -94,7 +96,7 @@ public class CompositionFormula<A> extends StateFormula<A> {
 	@Override
 	protected void collectSupport(Set<A> accumulator) {
 		for (StateFormula<A> formula : this.formulas) {
-			accumulator.addAll(formula.support());
+			formula.collectSupport(accumulator);
 		}
 	}
 
@@ -103,6 +105,15 @@ public class CompositionFormula<A> extends StateFormula<A> {
 		return new CompositionFormula<>(operator,
 				formulas.stream()
 						.map(f -> f.local(discriminator))
+						.toList()
+		);
+	}
+
+	@Override
+	public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
+		return new CompositionFormula<>(operator,
+				formulas.stream()
+						.map(f -> f.substitute(map))
 						.toList()
 		);
 	}

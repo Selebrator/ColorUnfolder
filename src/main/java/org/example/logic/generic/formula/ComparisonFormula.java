@@ -4,7 +4,9 @@ import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.expression.ArithmeticExpression;
+import org.example.logic.generic.expression.Atom;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -38,13 +40,18 @@ public class ComparisonFormula<A> extends StateFormula<A> {
 
 	@Override
 	protected void collectSupport(Set<A> accumulator) {
-		accumulator.addAll(this.e1.support());
-		accumulator.addAll(this.e2.support());
+		this.e1.collectSupport(accumulator);
+		this.e2.collectSupport(accumulator);
 	}
 
 	@Override
 	public StateFormula<A> local(String discriminator) {
 		return new ComparisonFormula<>(e1.local(discriminator), operator, e2.local(discriminator));
+	}
+
+	@Override
+	public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
+		return new ComparisonFormula<>(e1.substitute(map), operator, e2.substitute(map));
 	}
 
 	@Override

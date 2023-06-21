@@ -1,6 +1,8 @@
 package org.example.components;
 
 import com.google.common.collect.Sets;
+import org.example.logic.generic.expression.Atom;
+import org.example.logic.generic.formula.StateFormula;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,21 +36,40 @@ public final class Event implements Comparable<Event> {
 				Stream.of(this),
 				preset.keySet().stream().flatMap(condition -> condition.preset().stream())
 		).collect(Collectors.toUnmodifiableSet()));
-		this.localPred = preset.entrySet().stream()
-				.map(conditionVariableEntry -> Predicate.eq(
-						conditionVariableEntry.getValue().local(name),
-						conditionVariableEntry.getKey().preset()
-								.map(preEvent -> conditionVariableEntry.getKey().preVariable().local(preEvent.name()))
-								.orElse(conditionVariableEntry.getKey().preVariable())
-				))
-				.reduce(Predicate::and).orElse(Predicate.TRUE)
-				.and(transition.guard().orElse(Predicate.TRUE).local(name));
+		this.localPred = new Predicate(guard(name, transition, preset));
 		this.conePred = preset.keySet().stream()
 				.flatMap(condition -> condition.preset().stream())
 				.distinct()
 				.map(Event::conePredicate)
 				.reduce(Predicate::and).orElse(Predicate.TRUE)
 				.and(this.localPred);
+	}
+
+	private static StateFormula<Variable> guard(String name, Transition transition, Map<Condition, Variable> conditionPreset) {
+		Map<Atom<Variable>, Atom<Variable>> guardSubstitution = transition.guard().formula().support().stream()
+				.collect(Collectors.toMap(variable -> variable, variable -> variable.local(name)));
+		return transition.preSet().entrySet().stream()
+				.collect(Collectors.groupingBy(
+						Map.Entry::getValue,
+						Collectors.mapping(Map.Entry::getKey, Collectors.toList())
+				))
+				.entrySet().stream()
+				.map(originalVariableToPresetPlaces -> {
+					Variable variable = originalVariableToPresetPlaces.getKey();
+					List<Place> transitionPreset = originalVariableToPresetPlaces.getValue();
+					List<Atom<Variable>> mustEqVariables = conditionPreset.entrySet().stream()
+							.filter(conditionVariableEntry -> transitionPreset.contains(conditionVariableEntry.getKey().place()))
+							.map(Map.Entry::getValue)
+							.distinct()
+							.collect(Collectors.toList());
+					Variable representative = mustEqVariables.get(0).value();
+					guardSubstitution.put(variable, representative);
+					return mustEqVariables;
+				})
+				.map(StateFormula::allEquals)
+				.reduce(StateFormula::and)
+				.orElseGet(StateFormula::top)
+				.and(transition.guard().formula().substitute(guardSubstitution));
 	}
 
 	public void calcContext(Set<Condition> initialConditions) {

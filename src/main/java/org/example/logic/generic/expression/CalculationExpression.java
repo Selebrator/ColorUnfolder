@@ -1,10 +1,10 @@
 package org.example.logic.generic.expression;
 
-import com.google.common.collect.Sets;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 import org.example.logic.generic.CalculationOperator;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -36,13 +36,19 @@ public class CalculationExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public Set<A> support() {
-		return Sets.union(this.e1.support(), this.e2.support());
+	public void collectSupport(Set<A> accumulator) {
+		this.e1.collectSupport(accumulator);
+		this.e2.collectSupport(accumulator);
 	}
 
 	@Override
 	public ArithmeticExpression<A> local(String discriminator) {
 		return new CalculationExpression<>(e1.local(discriminator), operator, e2.local(discriminator));
+	}
+
+	@Override
+	public ArithmeticExpression<A> substitute(Map<Atom<A>, Atom<A>> map) {
+		return new CalculationExpression<>(e1.substitute(map), operator, e2.substitute(map));
 	}
 
 	@Override

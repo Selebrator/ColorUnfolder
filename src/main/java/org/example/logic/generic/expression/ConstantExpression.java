@@ -3,7 +3,7 @@ package org.example.logic.generic.expression;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -23,12 +23,17 @@ public class ConstantExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public Set<A> support() {
-		return Collections.emptySet();
+	public void collectSupport(Set<A> accumulator) {
+		// no-op
 	}
 
 	@Override
 	public ArithmeticExpression<A> local(String discriminator) {
+		return this;
+	}
+
+	@Override
+	public ArithmeticExpression<A> substitute(Map<Atom<A>, Atom<A>> map) {
 		return this;
 	}
 
