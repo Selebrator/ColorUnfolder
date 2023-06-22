@@ -1,9 +1,10 @@
-package org.example.logic.generic.expression;
+package org.example.logic;
 
 import java.util.Map;
 import java.util.Set;
 
-public interface Atom<A> extends ArithmeticExpression<A> {
+public non-sealed interface Atom<A> extends ArithmeticExpression<A> {
+
 	A value();
 
 	@Override
@@ -14,10 +15,6 @@ public interface Atom<A> extends ArithmeticExpression<A> {
 	@Override
 	default ArithmeticExpression<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		Atom<A> ans = map.get(this);
-		if (ans == null) {
-			return this;
-		} else {
-			return ans;
-		}
+		return ans != null ? ans : this;
 	}
 }

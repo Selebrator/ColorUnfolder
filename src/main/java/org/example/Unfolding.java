@@ -2,10 +2,7 @@ package org.example;
 
 import com.google.common.collect.Sets;
 import org.example.components.*;
-import org.example.logic.generic.ComparisonOperator;
-import org.example.logic.generic.expression.ConstantExpression;
-import org.example.logic.generic.formula.ComparisonFormula;
-import org.example.logic.generic.formula.StateFormula;
+import org.example.logic.Formula;
 import org.example.net.Net;
 
 import java.io.IOException;
@@ -25,7 +22,7 @@ public class Unfolding {
 
 	private final Net net;
 	private final Set<Condition> initialConditions; // Min(O)
-	private final StateFormula<Variable> initialPredicate;
+	private final Formula<Variable> initialPredicate;
 	private static final Comparator<Event> ORDER = Comparator.comparing(Event::coneConfiguration, Order::compare);
 	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(ORDER);
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
@@ -47,13 +44,12 @@ public class Unfolding {
 				.map(place -> new Condition(this.conditionIndex++, place, Optional.empty(), new Variable(place.name() + "_init")))
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 		this.initialPredicate = this.initialConditions.stream()
-				.map(condition -> ComparisonFormula.of(condition.preVariable(), ComparisonOperator.EQUALS,
-						ConstantExpression.of(net.initialMarking().tokens().get(condition.place()))))
-				.collect(StateFormula.and());
-		System.out.println(initialPredicate);
+				.map(condition -> condition.preVariable().eq(net.initialMarking().tokens().get(condition.place())))
+				.collect(Formula.and());
 	}
 
 	private void construct() {
+		System.out.println("Initialize unfolding with " + net.initialMarking().tokens());
 		for (Condition initialCondition : initialConditions) {
 			this.addCondition(initialCondition);
 		}
@@ -64,7 +60,7 @@ public class Unfolding {
 		while ((e = this.possibleExtensions.poll()) != null) {
 			System.out.println("Next event " + e + " with preset " + e.preset().keySet());
 			if (e.coneConfiguration().events().stream().anyMatch(Event::isCutoff)) {
-				System.out.println("  is cut-off");
+				System.out.println("  " + e + " is cut-off event. skipping.");
 				// if (!Collections.disjoint(e.coneConfiguration().events(), cutoff))
 				continue;
 			}
@@ -74,6 +70,7 @@ public class Unfolding {
 			this.addEvent(e);
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
 		}
+		System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 	}
 
 	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
@@ -89,7 +86,6 @@ public class Unfolding {
 	}
 
 	private void addEvent(Event event) {
-		//System.out.println("Add event " + event + " with preset " + event.preset().keySet());
 		event.preset().forEach((condition, variable) -> conditionPostset.computeIfAbsent(condition, c -> new HashSet<>()).add(event));
 		if (event.depth() >= depthBound) {
 			event.setCutoff(CutoffReason.DEPTH);
@@ -100,10 +96,12 @@ public class Unfolding {
 			Set<Place> mark = mark(event);
 			if (this.marks.containsKey(mark)) {
 				Set<Event> events = this.marks.get(mark);
-				StateFormula<Variable> collect = event.coloredCutPredicate(initialPredicate).implies(events.stream()
-						.filter(otherEvent -> ORDER.compare(otherEvent, event) < 0)
-						.map(otherEvent -> otherEvent.coloredCutPredicate(initialPredicate))
-						.collect(StateFormula.or()));
+				Formula<Variable> collect = event.coloredCutPredicate(initialPredicate)
+						.implies(events.stream()
+								.filter(otherEvent -> ORDER.compare(otherEvent, event) < 0)
+								.map(otherEvent -> otherEvent.coloredCutPredicate(initialPredicate))
+								.collect(Formula.or()));
+				System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 				if (Predicate.isTautology(collect)) {
 					event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
 				}
@@ -121,7 +119,7 @@ public class Unfolding {
 	}
 
 	private void addCondition(Condition condition) {
-		System.out.println("Add condition " + condition);
+		System.out.println("  Add condition " + condition);
 		this.concurrencyMatrix.add(condition);
 		condition.preset().ifPresent(event -> event.postset().add(condition));
 
@@ -134,18 +132,19 @@ public class Unfolding {
 		for (Transition transition : condition.place().postSet()) {
 			for (Condition[] candidate : new CartesianProduct<>(Condition[]::new, transition.preSet().keySet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
 				if (!this.concurrencyMatrix.isCoset(candidate)) {
-					System.out.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
+					//System.out.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				Map<Condition, Variable> preset = Arrays.stream(candidate)
 						.collect(Collectors.toMap(Function.identity(), Condition::preVariable));
 				Event event = new Event(this.eventIndex, transition, preset);
+				System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
 				if (!Predicate.isSatisfiable(event.conePredicate(initialPredicate))) {
-					System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
+					//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				this.eventIndex++;
-				System.out.println("  Extend PE with " + event + " " + Arrays.toString(candidate));
+				System.out.println("    Extend PE with " + event + " " + Arrays.toString(candidate));
 				this.possibleExtensions.add(event);
 			}
 		}
@@ -264,12 +263,14 @@ public class Unfolding {
 					});
 					StringJoiner xlabel = new StringJoiner("\n");
 					if (SHOW_DEBUG) {
-						xlabel.add("h(cut) = " + mark(node));
-						if (!StateFormula.top().equals(node.localPredicate())) {
+						if (node.coneCut() != null) {
+							xlabel.add("h(cut) = " + mark(node));
+						}
+						if (!Formula.top().equals(node.localPredicate())) {
 							xlabel.add(node.localPredicate().toString());
 						}
 					} else {
-						if (!StateFormula.top().equals(node.transition().guard())) {
+						if (!Formula.top().equals(node.transition().guard())) {
 							xlabel.add(node.transition().guard().toString());
 						}
 					}

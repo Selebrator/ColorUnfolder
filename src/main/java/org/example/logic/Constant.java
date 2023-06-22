@@ -1,4 +1,4 @@
-package org.example.logic.generic.expression;
+package org.example.logic;
 
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
@@ -7,29 +7,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class ConstantExpression<A> implements ArithmeticExpression<A> {
+/* package-private */ final class Constant<A> implements ArithmeticExpression<A> {
+
 	private final long constant;
 
-	protected ConstantExpression(long constant) {
+	private Constant(long constant) {
 		this.constant = constant;
 	}
 
-	public static <V> ConstantExpression<V> of(long constant) {
-		return new ConstantExpression<>(constant);
-	}
-
-	public long constant() {
-		return this.constant;
+	public static <V> Constant<V> of(long constant) {
+		return new Constant<>(constant);
 	}
 
 	@Override
 	public void collectSupport(Set<A> accumulator) {
 		// no-op
-	}
-
-	@Override
-	public ArithmeticExpression<A> local(String discriminator) {
-		return this;
 	}
 
 	@Override

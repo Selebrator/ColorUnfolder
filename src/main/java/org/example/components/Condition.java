@@ -1,6 +1,5 @@
 package org.example.components;
 
-
 import java.util.*;
 
 /* Place (p, e, pred) in B */

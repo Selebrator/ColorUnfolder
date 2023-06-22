@@ -3,9 +3,6 @@ package org.example;
 import org.example.components.Place;
 import org.example.components.Transition;
 import org.example.components.Variable;
-import org.example.logic.generic.expression.CalculationExpression;
-import org.example.logic.generic.expression.ConstantExpression;
-import org.example.logic.generic.formula.ComparisonFormula;
 import org.example.net.Marking;
 import org.example.net.Net;
 import org.junit.jupiter.api.Test;
@@ -14,19 +11,15 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
-import static org.example.logic.generic.CalculationOperator.MINUS;
-import static org.example.logic.generic.CalculationOperator.PLUS;
-import static org.example.logic.generic.ComparisonOperator.*;
-
 public class Examples {
 
 	static Variable VAR = new Variable("⊻");
 
 	@Test
 	void example() throws IOException {
-		Net net = two_ways_to_reset();
+		Net net = aoc22_19();
 		renderAndClip(net);
-		renderAndClip(Unfolding.unfold(net, 11, true));
+		//renderAndClip(Unfolding.unfold(net, 11, true));
 	}
 
 	Net two_ways_to_reset() {
@@ -39,8 +32,8 @@ public class Examples {
 				q = new Place(2, "q");
 		Transition
 				i = new Transition(0, "ι"),
-				a = new Transition(1, "α", ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1))),
-				b = new Transition(2, "β", ComparisonFormula.of(l, EQUALS, ConstantExpression.of(2))),
+				a = new Transition(1, "α", l.eq(1)),
+				b = new Transition(2, "β", l.eq(2)),
 				o = new Transition(3, "ω");
 		link(s, i, x);
 		link(i, p, l);
@@ -442,9 +435,9 @@ public class Examples {
 				p2 = new Place(2),
 				p3 = new Place(3);
 		Transition
-				t1 = new Transition(1, ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1))),
-				t2 = new Transition(2, ComparisonFormula.of(ll, NOT_EQUALS, ConstantExpression.of(0))),
-				t3 = new Transition(3, ComparisonFormula.of(k, EQUALS, ConstantExpression.of(0)));
+				t1 = new Transition(1, l.eq(1)),
+				t2 = new Transition(2, ll.neq(0)),
+				t3 = new Transition(3, k.eq(0));
 
 		link(p1, t1, k);
 		link(t1, p2, l);
@@ -468,9 +461,8 @@ public class Examples {
 				p5 = new Place(5),
 				p6 = new Place(6);
 		Transition
-				t1 = new Transition(1, ComparisonFormula.of(y, GREATER_THEN, ConstantExpression.of(0))
-				.and(ComparisonFormula.of(z, LESS_THEN, ConstantExpression.of(0)))),
-				t2 = new Transition(2, ComparisonFormula.of(x, NOT_EQUALS, ConstantExpression.of(0))),
+				t1 = new Transition(1, y.gt(0).and(z.lt(0))),
+				t2 = new Transition(2, x.neq(0)),
 				t3 = new Transition(3),
 				t4 = new Transition(4);
 		link(p1, t1, x);
@@ -510,12 +502,6 @@ public class Examples {
 	//}
 
 	Net aoc22_19() {
-		ConstantExpression<Variable> _1 = ConstantExpression.of(1);
-		ConstantExpression<Variable> _2 = ConstantExpression.of(2);
-		ConstantExpression<Variable> _3 = ConstantExpression.of(3);
-		ConstantExpression<Variable> _4 = ConstantExpression.of(4);
-		ConstantExpression<Variable> _7 = ConstantExpression.of(7);
-		ConstantExpression<Variable> _14 = ConstantExpression.of(14);
 		Variable
 				O = new Variable("O"),
 				C = new Variable("C"),
@@ -548,34 +534,34 @@ public class Examples {
 				i = new Place(10, "inter");
 		Transition
 				t = new Transition(1, "t",
-				ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, PLUS, O))
-						.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, PLUS, C)))
-						.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, PLUS, S)))
-						.and(ComparisonFormula.of(g_, EQUALS, CalculationExpression.of(g, PLUS, G)))
+				o_.eq(o.plus(O))
+						.and(c_.eq(c.plus(C)))
+						.and(s_.eq(s.plus(S)))
+						.and(g_.eq(g.plus(G)))
 		),
 				mo = new Transition(2, "MakeOreMiner",
-						ComparisonFormula.of(O_, EQUALS, CalculationExpression.of(O, PLUS, _1))
-								.and(ComparisonFormula.of(o, GREATER_EQUALS, _4))
-								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _4)))
+						O_.eq(O.plus(1))
+								.and(o.geq(4))
+								.and(o_.eq(o.plus(4)))
 				),
 				mc = new Transition(3, "MakeClayMiner",
-						ComparisonFormula.of(C_, EQUALS, CalculationExpression.of(C, PLUS, _1))
-								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
-								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
+						C_.eq(C.plus(1))
+								.and(o.geq(2))
+								.and(o_.eq(o.minus(2)))
 				),
 				ms = new Transition(4, "MakeObsidianMiner",
-						ComparisonFormula.of(S_, EQUALS, CalculationExpression.of(S, PLUS, _1))
-								.and(ComparisonFormula.of(o, GREATER_EQUALS, _3))
-								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _3)))
-								.and(ComparisonFormula.of(c, GREATER_EQUALS, _14))
-								.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, MINUS, _14)))
+						S_.eq(S.plus(1))
+								.and(o.geq(3))
+								.and(o_.eq(o.minus(3)))
+								.and(c.geq(14))
+								.and(c_.eq(c.minus(14)))
 				),
 				mg = new Transition(5, "MakeGeodeMiner",
-						ComparisonFormula.of(G_, EQUALS, CalculationExpression.of(G, PLUS, _1))
-								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
-								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
-								.and(ComparisonFormula.of(s, GREATER_EQUALS, _7))
-								.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, MINUS, _7)))
+						G_.eq(G.plus(1))
+								.and(o.geq(2))
+								.and(o_.eq(o.minus(2)))
+								.and(s.geq(7))
+								.and(s_.eq(s.minus(7)))
 				),
 				skip = new Transition(6, "Skip");
 		// t

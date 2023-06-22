@@ -2,7 +2,7 @@ package org.example.components;
 
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
-import org.example.logic.generic.expression.Atom;
+import org.example.logic.Atom;
 
 import java.util.function.Function;
 

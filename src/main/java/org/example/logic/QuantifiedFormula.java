@@ -1,45 +1,38 @@
-package org.example.logic.generic.formula;
+package org.example.logic;
 
 import io.github.cvc5.Kind;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
-import org.example.logic.generic.Quantifier;
-import org.example.logic.generic.expression.Atom;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class QuantifiedFormula<A> extends StateFormula<A> {
+public final class QuantifiedFormula<A> extends Formula<A> {
 
 	private final Quantifier quantifier;
 	private final Set<? extends Atom<A>> variables;
-	private final StateFormula<A> f;
+	private final Formula<A> f;
 
-	private QuantifiedFormula(Quantifier quantifier, Set<? extends Atom<A>> variables, StateFormula<A> f) {
+	private QuantifiedFormula(Quantifier quantifier, Set<? extends Atom<A>> variables, Formula<A> f) {
 		this.quantifier = quantifier;
 		this.variables = variables;
 		this.f = f;
 	}
 
-	public static <A> StateFormula<A> of(Quantifier quantifier, Set<? extends Atom<A>> variables, StateFormula<A> f) {
+	public static <A> Formula<A> of(Quantifier quantifier, Set<? extends Atom<A>> variables, Formula<A> f) {
 		return new QuantifiedFormula<>(quantifier, variables, f);
 	}
 
 	@Override
 	protected void collectSupport(Set<A> accumulator) {
-		// TODO
+		throw new UnsupportedOperationException();  // TODO implement if needed
 	}
 
 	@Override
-	public StateFormula<A> local(String discriminator) {
-		return null; // TODO
-	}
-
-	@Override
-	public StateFormula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
-		return null; // TODO
+	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+		throw new UnsupportedOperationException();  // TODO implement if needed
 	}
 
 	@Override
@@ -62,6 +55,28 @@ public class QuantifiedFormula<A> extends StateFormula<A> {
 
 	@Override
 	public String toString() {
-		return this.quantifier.symbol() + " " + this.variables + ": " + this.f;
+		return "(" + this.quantifier.symbol() + " " + this.variables + ": " + this.f + ")";
+	}
+
+	public enum Quantifier {
+
+		EXISTS("∃", Kind.EXISTS),
+		FORALL("∀", Kind.FORALL);
+
+		private final String symbol;
+		private final Kind cvc5;
+
+		Quantifier(String symbol, Kind cvc5) {
+			this.symbol = symbol;
+			this.cvc5 = cvc5;
+		}
+
+		public Kind toCvc5() {
+			return this.cvc5;
+		}
+
+		public String symbol() {
+			return this.symbol;
+		}
 	}
 }

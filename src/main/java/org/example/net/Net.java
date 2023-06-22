@@ -3,7 +3,7 @@ package org.example.net;
 import org.example.components.Place;
 import org.example.components.Transition;
 import org.example.components.Variable;
-import org.example.logic.generic.formula.StateFormula;
+import org.example.logic.Formula;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -71,7 +71,7 @@ public record Net(Marking initialMarking) {
 			writer.append("node[shape=box];\n");
 			for (Transition transition : transitions) {
 				writer.append("\"").append(transition.name()).append("\"");
-				if (!StateFormula.top().equals(transition.guard())) {
+				if (!Formula.top().equals(transition.guard())) {
 					writer.append("[xlabel=\"").append(transition.guard().toString()).append("\"]");
 				}
 				writer.append(";\n");
@@ -83,13 +83,13 @@ public record Net(Marking initialMarking) {
 				Place place = entry.getKey();
 				Variable variable = entry.getValue();
 				writer.append("\"").append(place.name()).append("\" -> \"").append(transition.name()).append("\"")
-						.append("[xlabel=").append(variable.name()).append("]").append("\n");
+						.append("[xlabel=\"").append(variable.name()).append("\"]").append("\n");
 			}
 			for (Map.Entry<Place, Variable> entry : transition.postSet().entrySet()) {
 				Place place = entry.getKey();
 				Variable variable = entry.getValue();
 				writer.append("\"").append(transition.name()).append("\" -> \"").append(place.name()).append("\"")
-						.append("[xlabel=").append(variable.name()).append("]").append("\n");
+						.append("[xlabel=\"").append(variable.name()).append("\"]").append("\n");
 			}
 		}
 

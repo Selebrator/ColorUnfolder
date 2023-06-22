@@ -1,11 +1,8 @@
 package org.example.components;
 
 import com.google.common.collect.Sets;
-import org.example.logic.generic.ComparisonOperator;
-import org.example.logic.generic.Quantifier;
-import org.example.logic.generic.formula.ComparisonFormula;
-import org.example.logic.generic.formula.QuantifiedFormula;
-import org.example.logic.generic.formula.StateFormula;
+import org.example.logic.Formula;
+import org.example.logic.QuantifiedFormula;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,8 +15,8 @@ public final class Event implements Comparable<Event> {
 	private final Transition transition;
 	private final Map<Condition, Variable> preset;
 	private final Set<Condition> postset = new HashSet<>();
-	private final StateFormula<Variable> localPred;
-	private final StateFormula<Variable> conePred;
+	private final Formula<Variable> localPred;
+	private final Formula<Variable> conePred;
 	private final int depth;
 	private CutoffReason cutoffReason = null;
 	private final Configuration coneConfiguration;
@@ -44,11 +41,11 @@ public final class Event implements Comparable<Event> {
 				.flatMap(condition -> condition.preset().stream())
 				.distinct()
 				.map(pre -> pre.conePred)
-				.collect(StateFormula.and())
+				.collect(Formula.and())
 				.and(this.localPred);
 	}
 
-	private static StateFormula<Variable> guard(String name, Transition transition, Map<Condition, Variable> conditionPreset) {
+	private static Formula<Variable> guard(String name, Transition transition, Map<Condition, Variable> conditionPreset) {
 		Map<Variable, Variable> guardSubstitution = transition.guard().support().stream()
 				.collect(Collectors.toMap(variable -> variable, variable -> variable.local(name)));
 		return transition.preSet().entrySet().stream()
@@ -69,8 +66,8 @@ public final class Event implements Comparable<Event> {
 					guardSubstitution.put(variable, representative);
 					return mustEqVariables;
 				})
-				.map(StateFormula::allEquals)
-				.collect(StateFormula.and())
+				.map(Formula::eq)
+				.collect(Formula.and())
 				.and(transition.guard().substitute(guardSubstitution));
 	}
 
@@ -101,25 +98,23 @@ public final class Event implements Comparable<Event> {
 		return coneCut;
 	}
 
-	public StateFormula<Variable> coloredCutPredicate(StateFormula<Variable> initialPredicate) {
-		StateFormula<Variable> cutPlaceAliasing = StateFormula.and(coneCut.stream()
-				.map(condition -> ComparisonFormula.of(
-						condition.preVariable(),
-						ComparisonOperator.EQUALS, new Variable(condition.place().name())))
-				.toList());
-		StateFormula<Variable> conePredicate = this.conePredicate(initialPredicate);
+	public Formula<Variable> coloredCutPredicate(Formula<Variable> initialPredicate) {
+		Formula<Variable> cutPlaceAliasing = coneCut.stream()
+				.map(condition -> condition.preVariable().eq(new Variable(condition.place().name())))
+				.collect(Formula.and());
+		Formula<Variable> conePredicate = this.conePredicate(initialPredicate);
 		Set<Variable> quantifiedVariables = conePredicate.support();
 		quantifiedVariables.addAll(coneCut.stream()
 				.map(Condition::preVariable)
 				.collect(Collectors.toSet()));
-		return QuantifiedFormula.of(Quantifier.EXISTS, quantifiedVariables, conePredicate.and(cutPlaceAliasing));
+		return QuantifiedFormula.of(QuantifiedFormula.Quantifier.EXISTS, quantifiedVariables, conePredicate.and(cutPlaceAliasing));
 	}
 
-	public StateFormula<Variable> localPredicate() {
+	public Formula<Variable> localPredicate() {
 		return localPred;
 	}
 
-	public StateFormula<Variable> conePredicate(StateFormula<Variable> initialPredicate) {
+	public Formula<Variable> conePredicate(Formula<Variable> initialPredicate) {
 		return initialPredicate.and(conePred);
 	}
 

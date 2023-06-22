@@ -1,14 +1,13 @@
-package org.example.logic.generic.formula;
+package org.example.logic;
 
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
-import org.example.logic.generic.expression.Atom;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package-private */ class Top<A> extends StateFormula<A> {
+/* package-private */ final class Top<A> extends Formula<A> {
 
 	private static final Top INSTANCE = new Top();
 
@@ -25,12 +24,7 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public StateFormula<A> local(String discriminator) {
-		return this;
-	}
-
-	@Override
-	public StateFormula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		return this;
 	}
 
@@ -40,22 +34,22 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public StateFormula<A> not() {
+	public Formula<A> not() {
 		return bottom();
 	}
 
 	@Override
-	public StateFormula<A> and(StateFormula<A> rhs) {
+	public Formula<A> and(Formula<A> rhs) {
 		return rhs;
 	}
 
 	@Override
-	public StateFormula<A> or(StateFormula<A> rhs) {
+	public Formula<A> or(Formula<A> rhs) {
 		return this;
 	}
 
 	@Override
-	public StateFormula<A> implies(StateFormula<A> rhs) {
+	public Formula<A> implies(Formula<A> rhs) {
 		return rhs;
 	}
 
