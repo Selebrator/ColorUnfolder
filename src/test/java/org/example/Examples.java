@@ -1,5 +1,9 @@
 package org.example;
 
+import io.github.cvc5.Result;
+import io.github.cvc5.Solver;
+import io.github.cvc5.Sort;
+import io.github.cvc5.Term;
 import org.example.components.Place;
 import org.example.components.Predicate;
 import org.example.components.Transition;
@@ -7,12 +11,14 @@ import org.example.components.Variable;
 import org.example.logic.generic.expression.CalculationExpression;
 import org.example.logic.generic.expression.ConstantExpression;
 import org.example.logic.generic.formula.ComparisonFormula;
+import org.example.logic.generic.formula.StateFormula;
 import org.example.net.Marking;
 import org.example.net.Net;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.example.logic.generic.CalculationOperator.MINUS;
@@ -39,7 +45,8 @@ public class Examples {
 		//link(p2, t, y);
 		//link(t, p3, z);
 		//Net net = new Net(new Marking(Map.of(p1, 1, p2, 0)));
-		Net net = colorConflict();
+
+		Net net = wurdemann_example_1();
 		renderAndClip(net);
 		renderAndClip(Unfolding.unfold(net, 7, false));
 		renderAndClip(Unfolding.unfold(net, 7, true));

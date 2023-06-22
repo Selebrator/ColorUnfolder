@@ -70,6 +70,11 @@ public abstract class StateFormula<A> {
 		}
 
 		@Override
+		public StateFormula<A> imply(StateFormula<A> rhs) {
+			return rhs;
+		}
+
+		@Override
 		public String toString() {
 			return "⊤";
 		}
@@ -119,6 +124,11 @@ public abstract class StateFormula<A> {
 		}
 
 		@Override
+		public StateFormula<A> imply(StateFormula<A> rhs) {
+			return top();
+		}
+
+		@Override
 		public String toString() {
 			return "⊥";
 		}
@@ -146,7 +156,24 @@ public abstract class StateFormula<A> {
 		return CompositionFormula.of(this, BinaryLogicOperator.OR, rhs);
 	}
 
-	public static <A> StateFormula<A> allEquals(List<Atom<A>> atoms) {
+	public StateFormula<A> imply(StateFormula<A> rhs) {
+		if (rhs == TOP) {
+			return rhs;
+		}
+		return CompositionFormula.of(this, BinaryLogicOperator.IMPLY, rhs);
+	}
+
+	public static <A> StateFormula<A> and(List<? extends StateFormula<A>> formulas) {
+		if (formulas.isEmpty()) {
+			return top();
+		}
+		if (formulas.size() == 1) {
+			return formulas.get(0);
+		}
+		return new CompositionFormula<>(BinaryLogicOperator.AND, formulas);
+	}
+
+	public static <A> StateFormula<A> allEquals(List<? extends Atom<A>> atoms) {
 		if (atoms.size() <= 1) {
 			return top();
 		}

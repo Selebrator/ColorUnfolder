@@ -26,6 +26,14 @@ public record Predicate(StateFormula<Variable> formula) {
 		return new Predicate(ComparisonFormula.of(lhs, ComparisonOperator.EQUALS, rhs));
 	}
 
+	public Predicate imply(Predicate rhs) {
+		return new Predicate(this.formula.imply(rhs.formula));
+	}
+
+	public Predicate not() {
+		return new Predicate(this.formula.not());
+	}
+
 	public boolean isSatisfiable() {
 		Solver solver = new Solver();
 		solver.setOption("produce-models", "true");
@@ -34,15 +42,19 @@ public record Predicate(StateFormula<Variable> formula) {
 		Term cvc5Formula = formula.toCvc5(solver, v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name())));
 		solver.assertFormula(cvc5Formula);
 		Result result = solver.checkSat();
-		//System.out.println(result + " " + this + " encoded: " + cvc5Formula);
-		//if (result.isSat()) {
-		//	for (Term atom : atoms.values()) {
-		//		System.out.println(atom + " = " + solver.getValue(atom));
-		//	}
-		//}
+		System.out.println(result + " " + this + " encoded: " + cvc5Formula);
+		if (result.isSat()) {
+			for (Term atom : atoms.values()) {
+				System.out.println(atom + " = " + solver.getValue(atom));
+			}
+		}
 		if (result.isNull() || result.isUnknown()) {
 			throw new AssertionError("result is " + result);
 		}
 		return result.isSat();
+	}
+
+	public boolean isTautology() {
+		return !this.not().isSatisfiable();
 	}
 }

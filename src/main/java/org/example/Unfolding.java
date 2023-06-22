@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class Unfolding {
 
 	private final int depthBound;
-	private final boolean CUTOFF = false;
+	private final boolean CUTOFF = true;
 	private final boolean SHOW_INTERNAL_VARIABLES;
 
 	private int eventIndex = 1;
@@ -26,7 +26,8 @@ public class Unfolding {
 	private final Net net;
 	private final Set<Condition> initialConditions; // Min(O)
 	private final Predicate initialPredicate;
-	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(Comparator.comparing(Event::coneConfiguration, Order::compare));
+	private static final Comparator<Event> ORDER = Comparator.comparing(Event::coneConfiguration, Order::compare);
+	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(ORDER);
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
 	private final Map<Condition, Set<Event>> conditionPostset = new HashMap<>();
@@ -90,21 +91,25 @@ public class Unfolding {
 	private void addEvent(Event event) {
 		//System.out.println("Add event " + event + " with preset " + event.preset().keySet());
 		event.preset().forEach((condition, variable) -> conditionPostset.computeIfAbsent(condition, c -> new HashSet<>()).add(event));
+		if (event.depth() >= depthBound) {
+			event.setCutoff(event);
+			return;
+		}
 		if (CUTOFF) {
 			event.calcContext(initialConditions);
 			Set<Place> mark = mark(event);
 			if (this.marks.containsKey(mark)) {
 				Set<Event> events = this.marks.get(mark);
 				events.stream()
-						.filter(o -> Order.compare(o.coneConfiguration(), event.coneConfiguration()) < 0)
+						.filter(otherEvent -> ORDER.compare(otherEvent, event) < 0)
+						.peek(otherEvent -> System.out.println("Checking cut-off predicate for " + otherEvent + " < " + event))
+						.filter(otherEvent -> event.conePredicate().and(otherEvent.coneCutPredicate()).imply(event.coneCutPredicate()).isTautology())
 						.findAny()
 						.ifPresent(event::setCutoff);
 				events.add(event);
 			} else {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
-		} else if (event.depth() >= depthBound) {
-			event.setCutoff(event);
 		}
 	}
 
@@ -250,9 +255,11 @@ public class Unfolding {
 						}
 					}
 					if (SHOW_INTERNAL_VARIABLES) {
-						if (!StateFormula.top().equals(node.localPredicate().formula())) {
-							xlabel.add(node.localPredicate().formula().toString());
-						}
+						//if (!StateFormula.top().equals(node.conePredicate().formula())) {
+						//	xlabel.add(node.conePredicate().formula().toString());
+						//}
+						if (node.coneCut() != null)
+							xlabel.add(String.valueOf(node.coneCutPredicate().formula()));
 					} else {
 						if (!StateFormula.top().equals(node.transition().guard().formula())) {
 							xlabel.add(node.transition().guard().formula().toString());

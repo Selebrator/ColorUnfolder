@@ -1,7 +1,9 @@
 package org.example.components;
 
 import com.google.common.collect.Sets;
+import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.expression.Atom;
+import org.example.logic.generic.formula.ComparisonFormula;
 import org.example.logic.generic.formula.StateFormula;
 
 import java.util.*;
@@ -57,7 +59,7 @@ public final class Event implements Comparable<Event> {
 				.map(originalVariableToPresetPlaces -> {
 					Variable variable = originalVariableToPresetPlaces.getKey();
 					List<Place> transitionPreset = originalVariableToPresetPlaces.getValue();
-					List<Atom<Variable>> mustEqVariables = conditionPreset.entrySet().stream()
+					List<Variable> mustEqVariables = conditionPreset.entrySet().stream()
 							.filter(conditionVariableEntry -> transitionPreset.contains(conditionVariableEntry.getKey().place()))
 							.map(Map.Entry::getValue)
 							.distinct()
@@ -97,6 +99,14 @@ public final class Event implements Comparable<Event> {
 
 	public Set<Condition> coneCut() {
 		return coneCut;
+	}
+
+	public Predicate coneCutPredicate() {
+		return new Predicate(StateFormula.and(coneCut.stream()
+				.map(condition -> ComparisonFormula.of(
+						condition.preVariable(),
+						ComparisonOperator.EQUALS, new Variable(condition.place().name())))
+				.toList()));
 	}
 
 	public Predicate localPredicate() {
