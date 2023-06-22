@@ -71,8 +71,8 @@ public record Net(Marking initialMarking) {
 			writer.append("node[shape=box];\n");
 			for (Transition transition : transitions) {
 				writer.append("\"").append(transition.name()).append("\"");
-				if (!StateFormula.top().equals(transition.guard().formula())) {
-					writer.append("[xlabel=\"").append(transition.guard().formula().toString()).append("\"]");
+				if (!StateFormula.top().equals(transition.guard())) {
+					writer.append("[xlabel=\"").append(transition.guard().toString()).append("\"]");
 				}
 				writer.append(";\n");
 			}

@@ -6,8 +6,13 @@ import org.example.logic.generic.BinaryLogicOperator;
 import org.example.logic.generic.ComparisonOperator;
 import org.example.logic.generic.expression.Atom;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public abstract class StateFormula<A> {
@@ -15,152 +20,36 @@ public abstract class StateFormula<A> {
 	public final Set<A> support() {
 		Set<A> ans = new HashSet<>();
 		collectSupport(ans);
-		return Collections.unmodifiableSet(ans);
+		return ans;
 	}
 
 	protected abstract void collectSupport(Set<A> accumulator);
 
 	public abstract StateFormula<A> local(String discriminator);
 
-	public abstract StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map);
+	public abstract StateFormula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map);
 
 	public abstract Term toCvc5(Solver solver, Function<A, Term> atoms);
 
-	private static final Top TOP = new Top();
-
 	public static <A> StateFormula<A> top() {
-		return TOP;
+		return Top.instance();
 	}
-
-	private static final class Top<A> extends StateFormula<A> {
-
-		@Override
-		protected void collectSupport(Set<A> accumulator) {
-			// no-op
-		}
-
-		@Override
-		public StateFormula<A> local(String discriminator) {
-			return this;
-		}
-
-		@Override
-		public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
-			return this;
-		}
-
-		@Override
-		public Term toCvc5(Solver solver, Function<A, Term> atoms) {
-			return solver.mkTrue();
-		}
-
-		@Override
-		public StateFormula<A> not() {
-			return bottom();
-		}
-
-		@Override
-		public StateFormula<A> and(StateFormula<A> rhs) {
-			return rhs;
-		}
-
-		@Override
-		public StateFormula<A> or(StateFormula<A> rhs) {
-			return this;
-		}
-
-		@Override
-		public StateFormula<A> imply(StateFormula<A> rhs) {
-			return rhs;
-		}
-
-		@Override
-		public String toString() {
-			return "⊤";
-		}
-	}
-
-	private static final Bottom BOTTOM = new Bottom();
 
 	public static <A> StateFormula<A> bottom() {
-		return BOTTOM;
-	}
-
-	public static final class Bottom<A> extends StateFormula<A> {
-
-		@Override
-		protected void collectSupport(Set<A> accumulator) {
-			// no-op
-		}
-
-		@Override
-		public StateFormula<A> local(String discriminator) {
-			return this;
-		}
-
-		@Override
-		public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
-			return this;
-		}
-
-		@Override
-		public Term toCvc5(Solver solver, Function<A, Term> atoms) {
-			return solver.mkFalse();
-		}
-
-		@Override
-		public StateFormula<A> not() {
-			return top();
-		}
-
-		@Override
-		public StateFormula<A> and(StateFormula<A> rhs) {
-			return this;
-		}
-
-		@Override
-		public StateFormula<A> or(StateFormula<A> rhs) {
-			return rhs;
-		}
-
-		@Override
-		public StateFormula<A> imply(StateFormula<A> rhs) {
-			return top();
-		}
-
-		@Override
-		public String toString() {
-			return "⊥";
-		}
+		return Bottom.instance();
 	}
 
 	public StateFormula<A> not() {
-		return NegatedFormula.of(this);
+		return Negation.of(this);
 	}
 
 	public StateFormula<A> and(StateFormula<A> rhs) {
-		if (rhs == TOP) {
+		if (rhs == top()) {
 			return this;
-		} else if (rhs == BOTTOM) {
+		} else if (rhs == bottom()) {
 			return rhs;
 		}
 		return CompositionFormula.of(this, BinaryLogicOperator.AND, rhs);
-	}
-
-	public StateFormula<A> or(StateFormula<A> rhs) {
-		if (rhs == TOP) {
-			return rhs;
-		} else if (rhs == BOTTOM) {
-			return this;
-		}
-		return CompositionFormula.of(this, BinaryLogicOperator.OR, rhs);
-	}
-
-	public StateFormula<A> imply(StateFormula<A> rhs) {
-		if (rhs == TOP) {
-			return rhs;
-		}
-		return CompositionFormula.of(this, BinaryLogicOperator.IMPLY, rhs);
 	}
 
 	public static <A> StateFormula<A> and(List<? extends StateFormula<A>> formulas) {
@@ -171,6 +60,40 @@ public abstract class StateFormula<A> {
 			return formulas.get(0);
 		}
 		return new CompositionFormula<>(BinaryLogicOperator.AND, formulas);
+	}
+
+	public static <A> Collector<StateFormula<A>, ?, StateFormula<A>> and() {
+		return Collectors.collectingAndThen(Collectors.toList(), StateFormula::and);
+	}
+
+	public StateFormula<A> or(StateFormula<A> rhs) {
+		if (rhs == top()) {
+			return rhs;
+		} else if (rhs == bottom()) {
+			return this;
+		}
+		return CompositionFormula.of(this, BinaryLogicOperator.OR, rhs);
+	}
+
+	public static <A> StateFormula<A> or(List<? extends StateFormula<A>> formulas) {
+		if (formulas.isEmpty()) {
+			return bottom();
+		}
+		if (formulas.size() == 1) {
+			return formulas.get(0);
+		}
+		return new CompositionFormula<>(BinaryLogicOperator.OR, formulas);
+	}
+
+	public static <A> Collector<StateFormula<A>, ?, StateFormula<A>> or() {
+		return Collectors.collectingAndThen(Collectors.toList(), StateFormula::or);
+	}
+
+	public StateFormula<A> implies(StateFormula<A> rhs) {
+		if (rhs == top()) {
+			return rhs;
+		}
+		return new Implication<>(this, rhs);
 	}
 
 	public static <A> StateFormula<A> allEquals(List<? extends Atom<A>> atoms) {

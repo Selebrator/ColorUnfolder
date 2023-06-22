@@ -33,7 +33,7 @@ public class ConstantExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public ArithmeticExpression<A> substitute(Map<Atom<A>, Atom<A>> map) {
+	public ArithmeticExpression<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		return this;
 	}
 

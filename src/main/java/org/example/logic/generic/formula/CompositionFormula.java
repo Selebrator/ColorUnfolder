@@ -110,7 +110,7 @@ public class CompositionFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
+	public StateFormula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		return new CompositionFormula<>(operator,
 				formulas.stream()
 						.map(f -> f.substitute(map))

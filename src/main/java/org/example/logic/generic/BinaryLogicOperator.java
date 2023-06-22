@@ -19,12 +19,6 @@ public enum BinaryLogicOperator implements BiFunction<Boolean, Boolean, Boolean>
 			return left || right;
 		}
 
-	},
-	IMPLY("⇒", Kind.IMPLIES) {
-		@Override
-		public Boolean apply(Boolean left, Boolean right) {
-			return !left || right;
-		}
 	};
 
 	private final String symbol;

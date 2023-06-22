@@ -47,7 +47,7 @@ public class CalculationExpression<A> implements ArithmeticExpression<A> {
 	}
 
 	@Override
-	public ArithmeticExpression<A> substitute(Map<Atom<A>, Atom<A>> map) {
+	public ArithmeticExpression<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		return new CalculationExpression<>(e1.substitute(map), operator, e2.substitute(map));
 	}
 

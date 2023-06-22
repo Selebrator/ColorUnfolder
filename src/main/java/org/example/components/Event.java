@@ -2,8 +2,9 @@ package org.example.components;
 
 import com.google.common.collect.Sets;
 import org.example.logic.generic.ComparisonOperator;
-import org.example.logic.generic.expression.Atom;
+import org.example.logic.generic.Quantifier;
 import org.example.logic.generic.formula.ComparisonFormula;
+import org.example.logic.generic.formula.QuantifiedFormula;
 import org.example.logic.generic.formula.StateFormula;
 
 import java.util.*;
@@ -17,10 +18,10 @@ public final class Event implements Comparable<Event> {
 	private final Transition transition;
 	private final Map<Condition, Variable> preset;
 	private final Set<Condition> postset = new HashSet<>();
-	private final Predicate localPred;
-	private final Predicate conePred;
+	private final StateFormula<Variable> localPred;
+	private final StateFormula<Variable> conePred;
 	private final int depth;
-	public Event cutoffReason = null;
+	private CutoffReason cutoffReason = null;
 	private final Configuration coneConfiguration;
 	private Set<Condition> conePreset;
 	private Set<Condition> conePostset;
@@ -38,17 +39,17 @@ public final class Event implements Comparable<Event> {
 				Stream.of(this),
 				preset.keySet().stream().flatMap(condition -> condition.preset().stream())
 		).collect(Collectors.toUnmodifiableSet()));
-		this.localPred = new Predicate(guard(name, transition, preset));
+		this.localPred = guard(name, transition, preset);
 		this.conePred = preset.keySet().stream()
 				.flatMap(condition -> condition.preset().stream())
 				.distinct()
-				.map(Event::conePredicate)
-				.reduce(Predicate::and).orElse(Predicate.TRUE)
+				.map(pre -> pre.conePred)
+				.collect(StateFormula.and())
 				.and(this.localPred);
 	}
 
 	private static StateFormula<Variable> guard(String name, Transition transition, Map<Condition, Variable> conditionPreset) {
-		Map<Atom<Variable>, Atom<Variable>> guardSubstitution = transition.guard().formula().support().stream()
+		Map<Variable, Variable> guardSubstitution = transition.guard().support().stream()
 				.collect(Collectors.toMap(variable -> variable, variable -> variable.local(name)));
 		return transition.preSet().entrySet().stream()
 				.collect(Collectors.groupingBy(
@@ -69,9 +70,8 @@ public final class Event implements Comparable<Event> {
 					return mustEqVariables;
 				})
 				.map(StateFormula::allEquals)
-				.reduce(StateFormula::and)
-				.orElseGet(StateFormula::top)
-				.and(transition.guard().formula().substitute(guardSubstitution));
+				.collect(StateFormula.and())
+				.and(transition.guard().substitute(guardSubstitution));
 	}
 
 	public void calcContext(Set<Condition> initialConditions) {
@@ -101,20 +101,26 @@ public final class Event implements Comparable<Event> {
 		return coneCut;
 	}
 
-	public Predicate coneCutPredicate() {
-		return new Predicate(StateFormula.and(coneCut.stream()
+	public StateFormula<Variable> coloredCutPredicate(StateFormula<Variable> initialPredicate) {
+		StateFormula<Variable> cutPlaceAliasing = StateFormula.and(coneCut.stream()
 				.map(condition -> ComparisonFormula.of(
 						condition.preVariable(),
 						ComparisonOperator.EQUALS, new Variable(condition.place().name())))
-				.toList()));
+				.toList());
+		StateFormula<Variable> conePredicate = this.conePredicate(initialPredicate);
+		Set<Variable> quantifiedVariables = conePredicate.support();
+		quantifiedVariables.addAll(coneCut.stream()
+				.map(Condition::preVariable)
+				.collect(Collectors.toSet()));
+		return QuantifiedFormula.of(Quantifier.EXISTS, quantifiedVariables, conePredicate.and(cutPlaceAliasing));
 	}
 
-	public Predicate localPredicate() {
+	public StateFormula<Variable> localPredicate() {
 		return localPred;
 	}
 
-	public Predicate conePredicate() {
-		return conePred;
+	public StateFormula<Variable> conePredicate(StateFormula<Variable> initialPredicate) {
+		return initialPredicate.and(conePred);
 	}
 
 	public int depth() {
@@ -125,7 +131,11 @@ public final class Event implements Comparable<Event> {
 		return cutoffReason != null;
 	}
 
-	public void setCutoff(Event reason) {
+	public Optional<CutoffReason> cutoffReason() {
+		return Optional.ofNullable(cutoffReason);
+	}
+
+	public void setCutoff(CutoffReason reason) {
 		this.cutoffReason = reason;
 	}
 

@@ -12,7 +12,12 @@ public interface Atom<A> extends ArithmeticExpression<A> {
 	}
 
 	@Override
-	default ArithmeticExpression<A> substitute(Map<Atom<A>, Atom<A>> map) {
-		return map.getOrDefault(this, this);
+	default ArithmeticExpression<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+		Atom<A> ans = map.get(this);
+		if (ans == null) {
+			return this;
+		} else {
+			return ans;
+		}
 	}
 }

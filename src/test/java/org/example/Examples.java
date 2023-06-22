@@ -1,24 +1,17 @@
 package org.example;
 
-import io.github.cvc5.Result;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Sort;
-import io.github.cvc5.Term;
 import org.example.components.Place;
-import org.example.components.Predicate;
 import org.example.components.Transition;
 import org.example.components.Variable;
 import org.example.logic.generic.expression.CalculationExpression;
 import org.example.logic.generic.expression.ConstantExpression;
 import org.example.logic.generic.formula.ComparisonFormula;
-import org.example.logic.generic.formula.StateFormula;
 import org.example.net.Marking;
 import org.example.net.Net;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.example.logic.generic.CalculationOperator.MINUS;
@@ -31,25 +24,33 @@ public class Examples {
 
 	@Test
 	void example() throws IOException {
-		//Variable
-		//		x = new Variable("x"),
-		//		y = new Variable("y"),
-		//		z = new Variable("z");
-		//Place
-		//		p1 = new Place(1),
-		//		p2 = new Place(2),
-		//		p3 = new Place(3);
-		//Transition
-		//		t = new Transition(1, new Predicate(ComparisonFormula.of(x, EQUALS, ConstantExpression.of(1)).and(ComparisonFormula.of(z, EQUALS, y))));
-		//link(p1, t, x);
-		//link(p2, t, y);
-		//link(t, p3, z);
-		//Net net = new Net(new Marking(Map.of(p1, 1, p2, 0)));
-
-		Net net = wurdemann_example_1();
+		Net net = two_ways_to_reset();
 		renderAndClip(net);
-		renderAndClip(Unfolding.unfold(net, 7, false));
-		renderAndClip(Unfolding.unfold(net, 7, true));
+		renderAndClip(Unfolding.unfold(net, 11, true));
+	}
+
+	Net two_ways_to_reset() {
+		Variable
+				l = new Variable("l"),
+				x = new Variable("x");
+		Place
+				s = new Place(0, "s"),
+				p = new Place(1, "p"),
+				q = new Place(2, "q");
+		Transition
+				i = new Transition(0, "ι"),
+				a = new Transition(1, "α", ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1))),
+				b = new Transition(2, "β", ComparisonFormula.of(l, EQUALS, ConstantExpression.of(2))),
+				o = new Transition(3, "ω");
+		link(s, i, x);
+		link(i, p, l);
+		link(p, a, l);
+		link(p, b, l);
+		link(a, q, x);
+		link(b, q, x);
+		link(q, o, x);
+		link(o, p, l);
+		return new Net(new Marking(Map.of(s, 0)));
 	}
 
 	Net lambdaswitch() {
@@ -441,9 +442,9 @@ public class Examples {
 				p2 = new Place(2),
 				p3 = new Place(3);
 		Transition
-				t1 = new Transition(1, new Predicate(ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1)))),
-				t2 = new Transition(2, new Predicate(ComparisonFormula.of(ll, NOT_EQUALS, ConstantExpression.of(0)))),
-				t3 = new Transition(3, new Predicate(ComparisonFormula.of(k, EQUALS, ConstantExpression.of(0))));
+				t1 = new Transition(1, ComparisonFormula.of(l, EQUALS, ConstantExpression.of(1))),
+				t2 = new Transition(2, ComparisonFormula.of(ll, NOT_EQUALS, ConstantExpression.of(0))),
+				t3 = new Transition(3, ComparisonFormula.of(k, EQUALS, ConstantExpression.of(0)));
 
 		link(p1, t1, k);
 		link(t1, p2, l);
@@ -467,9 +468,9 @@ public class Examples {
 				p5 = new Place(5),
 				p6 = new Place(6);
 		Transition
-				t1 = new Transition(1, new Predicate(ComparisonFormula.of(y, GREATER_THEN, ConstantExpression.of(0))
-				.and(ComparisonFormula.of(z, LESS_THEN, ConstantExpression.of(0))))),
-				t2 = new Transition(2, new Predicate(ComparisonFormula.of(x, NOT_EQUALS, ConstantExpression.of(0)))),
+				t1 = new Transition(1, ComparisonFormula.of(y, GREATER_THEN, ConstantExpression.of(0))
+				.and(ComparisonFormula.of(z, LESS_THEN, ConstantExpression.of(0)))),
+				t2 = new Transition(2, ComparisonFormula.of(x, NOT_EQUALS, ConstantExpression.of(0))),
 				t3 = new Transition(3),
 				t4 = new Transition(4);
 		link(p1, t1, x);
@@ -546,36 +547,36 @@ public class Examples {
 				r = new Place(9, "ready"),
 				i = new Place(10, "inter");
 		Transition
-				t = new Transition(1, "t", new Predicate(
+				t = new Transition(1, "t",
 				ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, PLUS, O))
 						.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, PLUS, C)))
 						.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, PLUS, S)))
 						.and(ComparisonFormula.of(g_, EQUALS, CalculationExpression.of(g, PLUS, G)))
-		)),
-				mo = new Transition(2, "MakeOreMiner", new Predicate(
+		),
+				mo = new Transition(2, "MakeOreMiner",
 						ComparisonFormula.of(O_, EQUALS, CalculationExpression.of(O, PLUS, _1))
 								.and(ComparisonFormula.of(o, GREATER_EQUALS, _4))
 								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _4)))
-				)),
-				mc = new Transition(3, "MakeClayMiner", new Predicate(
+				),
+				mc = new Transition(3, "MakeClayMiner",
 						ComparisonFormula.of(C_, EQUALS, CalculationExpression.of(C, PLUS, _1))
 								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
 								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
-				)),
-				ms = new Transition(4, "MakeObsidianMiner", new Predicate(
+				),
+				ms = new Transition(4, "MakeObsidianMiner",
 						ComparisonFormula.of(S_, EQUALS, CalculationExpression.of(S, PLUS, _1))
 								.and(ComparisonFormula.of(o, GREATER_EQUALS, _3))
 								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _3)))
 								.and(ComparisonFormula.of(c, GREATER_EQUALS, _14))
 								.and(ComparisonFormula.of(c_, EQUALS, CalculationExpression.of(c, MINUS, _14)))
-				)),
-				mg = new Transition(5, "MakeGeodeMiner", new Predicate(
+				),
+				mg = new Transition(5, "MakeGeodeMiner",
 						ComparisonFormula.of(G_, EQUALS, CalculationExpression.of(G, PLUS, _1))
 								.and(ComparisonFormula.of(o, GREATER_EQUALS, _2))
 								.and(ComparisonFormula.of(o_, EQUALS, CalculationExpression.of(o, MINUS, _2)))
 								.and(ComparisonFormula.of(s, GREATER_EQUALS, _7))
 								.and(ComparisonFormula.of(s_, EQUALS, CalculationExpression.of(s, MINUS, _7)))
-				)),
+				),
 				skip = new Transition(6, "Skip");
 		// t
 		link(oreMiner, t, O);

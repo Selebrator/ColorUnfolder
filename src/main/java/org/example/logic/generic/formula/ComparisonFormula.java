@@ -50,7 +50,7 @@ public class ComparisonFormula<A> extends StateFormula<A> {
 	}
 
 	@Override
-	public StateFormula<A> substitute(Map<Atom<A>, Atom<A>> map) {
+	public StateFormula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
 		return new ComparisonFormula<>(e1.substitute(map), operator, e2.substitute(map));
 	}
 
