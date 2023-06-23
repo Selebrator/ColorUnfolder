@@ -1,7 +1,7 @@
 package org.example;
 
 import org.example.components.Configuration;
-import org.example.components.Event;
+import org.example.components.IEvent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,10 +16,10 @@ public class Order {
 	}
 
 	public static class Parikh implements Comparable<Parikh> {
-		private static final Comparator<Iterable<Event>> ORDER = new LexicographicOrder<>(Event::compareTo);
-		private final List<Event> data;
+		private static final Comparator<Iterable<IEvent>> ORDER = new LexicographicOrder<>(IEvent::compareTo);
+		private final List<IEvent> data;
 
-		public Parikh(Set<Event> configuration) {
+		public Parikh(Set<IEvent> configuration) {
 			this.data = configuration.stream()
 					.sorted(Comparator.comparingInt(event -> event.transition().index()))
 					.toList();
@@ -35,9 +35,9 @@ public class Order {
 		private static final Comparator<Iterable<Configuration>> ORDER = new LexicographicOrder<>(Comparator.comparing(Configuration::parikh));
 		private final List<Configuration> data;
 
-		public Foata(Set<Event> configuration) {
+		public Foata(Set<IEvent> configuration) {
 			this.data = configuration.stream()
-					.collect(Collectors.groupingBy(Event::depth))
+					.collect(Collectors.groupingBy(IEvent::depth))
 					.entrySet()
 					.stream()
 					.sorted(Comparator.comparingInt(Map.Entry::getKey))

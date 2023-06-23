@@ -1,6 +1,8 @@
 package org.example.components;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /* Place (p, e, pred) in B */
 public record Condition(int index, String name, Place place, Event preset, Variable preVariable, Set<Event> postset) {
@@ -14,7 +16,7 @@ public record Condition(int index, String name, Place place, Event preset, Varia
 	}
 
 	public Set<Condition> prepre() {
-		return this.preset().preset().keySet();
+		return this.preset().preset();
 	}
 
 	@Override

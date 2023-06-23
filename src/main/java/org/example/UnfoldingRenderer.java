@@ -1,6 +1,5 @@
 package org.example;
 
-import org.example.components.BottomEvent;
 import org.example.components.Condition;
 import org.example.components.Event;
 import org.example.logic.Formula;
@@ -13,11 +12,11 @@ import java.util.stream.Collectors;
 public class UnfoldingRenderer {
 	private final boolean SHOW_DEBUG;
 
-	private final BottomEvent initialEvent;
+	private final Event initialEvent;
 	private final Set<Condition> conditions = new LinkedHashSet<>();
 	private final Set<Event> events = new LinkedHashSet<>();
 
-	public UnfoldingRenderer(BottomEvent initialEvent, boolean debug) {
+	public UnfoldingRenderer(Event initialEvent, boolean debug) {
 		this.initialEvent = initialEvent;
 		this.SHOW_DEBUG = debug;
 	}
@@ -83,10 +82,10 @@ public class UnfoldingRenderer {
 				StringJoiner xlabel = new StringJoiner("\n");
 				if (SHOW_DEBUG) {
 					if (node.hasContext()) {
-						xlabel.add("h(cut) = " + node.uncoloredCut());
+						xlabel.add("h(cut) = " + Unfolding.markingPlaces(node));
 					}
-					if (!Formula.top().equals(node.localPredicate())) {
-						xlabel.add(node.localPredicate().toString());
+					if (!Formula.top().equals(node.guard())) {
+						xlabel.add(node.guard().toString());
 					}
 				} else {
 					if (!Formula.top().equals(node.transition().guard())) {
@@ -122,15 +121,15 @@ public class UnfoldingRenderer {
 					.append("\n");
 		}
 		for (var to : events) {
-			for (var from : to.preset().entrySet()) {
-				writer.append("\"").append(nodeName(from.getKey()))
+			for (var from : to.preset()) {
+				writer.append("\"").append(nodeName(from))
 						.append("\" -> \"")
 						.append(nodeName(to)).append("\"")
 						.append(" [label=\"");
 				if (SHOW_DEBUG) {
-					writer.append(from.getValue().name());
+					writer.append(from.preVariable().name());
 				} else {
-					writer.append(to.transition().preSet().get(from.getKey().place()).name());
+					writer.append(to.transition().preSet().get(from.place()).name());
 				}
 				writer
 						.append("\"]")

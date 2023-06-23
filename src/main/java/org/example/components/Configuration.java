@@ -6,11 +6,11 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class Configuration {
-	private final Set<Event> events;
+	private final Set<IEvent> events;
 	private Order.Parikh parikh;
 	private Order.Foata foata;
 
-	public Configuration(Set<Event> events) {
+	public Configuration(Set<IEvent> events) {
 		this.events = Set.copyOf(events);
 	}
 
@@ -18,7 +18,7 @@ public final class Configuration {
 		return events.size();
 	}
 
-	public Set<Event> events() {
+	public Set<IEvent> events() {
 		return events;
 	}
 
