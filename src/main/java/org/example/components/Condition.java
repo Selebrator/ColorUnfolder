@@ -3,9 +3,9 @@ package org.example.components;
 import java.util.*;
 
 /* Place (p, e, pred) in B */
-public record Condition(int index, String name, Place place, Event preset, Variable preVariable) {
+public record Condition(int index, String name, Place place, Event preset, Variable preVariable, Set<Event> postset) {
 	public Condition(int index, Place place, Event preset, Variable preVariable) {
-		this(index, "b" + index, place, preset, preVariable);
+		this(index, "b" + index, place, preset, preVariable, new HashSet<>());
 	}
 
 	@Override

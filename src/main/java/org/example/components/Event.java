@@ -106,9 +106,13 @@ public class Event implements Comparable<Event> {
 		return conePostset;
 	}
 
+	public boolean hasContext() {
+		return coneCut != null;
+	}
+
 	public Set<Condition> coneCut() {
 		if (coneCut == null) {
-			throw new IllegalStateException("tried to access " + name + ".coneCut before calling calcContext");
+			throw new IllegalStateException("tried to access " + name() + ".coneCut before calling calcContext");
 		}
 		return coneCut;
 	}

@@ -1,15 +1,60 @@
 package org.example;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
+import org.example.components.Condition;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Main {
+// sparse symmetric matrix with boolean cells. fast logical and of previous rows forms new rows. diagonal entries are always false
+public class ConcurrencyMatrix {
+	private final Map<Condition, Set<Condition>> storage = new HashMap<>();
 
-	public static <R, C> Table<R, C, Boolean> toTable(Map<R, Set<C>> map) {
+	public Set<Condition> co(Condition key) {
+		return this.storage.computeIfAbsent(key, k -> new HashSet<>());
+	}
+
+	public void add(Condition newCondition) {
+		Set<Condition> cob = newCondition.prepre().stream()
+				.map(this::co)
+				.reduce(Sets::intersection)
+				.orElseGet(Collections::emptySet);
+		Set<Condition> result = new HashSet<>(Sets.union(cob, newCondition.preset().postset()));
+		this.storage.put(newCondition, result);
+		for (Condition condition : result) {
+			this.co(condition).add(newCondition);
+		}
+		//try {
+		//	System.out.println(this);
+		//} catch (Exception e) {
+		//	System.out.println("matrix: " + this.storage);
+		//}
+	}
+
+	public boolean isCoset(Condition[] candidate) {
+		for (int i = candidate.length - 1; i >= 1; i--) {
+			Set<Condition> co = co(candidate[i]);
+			for (int j = 0; j < i; j++) {
+				if (!co.contains(candidate[j])) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		List<Condition> order = this.storage.keySet().stream()
+				.sorted(Comparator.comparingInt(Condition::index))
+				.toList();
+		return renderTable(toTable(this.storage), order, order);
+	}
+
+	private static <R, C> Table<R, C, Boolean> toTable(Map<R, Set<C>> map) {
 		OptionalInt max = map.values().stream()
 				.mapToInt(Set::size)
 				.max();
@@ -24,7 +69,7 @@ public class Main {
 		return table;
 	}
 
-	public static <R, C> String renderTable(Table<R, C, Boolean> table, Collection<R> rowOrder, Collection<C> columnOrder) {
+	private static <R, C> String renderTable(Table<R, C, Boolean> table, Collection<R> rowOrder, Collection<C> columnOrder) {
 		Map<C, Integer> maxColumnWidth = table.columnMap().entrySet().stream()
 				.collect(Collectors.toMap(Map.Entry::getKey, entry -> Stream.concat(
 								Stream.of(entry.getKey()).map(Objects::toString),
