@@ -3,8 +3,8 @@ package org.example.components;
 import java.util.*;
 
 /* Place (p, e, pred) in B */
-public record Condition(int index, String name, Place place, Optional<Event> preset, Variable preVariable) {
-	public Condition(int index, Place place, Optional<Event> preset, Variable preVariable) {
+public record Condition(int index, String name, Place place, Event preset, Variable preVariable) {
+	public Condition(int index, Place place, Event preset, Variable preVariable) {
 		this(index, "b" + index, place, preset, preVariable);
 	}
 
@@ -14,7 +14,7 @@ public record Condition(int index, String name, Place place, Optional<Event> pre
 	}
 
 	public Set<Condition> prepre() {
-		return this.preset.map(Event::preset).map(Map::keySet).orElseGet(Collections::emptySet);
+		return this.preset().preset().keySet();
 	}
 
 	@Override

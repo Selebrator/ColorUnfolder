@@ -1,7 +1,6 @@
 package org.example;
 
 import com.google.common.collect.Sets;
-import io.github.cvc5.Op;
 import org.example.components.*;
 import org.example.logic.Formula;
 import org.example.net.Net;
@@ -16,66 +15,48 @@ public class Unfolding {
 
 	private final int depthBound;
 	private final boolean CUTOFF = true;
-	private final boolean SHOW_DEBUG;
+	private final boolean SHOW_DEBUG = true;
 
 	private int eventIndex = 1;
 	private int conditionIndex = 1;
 
-	private final Net net;
-	private final Set<Condition> initialConditions; // Min(O)
-	private final Formula<Variable> initialPredicate;
+	private final BottomEvent initialEvent;
 	private static final Comparator<Event> ORDER = Comparator.comparing(Event::coneConfiguration, Order::compare);
 	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(ORDER);
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
 	private final Map<Condition, Set<Event>> conditionPostset = new HashMap<>();
 
-	public static Unfolding unfold(Net net, int depth, boolean showInternalVariables) {
-		Unfolding ans = new Unfolding(net, depth, showInternalVariables);
+	public static Unfolding unfold(Net net, int depth) {
+		Unfolding ans = new Unfolding(net, depth);
 		ans.construct();
 		return ans;
 	}
 
-	private Unfolding(Net original, int depthBound, boolean showInternalVariables) {
+	private Unfolding(Net original, int depthBound) {
 		this.depthBound = depthBound;
-		this.net = original;
-		this.SHOW_DEBUG = showInternalVariables;
-		this.initialConditions = this.net.initialMarking().tokens().keySet().stream()
-				.sorted(Comparator.comparingInt(Place::index))
-				.map(place -> new Condition(this.conditionIndex++, place, Optional.empty(), new Variable(place.name() + "_init")))
-				.collect(Collectors.toCollection(LinkedHashSet::new));
-		this.initialPredicate = this.initialConditions.stream()
-				.map(condition -> condition.preVariable().eq(net.initialMarking().tokens().get(condition.place())))
-				.collect(Formula.and());
+		this.initialEvent = new BottomEvent(original.initialMarking());
 	}
 
 	private void construct() {
-		System.out.println("Initialize unfolding with " + net.initialMarking().tokens());
-		for (Condition initialCondition : initialConditions) {
-			this.addCondition(initialCondition);
-		}
-		System.out.println("Initialization done");
+		this.possibleExtensions.add(this.initialEvent);
 
 		Event event;
 		System.out.println("Possible Extensions: " + this.possibleExtensions);
 		while ((event = this.possibleExtensions.poll()) != null) {
-			this.processEvent(event);
+			System.out.println("Next event " + event + " with preset " + event.preset().keySet());
+			Optional<Event> cutoffPredecessor = event.coneConfiguration().events().stream().filter(Event::isCutoff).findAny();
+			if (cutoffPredecessor.isPresent()) {
+				System.out.println("  " + event + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
+				continue;
+			}
+			for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
+				this.addCondition(makeCondition(event, post.getKey(), post.getValue()));
+			}
+			this.addEvent(event);
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
 		}
 		System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
-	}
-
-	private void processEvent(Event event) {
-		System.out.println("Next event " + event + " with preset " + event.preset().keySet());
-		Optional<Event> cutoffPredecessor = event.coneConfiguration().events().stream().filter(Event::isCutoff).findAny();
-		if (cutoffPredecessor.isPresent()) {
-			System.out.println("  " + event + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
-			return;
-		}
-		for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
-			this.addCondition(makeCondition(event, post.getKey(), post.getValue()));
-		}
-		this.addEvent(event);
 	}
 
 	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
@@ -87,7 +68,7 @@ public class Unfolding {
 						.findAny().orElseThrow(() -> new AssertionError("such a condition must exist"))
 						.getValue())
 				.orElseGet(() -> transitionToPlaceVariable.local(preEvent.name()));
-		return new Condition(this.conditionIndex++, correspondingPlace, Optional.of(preEvent), eventToConditionVariable);
+		return new Condition(this.conditionIndex++, correspondingPlace, preEvent, eventToConditionVariable);
 	}
 
 	private void addEvent(Event event) {
@@ -97,20 +78,20 @@ public class Unfolding {
 			return;
 		}
 		if (CUTOFF) {
-			event.calcContext(initialConditions);
+			event.calcContext(this.initialEvent.postset());
 			Set<Place> mark = event.uncoloredCut();
-			if (this.marks.containsKey(mark)) {
-				Set<Event> events = this.marks.get(mark);
-				Formula<Variable> collect = event.coloredCutPredicate(initialPredicate)
-						.implies(events.stream()
-								.filter(otherEvent -> ORDER.compare(otherEvent, event) < 0)
-								.map(otherEvent -> otherEvent.coloredCutPredicate(initialPredicate))
-								.collect(Formula.or()));
+			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
+			if (eventsWithSameUncoloredMarking != null) {
+				Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
+						.filter(otherEvent -> ORDER.compare(otherEvent, event) < 0)
+						.map(Event::coloredCutPredicate)
+						.collect(Formula.or());
+				Formula<Variable> check = event.coloredCutPredicate().implies(colorHistory);
 				System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
-				if (Predicate.isTautology(collect)) {
+				if (Predicate.isTautology(check)) {
 					event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
 				}
-				events.add(event);
+				eventsWithSameUncoloredMarking.add(event);
 			} else {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
@@ -120,7 +101,7 @@ public class Unfolding {
 	private void addCondition(Condition condition) {
 		System.out.println("  Add condition " + condition);
 		this.concurrencyMatrix.add(condition);
-		condition.preset().ifPresent(event -> event.postset().add(condition));
+		condition.preset().postset().add(condition);
 
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.co(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
@@ -138,7 +119,7 @@ public class Unfolding {
 						.collect(Collectors.toMap(Function.identity(), Condition::preVariable));
 				Event event = new Event(this.eventIndex, transition, preset);
 				System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
-				if (!Predicate.isSatisfiable(event.conePredicate(initialPredicate))) {
+				if (!Predicate.isSatisfiable(event.conePredicate())) {
 					//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
@@ -164,10 +145,7 @@ public class Unfolding {
 					.map(this::co)
 					.reduce(Sets::intersection)
 					.orElseGet(Collections::emptySet);
-			Set<Condition> post = newCondition.preset()
-					.map(Event::postset)
-					.orElseGet(() -> Sets.intersection(initialConditions, this.storage.keySet()));
-			Set<Condition> result = new HashSet<>(Sets.union(cob, post));
+			Set<Condition> result = new HashSet<>(Sets.union(cob, newCondition.preset().postset()));
 			this.storage.put(newCondition, result);
 			for (Condition condition : result) {
 				this.co(condition).add(newCondition);
@@ -239,23 +217,18 @@ public class Unfolding {
 		}
 
 		public void render(Writer writer) throws IOException {
-			for (Condition condition : initialConditions) {
-				collectNodes(condition);
+			collectNodes(initialEvent);
+			if (!SHOW_DEBUG) {
+				events.remove(initialEvent);
 			}
 			writer.append("digraph ").append("net").append(" {\n");
 			if (!conditions.isEmpty()) {
 				writer.append("node[shape=ellipse];\n");
 				for (var node : conditions) {
 					writer
-							.append("\"").append(nodeName(node)).append("\"");
-
-					writer.append("[label=\"").append(displayName(node));
-					var initialToken = net.initialMarking().tokens().get(node.place());
-					if (initialToken != null) {
-						writer.append(" = ").append(String.valueOf(initialToken));
-					}
-					writer.append("\"]");
-					writer.append("\n");
+							.append("\"").append(nodeName(node)).append("\"")
+							.append("[label=\"").append(displayName(node)).append("\"]")
+							.append("\n");
 				}
 			}
 			if (!events.isEmpty()) {
@@ -296,20 +269,21 @@ public class Unfolding {
 			}
 
 			for (var to : conditions) {
-				if (to.preset().isPresent()) {
-					var from = to.preset().get();
-					writer.append("\"").append(nodeName(from))
-							.append("\" -> \"")
-							.append(nodeName(to)).append("\"")
-							.append(" [label=\"");
-					if (SHOW_DEBUG) {
-						writer.append(to.preVariable().name());
-					} else {
-						writer.append(from.transition().postSet().get(to.place()).name());
-					}
-					writer.append("\"]")
-							.append("\n");
+				var from = to.preset();
+				if (!SHOW_DEBUG && from == initialEvent) {
+					continue;
 				}
+				writer.append("\"").append(nodeName(from))
+						.append("\" -> \"")
+						.append(nodeName(to)).append("\"")
+						.append(" [label=\"");
+				if (SHOW_DEBUG) {
+					writer.append(to.preVariable().name());
+				} else {
+					writer.append(from.transition().postSet().get(to.place()).name());
+				}
+				writer.append("\"]")
+						.append("\n");
 			}
 			for (var to : events) {
 				for (var from : to.preset().entrySet()) {

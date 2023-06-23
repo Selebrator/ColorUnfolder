@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /* Transition (t, X, pred) in E */
-public final class Event implements Comparable<Event> {
+public class Event implements Comparable<Event> {
 	private final int index;
 	private final String name;
 	private final Transition transition;
@@ -30,15 +30,15 @@ public final class Event implements Comparable<Event> {
 		this.transition = transition;
 		this.preset = Map.copyOf(preset);
 		this.depth = 1 + preset.keySet().stream()
-				.mapToInt(condition -> condition.preset().map(Event::depth).orElse(0))
+				.mapToInt(condition -> condition.preset().depth())
 				.max().orElse(0);
 		this.coneConfiguration = new Configuration(Stream.concat(
 				Stream.of(this),
-				preset.keySet().stream().flatMap(condition -> condition.preset().stream())
+				preset.keySet().stream().map(Condition::preset)
 		).collect(Collectors.toUnmodifiableSet()));
-		this.localPred = guard(name, transition, preset);
+		this.localPred = guard(name(), transition, preset);
 		this.conePred = preset.keySet().stream()
-				.flatMap(condition -> condition.preset().stream())
+				.map(Condition::preset)
 				.distinct()
 				.map(pre -> pre.conePred)
 				.collect(Formula.and())
@@ -72,10 +72,10 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public void calcContext(Set<Condition> initialConditions) {
-		List<Event> prepre = preset.keySet().stream().flatMap(condition -> condition.preset().stream()).toList();
-		this.conePreset = Set.copyOf(Sets.union(this.preset.keySet(), prepre.stream().map(event -> event.conePreset).reduce(Sets::union).orElseGet(Collections::emptySet)));
-		this.conePostset = Sets.union(this.postset, prepre.stream().map(event -> event.conePostset).reduce(Sets::union).orElseGet(Collections::emptySet));
-		this.coneCut = Sets.difference(Sets.union(initialConditions, conePostset), conePreset);
+		Set<Event> prepre = prepre();
+		this.conePreset = Set.copyOf(Sets.union(this.preset().keySet(), prepre.stream().map(Event::conePreset).reduce(Sets::union).orElseGet(Set::of)));
+		this.conePostset = Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of));
+		this.coneCut = Sets.difference(Sets.union(initialConditions, conePostset()), conePreset());
 	}
 
 	public String name() {
@@ -90,8 +90,20 @@ public final class Event implements Comparable<Event> {
 		return preset;
 	}
 
+	public Set<Event> prepre() {
+		return preset().keySet().stream().map(Condition::preset).collect(Collectors.toUnmodifiableSet());
+	}
+
 	public Set<Condition> postset() {
 		return postset;
+	}
+
+	private Set<Condition> conePreset() {
+		return conePreset;
+	}
+
+	private Set<Condition> conePostset() {
+		return conePostset;
 	}
 
 	public Set<Condition> coneCut() {
@@ -107,13 +119,13 @@ public final class Event implements Comparable<Event> {
 				.collect(Collectors.toSet());
 	}
 
-	public Formula<Variable> coloredCutPredicate(Formula<Variable> initialPredicate) {
-		Formula<Variable> cutPlaceAliasing = coneCut.stream()
+	public Formula<Variable> coloredCutPredicate() {
+		Formula<Variable> cutPlaceAliasing = coneCut().stream()
 				.map(condition -> condition.preVariable().eq(new Variable(condition.place().name())))
 				.collect(Formula.and());
-		Formula<Variable> conePredicate = this.conePredicate(initialPredicate);
+		Formula<Variable> conePredicate = this.conePredicate();
 		Set<Variable> quantifiedVariables = conePredicate.support();
-		quantifiedVariables.addAll(coneCut.stream()
+		quantifiedVariables.addAll(coneCut().stream()
 				.map(Condition::preVariable)
 				.collect(Collectors.toSet()));
 		return QuantifiedFormula.of(QuantifiedFormula.Quantifier.EXISTS, quantifiedVariables, conePredicate.and(cutPlaceAliasing));
@@ -123,8 +135,8 @@ public final class Event implements Comparable<Event> {
 		return localPred;
 	}
 
-	public Formula<Variable> conePredicate(Formula<Variable> initialPredicate) {
-		return initialPredicate.and(conePred);
+	public Formula<Variable> conePredicate() {
+		return conePred;
 	}
 
 	public int depth() {

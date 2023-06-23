@@ -17,9 +17,9 @@ public class Examples {
 
 	@Test
 	void example() throws IOException {
-		Net net = aoc22_19();
+		Net net = two_ways_to_reset();
 		renderAndClip(net);
-		//renderAndClip(Unfolding.unfold(net, 11, true));
+		renderAndClip(Unfolding.unfold(net, 11));
 	}
 
 	Net two_ways_to_reset() {
