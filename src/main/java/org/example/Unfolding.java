@@ -224,11 +224,11 @@ public class Unfolding {
 		}
 
 		private String nodeName(Condition node) {
-			return SHOW_DEBUG ? node.toString() : node.place().toString();
+			return node.toString();
 		}
 
 		private String nodeName(Event node) {
-			return SHOW_DEBUG ? node.toString() : node.transition().toString();
+			return node.toString();
 		}
 
 		public void render(Writer writer) throws IOException {
