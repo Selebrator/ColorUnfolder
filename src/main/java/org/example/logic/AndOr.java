@@ -1,6 +1,5 @@
 package org.example.logic;
 
-import com.google.common.base.Preconditions;
 import io.github.cvc5.Kind;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
@@ -25,7 +24,9 @@ import java.util.stream.Stream;
 	}
 
 	private AndOr(Operator operator, Collection<? extends Formula<A>> formulas) {
-		Preconditions.checkArgument(formulas.size() >= 2, operator.name() + " has to be applied to at least 2 arguments");
+		if (formulas.size() < 2) {
+			throw new IllegalArgumentException(operator.name() + " has to be applied to at least 2 arguments");
+		}
 		this.formulas = List.copyOf(formulas);
 		this.operator = operator;
 	}
