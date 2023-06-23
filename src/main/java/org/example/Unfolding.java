@@ -1,6 +1,7 @@
 package org.example;
 
 import com.google.common.collect.Sets;
+import io.github.cvc5.Op;
 import org.example.components.*;
 import org.example.logic.Formula;
 import org.example.net.Net;
@@ -55,22 +56,26 @@ public class Unfolding {
 		}
 		System.out.println("Initialization done");
 
-		Event e;
+		Event event;
 		System.out.println("Possible Extensions: " + this.possibleExtensions);
-		while ((e = this.possibleExtensions.poll()) != null) {
-			System.out.println("Next event " + e + " with preset " + e.preset().keySet());
-			if (e.coneConfiguration().events().stream().anyMatch(Event::isCutoff)) {
-				System.out.println("  " + e + " is cut-off event. skipping.");
-				// if (!Collections.disjoint(e.coneConfiguration().events(), cutoff))
-				continue;
-			}
-			for (Map.Entry<Place, Variable> post : e.transition().postSet().entrySet()) {
-				this.addCondition(makeCondition(e, post.getKey(), post.getValue()));
-			}
-			this.addEvent(e);
+		while ((event = this.possibleExtensions.poll()) != null) {
+			this.processEvent(event);
 			System.out.println("Possible Extensions: " + this.possibleExtensions);
 		}
 		System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
+	}
+
+	private void processEvent(Event event) {
+		System.out.println("Next event " + event + " with preset " + event.preset().keySet());
+		Optional<Event> cutoffPredecessor = event.coneConfiguration().events().stream().filter(Event::isCutoff).findAny();
+		if (cutoffPredecessor.isPresent()) {
+			System.out.println("  " + event + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
+			return;
+		}
+		for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
+			this.addCondition(makeCondition(event, post.getKey(), post.getValue()));
+		}
+		this.addEvent(event);
 	}
 
 	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
@@ -93,7 +98,7 @@ public class Unfolding {
 		}
 		if (CUTOFF) {
 			event.calcContext(initialConditions);
-			Set<Place> mark = mark(event);
+			Set<Place> mark = event.uncoloredCut();
 			if (this.marks.containsKey(mark)) {
 				Set<Event> events = this.marks.get(mark);
 				Formula<Variable> collect = event.coloredCutPredicate(initialPredicate)
@@ -110,12 +115,6 @@ public class Unfolding {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
 		}
-	}
-
-	private Set<Place> mark(Event event) {
-		return event.coneCut().stream()
-				.map(Condition::place)
-				.collect(Collectors.toSet());
 	}
 
 	private void addCondition(Condition condition) {
@@ -231,6 +230,14 @@ public class Unfolding {
 			return node.toString();
 		}
 
+		private String displayName(Condition node) {
+			return SHOW_DEBUG ? node.toString() : node.place().name();
+		}
+
+		private String displayName(Event node) {
+			return SHOW_DEBUG ? node.toString() : node.transition().name();
+		}
+
 		public void render(Writer writer) throws IOException {
 			for (Condition condition : initialConditions) {
 				collectNodes(condition);
@@ -242,10 +249,12 @@ public class Unfolding {
 					writer
 							.append("\"").append(nodeName(node)).append("\"");
 
+					writer.append("[label=\"").append(displayName(node));
 					var initialToken = net.initialMarking().tokens().get(node.place());
 					if (initialToken != null) {
-						writer.append("[label=\"").append(nodeName(node)).append(" = ").append(String.valueOf(initialToken)).append("\"]");
+						writer.append(" = ").append(String.valueOf(initialToken));
 					}
+					writer.append("\"]");
 					writer.append("\n");
 				}
 			}
@@ -255,6 +264,7 @@ public class Unfolding {
 					writer
 							.append("\"").append(nodeName(node)).append("\"");
 					Map<String, String> options = new HashMap<>();
+					options.put("label", displayName(node));
 					node.cutoffReason().ifPresent(cutoffReason -> {
 						switch (cutoffReason) {
 							case CUT_OFF_CONDITION -> options.put("color", "red");
@@ -263,8 +273,8 @@ public class Unfolding {
 					});
 					StringJoiner xlabel = new StringJoiner("\n");
 					if (SHOW_DEBUG) {
-						if (node.coneCut() != null) {
-							xlabel.add("h(cut) = " + mark(node));
+						if (!node.cutoffReason().equals(Optional.of(CutoffReason.DEPTH))) {
+							xlabel.add("h(cut) = " + node.uncoloredCut());
 						}
 						if (!Formula.top().equals(node.localPredicate())) {
 							xlabel.add(node.localPredicate().toString());

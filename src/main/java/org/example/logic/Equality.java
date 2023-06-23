@@ -4,9 +4,7 @@ import io.github.cvc5.Kind;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,15 +17,15 @@ import java.util.stream.Collectors;
 	}
 
 	public static <A> Formula<A> of(ArithmeticExpression<A> lhs, ArithmeticExpression<A> rhs) {
-		return Equality.of(Set.of(lhs, rhs));
+		return Equality.of(List.of(lhs, rhs));
 	}
 
 	public static <A> Formula<A> of(Collection<? extends ArithmeticExpression<A>> equalTerms) {
-		Set<ArithmeticExpression<A>> terms = Set.copyOf(equalTerms);
+		Set<ArithmeticExpression<A>> terms = new LinkedHashSet<>(equalTerms);
 		if (terms.size() <= 1) {
 			return top();
 		}
-		return new Equality<>(terms);
+		return new Equality<>(Collections.unmodifiableSet(terms));
 	}
 
 	@Override

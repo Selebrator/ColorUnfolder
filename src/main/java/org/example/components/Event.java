@@ -95,7 +95,16 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public Set<Condition> coneCut() {
+		if (coneCut == null) {
+			throw new IllegalStateException("tried to access " + name + ".coneCut before calling calcContext");
+		}
 		return coneCut;
+	}
+
+	public Set<Place> uncoloredCut() {
+		return this.coneCut().stream()
+				.map(Condition::place)
+				.collect(Collectors.toSet());
 	}
 
 	public Formula<Variable> coloredCutPredicate(Formula<Variable> initialPredicate) {
