@@ -6,8 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public record Transition(int index, String name, Map<Place, Variable> preSet, Map<Place, Variable> postSet,
-						 Formula<Variable> guard) {
+public record Transition(
+		int index,
+		String name,
+		Map<Place, Variable> preSet,
+		Map<Place, Variable> postSet,
+		Formula<Variable> guard
+) implements Comparable<Transition> {
 
 	public Transition(int index) {
 		this(index, "t" + index);
@@ -23,6 +28,11 @@ public record Transition(int index, String name, Map<Place, Variable> preSet, Ma
 
 	public Transition(int index, String name, Formula<Variable> guard) {
 		this(index, name, new HashMap<>(), new HashMap<>(), guard);
+	}
+
+	@Override
+	public int compareTo(Transition that) {
+		return Integer.compare(this.index, that.index);
 	}
 
 	@Override

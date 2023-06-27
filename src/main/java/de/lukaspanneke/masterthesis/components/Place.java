@@ -4,7 +4,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public record Place(int index, String name, Set<Transition> preSet, Set<Transition> postSet) {
+public record Place(
+		int index,
+		String name,
+		Set<Transition> preSet,
+		Set<Transition> postSet
+) implements Comparable<Place> {
 
 	public Place(int index) {
 		this(index, "p" + index);
@@ -12,6 +17,11 @@ public record Place(int index, String name, Set<Transition> preSet, Set<Transiti
 
 	public Place(int index, String name) {
 		this(index, name, new HashSet<>(), new HashSet<>());
+	}
+
+	@Override
+	public int compareTo(Place that) {
+		return Integer.compare(this.index, that.index);
 	}
 
 	@Override

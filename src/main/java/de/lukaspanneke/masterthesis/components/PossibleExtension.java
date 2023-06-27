@@ -9,6 +9,7 @@ import java.util.stream.Stream;
  * Precursor of an event.
  */
 public final class PossibleExtension implements IEvent {
+
 	private final Transition transition;
 	private final Set<Condition> preset;
 	private final int depth;

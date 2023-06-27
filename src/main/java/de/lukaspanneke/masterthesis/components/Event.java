@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 /* Transition (t, X, pred) in E */
 public final class Event implements IEvent {
+
 	private final int index;
 	private final String name;
 	private final Transition transition;

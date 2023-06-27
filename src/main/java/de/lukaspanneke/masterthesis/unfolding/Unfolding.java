@@ -46,7 +46,7 @@ public class Unfolding {
 	 * Stores all unexplored events.
 	 */
 	private final PriorityQueue<PossibleExtension> possibleExtensions = new PriorityQueue<>(
-			Comparator.comparing(PossibleExtension::coneConfiguration, Order::compare));
+			Comparator.comparing(PossibleExtension::coneConfiguration));
 
 	/**
 	 * Stores what conditions are concurrent with each other,
@@ -147,7 +147,7 @@ public class Unfolding {
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {
 				Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
-						.filter(otherEvent -> Order.compare(otherEvent.coneConfiguration(), event.coneConfiguration()) < 0)
+						.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
 						.map(Unfolding::markingColors)
 						.collect(Formula.or());
 				Formula<Variable> check = markingColors(event).implies(colorHistory);
