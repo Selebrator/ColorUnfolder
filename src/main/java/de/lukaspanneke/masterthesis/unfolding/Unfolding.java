@@ -53,7 +53,7 @@ public class Unfolding {
 	 * that is, conditions that can have tokens at the same time.
 	 * This is used to find co-sets.
 	 */
-	private final ConcurrencyMatrix concurrencyMatrix = new ConcurrencyMatrix();
+	private final ConcurrencyMatrix concurrencyMatrix = new HashConcurrencyMatrix();
 
 	/**
 	 * Stores, for each already seen marking, which events produce that marking.
@@ -170,7 +170,7 @@ public class Unfolding {
 		this.concurrencyMatrix.add(condition);
 		condition.preset().postset().add(condition);
 
-		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.co(condition).stream()
+		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
 		if (placeToConditions.containsKey(condition.place())) {
 			throw new AssertionError("no " + condition.place() + " in " + placeToConditions);
