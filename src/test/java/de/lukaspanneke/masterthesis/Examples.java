@@ -1,10 +1,10 @@
 package de.lukaspanneke.masterthesis;
 
+import de.lukaspanneke.masterthesis.components.Place;
+import de.lukaspanneke.masterthesis.components.Transition;
 import de.lukaspanneke.masterthesis.components.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
-import de.lukaspanneke.masterthesis.components.Place;
-import de.lukaspanneke.masterthesis.components.Transition;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import org.junit.jupiter.api.Test;
 
@@ -14,13 +14,119 @@ import java.util.Map;
 
 public class Examples {
 
-	static Variable VAR = new Variable("⊻");
+	static Variable VAR = new Variable(".");
 
 	@Test
 	void example() throws IOException {
 		Net net = two_ways_to_reset();
 		renderAndClip(net);
 		renderAndClip(Unfolding.unfold(net, 11));
+	}
+
+	Net isqrt(int i) {
+		// https://en.wikipedia.org/wiki/Integer_square_root
+		if (i <= 1) {
+			throw new IllegalArgumentException("i=" + i + " must be at least 2");
+		}
+		int p = 0;
+		Place
+				s0 = new Place(p++, "s0"),
+				s1 = new Place(p++, "s1"),
+				s2 = new Place(p++, "s2"),
+				x01 = new Place(p++, "x01"),
+				x02 = new Place(p++, "x02"),
+				x03 = new Place(p++, "x03"),
+				p3 = new Place(p++),
+				p4 = new Place(p++),
+				x11 = new Place(p++, "x11"),
+				x12 = new Place(p++, "x12"),
+				x13 = new Place(p++, "x13"),
+				p6 = new Place(p++, "ans"),
+				p7 = new Place(p++),
+				p8 = new Place(p++);
+		Variable
+				s = new Variable("s"),
+				x0 = new Variable("x0"),
+				x1 = new Variable("x1"),
+				q = new Variable("q"),
+				r = new Variable("r"),
+				y = new Variable("y");
+		Transition
+				t1 = new Transition(1, "init_x0", x0.times(2).plus(r).eq(s).and(x0.geq(0)).and(r.geq(0)).and(r.lt(2))),
+				t2 = new Transition(2, "init_x1_div_x0", x0.times(q).plus(r).eq(s).and(q.geq(0)).and(r.geq(0)).and(r.lt(x0))),
+				t3 = new Transition(3, "init_x1_add", y.eq(x0.plus(q))),
+				t4 = new Transition(4, "init_x1_div2", q.times(2).plus(r).eq(y).and(q.geq(0)).and(r.geq(0)).and(r.lt(2))),
+				t5 = new Transition(5, "done", x1.geq(x0)),
+				t6 = new Transition(6, "cont", x1.lt(x0)),
+				t7 = new Transition(7, "updt_x1_div", x1.times(q).plus(r).eq(s).and(q.geq(0)).and(r.geq(0)).and(r.lt(x1))),
+				t8 = new Transition(8, "updt_x1_add", y.eq(x1.plus(q))),
+				t9 = new Transition(9, "updt_x1_div2", q.times(2).plus(r).eq(y).and(q.geq(0)).and(r.geq(0)).and(r.lt(2)));
+
+		link(s0, s, t1);
+		link(t1, s, s1);
+		link(t1, x0, x01);
+		link(s1, s, t2);
+		link(x01, x0, t2);
+		link(t2, s, s2);
+		link(t2, x0, x02);
+		link(t2, q, p3);
+		link(x02, x0, t3);
+		link(p3, q, t3);
+		link(t3, x0, x03);
+		link(t3, y, p4);
+		link(p4, y, t4);
+		link(t4, q, x11);
+
+		link(x03, x0, t5);
+		link(x11, x1, t5);
+		link(x03, x0, t6);
+		link(x11, x1, t6);
+		link(t5, x0, p6);
+		link(t6, x1, x12);
+		link(s2, s, t7);
+		link(x12, x1, t7);
+		link(t7, s, s2);
+		link(t7, x1, x13);
+		link(t7, q, p7);
+		link(x13, x1, t8);
+		link(p7, q, t8);
+		link(t8, x1, x03);
+		link(t8, y, p8);
+		link(p8, y, t9);
+		link(t9, q, x11);
+
+		return new Net(new Marking(Map.of(s0, i)));
+	}
+
+	Net infinite_markings() {
+		// can not have cut-off events
+		Variable
+				x = new Variable("x"),
+				y = new Variable("y");
+		Place
+				p = new Place(1, "p");
+		Transition
+				t = new Transition(1, "t", y.leq(x.plus(1)));
+		link(p, x, t);
+		link(t, y, p);
+		return new Net(new Marking(Map.of(p, 0)));
+	}
+
+	Net div_by_two() {
+		Variable
+				x = new Variable("x"),
+				y = new Variable("y");
+		Place
+				i = new Place(1, "i"),
+				h = new Place(2, "h");
+		Transition
+				e = new Transition(1, "e", y.times(2).eq(x)),
+				o = new Transition(2, "o", y.times(2).plus(1).eq(x));
+		link(i, x, e);
+		link(i, x, o);
+		link(e, y, h);
+		link(o, y, h);
+		return new Net(new Marking(Map.of(i, 3)));
 	}
 
 	Net two_ways_to_reset() {
@@ -36,15 +142,55 @@ public class Examples {
 				a = new Transition(1, "α", l.eq(1)),
 				b = new Transition(2, "β", l.eq(2)),
 				o = new Transition(3, "ω");
-		link(s, i, x);
-		link(i, p, l);
-		link(p, a, l);
-		link(p, b, l);
-		link(a, q, x);
-		link(b, q, x);
-		link(q, o, x);
-		link(o, p, l);
+		link(s, x, i);
+		link(i, l, p);
+		link(p, l, a);
+		link(p, l, b);
+		link(a, x, q);
+		link(b, x, q);
+		link(q, x, o);
+		link(o, l, p);
 		return new Net(new Marking(Map.of(s, 0)));
+	}
+
+	Net lots_of_concurrency() {
+		Place
+				p1 = new Place(1),
+				p2 = new Place(2),
+				p3 = new Place(3),
+				p4 = new Place(4),
+				p5 = new Place(5),
+				p6 = new Place(6),
+				p7 = new Place(7),
+				p8 = new Place(8),
+				p9 = new Place(9),
+				p10 = new Place(10),
+				p11 = new Place(11),
+				p12 = new Place(12),
+				p13 = new Place(13);
+		Transition
+				t1 = new Transition(1),
+				t2 = new Transition(2),
+				t3 = new Transition(3),
+				t4 = new Transition(4),
+				t5 = new Transition(5),
+				t6 = new Transition(6),
+				t7 = new Transition(7),
+				t8 = new Transition(8),
+				t9 = new Transition(9);
+		link(p1, t1, p2);
+		link(p2, t2, p3);
+		link(p3, t3, p4);
+		link(p4, t9, p13);
+		link(p5, t4, p6);
+		link(p6, t6, p7);
+		link(p7, t7, p8);
+		link(p9, t5, p10);
+		link(p8, t9, p13);
+		link(p10, t6, p11);
+		link(p11, t8, p12);
+		link(p12, t9, p13);
+		return new Net(new Marking(Map.of(p1, 1, p5, 1, p9, 1)));
 	}
 
 	Net lambdaswitch() {
@@ -327,7 +473,7 @@ public class Examples {
 		link(p3, t41);
 		link(p1, t41);
 
-		return new Net(new Marking(Map.of(p4, 1, p6, 1, p9, 1, p11, 1)));
+		return new Net(new Marking(Map.of(p1, 1, p7, 1, p8, 1, p10, 1)));
 	}
 
 	Net mutex() {
@@ -440,12 +586,12 @@ public class Examples {
 				t2 = new Transition(2, ll.neq(0)),
 				t3 = new Transition(3, k.eq(0));
 
-		link(p1, t1, k);
-		link(t1, p2, l);
-		link(p2, t2, l);
-		link(p2, t3, l);
-		link(t2, p2, ll);
-		link(t3, p3, k);
+		link(p1, k, t1);
+		link(t1, l, p2);
+		link(p2, l, t2);
+		link(p2, l, t3);
+		link(t2, ll, p2);
+		link(t3, k, p3);
 		return new Net(new Marking(Map.of(p1, 0)));
 	}
 
@@ -466,16 +612,16 @@ public class Examples {
 				t2 = new Transition(2, x.neq(0)),
 				t3 = new Transition(3),
 				t4 = new Transition(4);
-		link(p1, t1, x);
-		link(t1, p2, y);
-		link(t1, p3, z);
-		link(p2, t2, x);
-		link(t2, p4, x);
-		link(p3, t4, x);
-		link(t4, p6, x);
-		link(p2, t3, x);
-		link(p3, t3, x);
-		link(t3, p5, x);
+		link(p1, x, t1);
+		link(t1, y, p2);
+		link(t1, z, p3);
+		link(p2, x, t2);
+		link(t2, x, p4);
+		link(p3, x, t4);
+		link(t4, x, p6);
+		link(p2, x, t3);
+		link(p3, x, t3);
+		link(t3, x, p5);
 		return new Net(new Marking(Map.of(p1, 1)));
 	}
 
@@ -566,69 +712,69 @@ public class Examples {
 				),
 				skip = new Transition(6, "Skip");
 		// t
-		link(oreMiner, t, O);
-		link(t, oreMiner, O);
-		link(ore, t, o);
-		link(t, ore, o_);
+		link(oreMiner, O, t);
+		link(t, O, oreMiner);
+		link(ore, o, t);
+		link(t, o_, ore);
 
-		link(playMiner, t, C);
-		link(t, playMiner, C);
-		link(clay, t, c);
-		link(t, clay, c_);
+		link(playMiner, C, t);
+		link(t, C, playMiner);
+		link(clay, c, t);
+		link(t, c_, clay);
 
-		link(obsidianMiner, t, S);
-		link(t, obsidianMiner, S);
-		link(obsidian, t, s);
-		link(t, obsidian, s_);
+		link(obsidianMiner, S, t);
+		link(t, S, obsidianMiner);
+		link(obsidian, s, t);
+		link(t, s_, obsidian);
 
-		link(geodeMiner, t, G);
-		link(t, geodeMiner, G);
-		link(geodes, t, g);
-		link(t, geodes, g_);
+		link(geodeMiner, G, t);
+		link(t, G, geodeMiner);
+		link(geodes, g, t);
+		link(t, g_, geodes);
 
 		// Make Ore Miner
-		link(ore, mo, o);
-		link(mo, ore, o_);
-		link(oreMiner, mo, O);
-		link(mo, oreMiner, O_);
+		link(ore, o, mo);
+		link(mo, o_, ore);
+		link(oreMiner, O, mo);
+		link(mo, O_, oreMiner);
 
 		// Make Clay Miner
-		link(ore, mc, o);
-		link(mc, ore, o_);
-		link(playMiner, mc, C);
-		link(mc, playMiner, C_);
+		link(ore, o, mc);
+		link(mc, o_, ore);
+		link(playMiner, C, mc);
+		link(mc, C_, playMiner);
 
 		// Make Obsidian Miner
-		link(ore, ms, o);
-		link(ms, ore, o_);
-		link(clay, ms, c);
-		link(ms, clay, c_);
-		link(obsidianMiner, ms, S);
-		link(ms, obsidianMiner, S_);
+		link(ore, o, ms);
+		link(ms, o_, ore);
+		link(clay, c, ms);
+		link(ms, c_, clay);
+		link(obsidianMiner, S, ms);
+		link(ms, S_, obsidianMiner);
 
 		// Make Geode Miner
-		link(ore, mg, o);
-		link(mg, ore, o_);
-		link(obsidian, mg, s);
-		link(mg, obsidian, s_);
-		link(geodeMiner, mg, G);
-		link(mg, geodeMiner, G_);
+		link(ore, o, mg);
+		link(mg, o_, ore);
+		link(obsidian, s, mg);
+		link(mg, s_, obsidian);
+		link(geodeMiner, G, mg);
+		link(mg, G_, geodeMiner);
 
 		// clock
-		link(r, mo, v);
-		link(r, mc, v);
-		link(r, ms, v);
-		link(r, mg, v);
-		link(r, skip, v);
+		link(r, v, mo);
+		link(r, v, mc);
+		link(r, v, ms);
+		link(r, v, mg);
+		link(r, v, skip);
 
-		link(mo, i, v);
-		link(mc, i, v);
-		link(ms, i, v);
-		link(mg, i, v);
-		link(skip, i, v);
+		link(mo, v, i);
+		link(mc, v, i);
+		link(ms, v, i);
+		link(mg, v, i);
+		link(skip, v, i);
 
-		link(i, t, v);
-		link(t, r, v);
+		link(i, v, t);
+		link(t, v, r);
 
 		return new Net(new Marking(Map.of(
 				oreMiner, 1,
@@ -670,7 +816,7 @@ public class Examples {
 		t.preSet().put(p, VAR);
 	}
 
-	private static void link(Place p, Transition t, Variable variable) {
+	private static void link(Place p, Variable variable, Transition t) {
 		p.postSet().add(t);
 		t.preSet().put(p, variable);
 	}
@@ -686,7 +832,7 @@ public class Examples {
 		p.preSet().add(t);
 	}
 
-	private static void link(Transition t, Place p, Variable variable) {
+	private static void link(Transition t, Variable variable, Place p) {
 		t.postSet().put(p, variable);
 		p.preSet().add(t);
 	}
@@ -695,5 +841,15 @@ public class Examples {
 		for (Place p : pp) {
 			link(t, p);
 		}
+	}
+
+	private static void link(Place from, Transition over, Place to) {
+		link(from, over);
+		link(over, to);
+	}
+
+	private static void link(Transition from, Place over, Transition to) {
+		link(from, over);
+		link(over, to);
 	}
 }
