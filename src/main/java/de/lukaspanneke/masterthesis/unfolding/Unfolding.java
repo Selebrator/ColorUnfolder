@@ -28,6 +28,11 @@ public class Unfolding {
 	private final boolean CUTOFF = true;
 
 	/**
+	 * false if the net is low-level.
+	 */
+	private final boolean COLORED = true;
+
+	/**
 	 * Counter for the next event index.
 	 */
 	private int eventIndex = 1;
@@ -146,14 +151,21 @@ public class Unfolding {
 			Set<Place> mark = markingPlaces(event);
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {
-				Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
-						.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
-						.map(Unfolding::markingColors)
-						.collect(Formula.or());
-				Formula<Variable> check = markingColors(event).implies(colorHistory);
-				System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
-				if (Predicate.isTautology(check)) {
-					event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
+				if (COLORED) {
+					Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
+							.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
+							.map(Unfolding::markingColors)
+							.collect(Formula.or());
+					Formula<Variable> check = markingColors(event).implies(colorHistory);
+					System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
+					if (Predicate.isTautology(check)) {
+						event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
+					}
+				} else {
+					eventsWithSameUncoloredMarking.stream()
+							.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
+							.findAny()
+							.ifPresent(e -> event.setCutoff(CutoffReason.CUT_OFF_CONDITION));
 				}
 				eventsWithSameUncoloredMarking.add(event);
 			} else {
@@ -173,7 +185,8 @@ public class Unfolding {
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
 				.collect(Collectors.groupingBy(Condition::place));
 		if (placeToConditions.containsKey(condition.place())) {
-			throw new AssertionError("no " + condition.place() + " in " + placeToConditions);
+			throw new AssertionError("net not safe. two conditions with the same place are concurrent.",
+					new AssertionError("adding " + condition + ", there should be no " + condition.place() + " in " + placeToConditions));
 		}
 		placeToConditions.put(condition.place(), List.of(condition));
 		for (Transition transition : condition.place().postSet()) {
@@ -182,11 +195,13 @@ public class Unfolding {
 					//System.out.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
-				System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
 				Set<Condition> preset = Set.of(candidate);
-				if (!Predicate.isSatisfiable(guard("⊤", transition, preset).and(history(preset)))) {
-					//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
-					continue;
+				if (COLORED) {
+					System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
+					if (!Predicate.isSatisfiable(guard("⊤", transition, preset).and(history(preset)))) {
+						//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
+						continue;
+					}
 				}
 				PossibleExtension extension = new PossibleExtension(transition, preset);
 				System.out.println("    Extend PE with (" + transition + ", " + Arrays.toString(candidate) + ")");
