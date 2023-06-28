@@ -25,6 +25,7 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 		for (Condition condition : result) {
 			this.get(condition).add(newCondition);
 		}
+		//System.out.println(newCondition + " (made from " + newCondition.preset() + " " + newCondition.prepre() + ") is concurrent with " + result);
 		//System.out.println(this);
 	}
 
@@ -44,6 +45,6 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 	@Override
 	public String toString() {
 		List<Condition> order = this.storage.keySet().stream().sorted().toList();
-		return TableRenderer.renderTable(this.storage, order, order, Condition::name, Condition::name);
+		return TableRenderer.renderTable(this.storage, order, order, Condition::toString, Condition::name);
 	}
 }
