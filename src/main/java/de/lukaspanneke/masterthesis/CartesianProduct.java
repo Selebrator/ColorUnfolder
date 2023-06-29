@@ -22,7 +22,7 @@ public class CartesianProduct<T> implements Iterable<T[]> {
 	private class CartesianIterator implements Iterator<T[]> {
 		private final Iterator<T>[] iterators;
 		private T[] values;
-		private int size;
+		private final int size;
 		private boolean empty;
 
 		public CartesianIterator() {

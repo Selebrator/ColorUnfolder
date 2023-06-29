@@ -10,9 +10,9 @@ import io.github.cvc5.Term;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Predicate {
+import static de.lukaspanneke.masterthesis.Options.*;
 
-	private static final boolean SHOW_MODEL = false;
+public class Predicate {
 
 	private static Result checkSat(Formula<Variable> formula) {
 		Solver solver = new Solver();
@@ -36,18 +36,26 @@ public class Predicate {
 	}
 
 	public static boolean isSatisfiable(Formula<Variable> formula) {
-		System.out.println("      " + formula);
+		if (SHOW_FORMULAS) {
+			System.out.println("      " + formula);
+		}
 		Result result = checkSat(formula);
-		String answer = result.isSat() ? "SAT" : result.isUnsat() ? "UNSAT" : result.toString();
-		System.out.println("      " + answer);
+		if (PRINT_COLOR_CONFLICT_INFO) {
+			String answer = result.isSat() ? "SAT" : result.isUnsat() ? "UNSAT" : result.toString();
+			System.out.println("      " + answer);
+		}
 		return result.isSat();
 	}
 
 	public static boolean isTautology(Formula<Variable> formula) {
-		System.out.println("    " + formula);
+		if (SHOW_FORMULAS) {
+			System.out.println("    " + formula);
+		}
 		Result result = checkSat(formula.not());
-		String answer = result.isUnsat() ? "TAUTOLOGY" : result.isSat() ? "NOT A TAUTOLOGY" : result.toString();
-		System.out.println("    " + answer);
+		if (PRINT_COLOR_CUTOFF_INFO) {
+			String answer = result.isUnsat() ? "TAUTOLOGY" : result.isSat() ? "NOT A TAUTOLOGY" : result.toString();
+			System.out.println("    " + answer);
+		}
 		return result.isUnsat();
 	}
 }

@@ -13,6 +13,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static de.lukaspanneke.masterthesis.Options.*;
+
 public class Unfolding {
 
 	/**
@@ -92,18 +94,30 @@ public class Unfolding {
 	 * Simple implementation of the ERV algorithm blueprint.
 	 */
 	private void construct() {
+		if (PRINT_PROGRESS) {
+			System.out.println("Initializing");
+		}
 		for (Map.Entry<Place, Variable> post : initialEvent.transition().postSet().entrySet()) {
 			this.addCondition(makeCondition(initialEvent, post.getKey(), post.getValue()));
 		}
 		this.addEvent(initialEvent);
+		if (PRINT_PROGRESS) {
+			System.out.println("Initialization done");
+		}
 
 		PossibleExtension extension;
-		System.out.println("Possible Extensions: " + this.possibleExtensions);
+		if (PRINT_PROGRESS) {
+			System.out.println("Possible Extensions: " + this.possibleExtensions);
+		}
 		while ((extension = this.possibleExtensions.poll()) != null) {
-			System.out.println("Next event " + extension + " with preset " + extension.preset());
+			if (PRINT_PROGRESS) {
+				System.out.println("Next event " + extension + " with preset " + extension.preset());
+			}
 			Optional<Event> cutoffPredecessor = extension.prepre().stream().filter(Event::isCutoff).findAny();
 			if (cutoffPredecessor.isPresent()) {
-				System.out.println("  " + extension + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
+				if (PRINT_COLOR_CUTOFF_INFO) {
+					System.out.println("  " + extension + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
+				}
 				continue;
 			}
 			Event event = new Event(this.eventIndex++, extension);
@@ -111,9 +125,13 @@ public class Unfolding {
 				this.addCondition(makeCondition(event, post.getKey(), post.getValue()));
 			}
 			this.addEvent(event);
-			System.out.println("Possible Extensions: " + this.possibleExtensions);
+			if (PRINT_PROGRESS) {
+				System.out.println("Possible Extensions: " + this.possibleExtensions);
+			}
 		}
-		System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
+		if (PRINT_PROGRESS) {
+			System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
+		}
 	}
 
 	/**
@@ -157,7 +175,9 @@ public class Unfolding {
 							.map(Unfolding::markingColors)
 							.collect(Formula.or());
 					Formula<Variable> check = markingColors(event).implies(colorHistory);
-					System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
+					if (PRINT_COLOR_CUTOFF_INFO) {
+						System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
+					}
 					if (Predicate.isTautology(check)) {
 						event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
 					}
@@ -178,7 +198,9 @@ public class Unfolding {
 	 * Add a condition and find all new possible extensions enabled by it.
 	 */
 	private void addCondition(Condition condition) {
-		System.out.println("  Add condition " + condition);
+		if (PRINT_PROGRESS) {
+			System.out.println("  Add condition " + condition);
+		}
 		this.concurrencyMatrix.add(condition);
 		condition.preset().postset().add(condition);
 
@@ -197,14 +219,18 @@ public class Unfolding {
 				}
 				Set<Condition> preset = Set.of(candidate);
 				if (COLORED) {
-					System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
+					if (PRINT_COLOR_CONFLICT_INFO) {
+						System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
+					}
 					if (!Predicate.isSatisfiable(guard("⊤", transition, preset).and(history(preset)))) {
 						//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 						continue;
 					}
 				}
 				PossibleExtension extension = new PossibleExtension(transition, preset);
-				System.out.println("    Extend PE with (" + transition + ", " + Arrays.toString(candidate) + ")");
+				if (PRINT_PROGRESS) {
+					System.out.println("    Extend PE with (" + transition + ", " + Arrays.toString(candidate) + ")");
+				}
 				this.possibleExtensions.add(extension);
 			}
 		}
@@ -282,7 +308,7 @@ public class Unfolding {
 	}
 
 	public void render(Writer writer) throws IOException {
-		new UnfoldingRenderer(this.initialEvent, true).render(writer);
+		new UnfoldingRenderer(this.initialEvent).render(writer);
 	}
 
 	public Event getInitialEvent() {

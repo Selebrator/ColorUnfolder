@@ -9,16 +9,16 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.lukaspanneke.masterthesis.Options.RENDER_DEBUG;
+
 public class UnfoldingRenderer {
-	private final boolean SHOW_DEBUG;
 
 	private final Event initialEvent;
 	private final Set<Condition> conditions = new LinkedHashSet<>();
 	private final Set<Event> events = new LinkedHashSet<>();
 
-	public UnfoldingRenderer(Event initialEvent, boolean debug) {
+	public UnfoldingRenderer(Event initialEvent) {
 		this.initialEvent = initialEvent;
-		this.SHOW_DEBUG = debug;
 	}
 
 	private void collectNodes(Condition condition) {
@@ -44,16 +44,16 @@ public class UnfoldingRenderer {
 	}
 
 	private String displayName(Condition node) {
-		return SHOW_DEBUG ? node.toString() : node.place().name();
+		return RENDER_DEBUG ? node.toString() : node.place().name();
 	}
 
 	private String displayName(Event node) {
-		return SHOW_DEBUG ? node.toString() : node.transition().name();
+		return RENDER_DEBUG ? node.toString() : node.transition().name();
 	}
 
 	public void render(Writer writer) throws IOException {
 		collectNodes(initialEvent);
-		if (!SHOW_DEBUG) {
+		if (!RENDER_DEBUG) {
 			events.remove(initialEvent);
 		}
 		writer.append("digraph ").append("net").append(" {\n");
@@ -80,7 +80,7 @@ public class UnfoldingRenderer {
 					}
 				});
 				StringJoiner xlabel = new StringJoiner("\n");
-				if (SHOW_DEBUG) {
+				if (RENDER_DEBUG) {
 					if (node.hasContext()) {
 						xlabel.add("h(cut) = " + Unfolding.markingPlaces(node));
 					}
@@ -105,14 +105,14 @@ public class UnfoldingRenderer {
 
 		for (var to : conditions) {
 			var from = to.preset();
-			if (!SHOW_DEBUG && from == initialEvent) {
+			if (!RENDER_DEBUG && from == initialEvent) {
 				continue;
 			}
 			writer.append("\"").append(nodeName(from))
 					.append("\" -> \"")
 					.append(nodeName(to)).append("\"")
 					.append(" [label=\"");
-			if (SHOW_DEBUG) {
+			if (RENDER_DEBUG) {
 				writer.append(to.preVariable().name());
 			} else {
 				writer.append(from.transition().postSet().get(to.place()).name());
@@ -126,7 +126,7 @@ public class UnfoldingRenderer {
 						.append("\" -> \"")
 						.append(nodeName(to)).append("\"")
 						.append(" [label=\"");
-				if (SHOW_DEBUG) {
+				if (RENDER_DEBUG) {
 					writer.append(from.preVariable().name());
 				} else {
 					writer.append(to.transition().preSet().get(from.place()).name());

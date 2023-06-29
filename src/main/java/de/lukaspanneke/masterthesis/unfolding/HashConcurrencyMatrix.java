@@ -6,6 +6,8 @@ import de.lukaspanneke.masterthesis.components.Condition;
 
 import java.util.*;
 
+import static de.lukaspanneke.masterthesis.Options.PRINT_CONCURRENCY_INFO;
+
 public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 	private final Map<Condition, Set<Condition>> storage = new HashMap<>();
 
@@ -25,8 +27,10 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 		for (Condition condition : result) {
 			this.get(condition).add(newCondition);
 		}
-		//System.out.println(newCondition + " (made from " + newCondition.preset() + " " + newCondition.prepre() + ") is concurrent with " + result);
-		//System.out.println(this);
+		if (PRINT_CONCURRENCY_INFO) {
+			System.out.println(newCondition + " (made from " + newCondition.preset() + " " + newCondition.prepre() + ") is concurrent with " + result);
+			System.out.println(this);
+		}
 	}
 
 	@Override
