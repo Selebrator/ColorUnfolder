@@ -37,7 +37,7 @@ public class Unfolding {
 	/**
 	 * Counter for the next event index.
 	 */
-	private int eventIndex = 1;
+	private int eventIndex = 0;
 
 	/**
 	 * Counter for the next condition index.
