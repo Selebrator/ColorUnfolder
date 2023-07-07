@@ -1,9 +1,9 @@
 package de.lukaspanneke.masterthesis.components;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Precursor of an event.
@@ -24,10 +24,12 @@ public final class PossibleExtension implements IEvent {
 		this.depth = 1 + preset.stream()
 				.mapToInt(condition -> condition.preset().depth())
 				.max().orElse(0);
-		this.coneConfiguration = new Configuration(Stream.concat(
-				Stream.of(this),
-				preset.stream().map(Condition::preset)
-		).collect(Collectors.toUnmodifiableSet()));
+		Set<IEvent> coneConfiguration = new HashSet<>();
+		coneConfiguration.add(this);
+		for (Condition condition : preset) {
+			coneConfiguration.addAll(condition.preset().coneConfiguration().events());
+		}
+		this.coneConfiguration = new Configuration(coneConfiguration);
 	}
 
 	public Transition transition() {

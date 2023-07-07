@@ -21,6 +21,10 @@ public final class Configuration implements Comparable<Configuration> {
 		return events.size();
 	}
 
+	public Set<IEvent> events() {
+		return events;
+	}
+
 	private Parikh parikh() {
 		if (this.parikh == null) {
 			this.parikh = new Parikh(this.events);
