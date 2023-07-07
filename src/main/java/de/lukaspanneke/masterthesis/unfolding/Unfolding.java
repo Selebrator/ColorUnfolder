@@ -165,7 +165,7 @@ public class Unfolding {
 			return;
 		}
 		if (CUTOFF) {
-			event.calcContext(this.initialEvent.postset());
+			event.calcContext();
 			Set<Place> mark = markingPlaces(event);
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {

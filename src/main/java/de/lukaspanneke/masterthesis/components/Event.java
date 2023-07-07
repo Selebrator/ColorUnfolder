@@ -42,11 +42,11 @@ public final class Event implements IEvent {
 		this.conePred = this.localPred.and(Unfolding.history(preset()));
 	}
 
-	public void calcContext(Set<Condition> initialConditions) {
+	public void calcContext() {
 		Set<Event> prepre = prepre();
 		this.conePreset = Set.copyOf(Sets.union(this.preset(), prepre.stream().map(Event::conePreset).reduce(Sets::union).orElseGet(Set::of)));
 		this.conePostset = Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of));
-		this.coneCut = Sets.difference(Sets.union(initialConditions, conePostset()), conePreset());
+		this.coneCut = Sets.difference(conePostset(), conePreset());
 	}
 
 	public String name() {
