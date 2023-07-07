@@ -13,7 +13,11 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 
 	@Override
 	public Set<Condition> get(Condition key) {
-		return this.storage.computeIfAbsent(key, k -> new HashSet<>());
+		Set<Condition> ans = this.storage.get(key);
+		if (ans == null) {
+			throw new AssertionError();
+		}
+		return ans;
 	}
 
 	@Override
