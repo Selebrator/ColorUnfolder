@@ -107,7 +107,6 @@ public class Unfolding {
 			for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
 				link(makeCondition(event, post.getKey(), post.getValue()));
 			}
-			event.calcContext();
 			if (!isCutoff(event)) {
 				for (Condition condition : event.postset()) {
 					findPe(condition);
@@ -159,6 +158,7 @@ public class Unfolding {
 			event.setCutoff(CutoffReason.DEPTH);
 		}
 		if (CUTOFF) {
+			event.calcContext();
 			Set<Place> mark = markingPlaces(event);
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {
