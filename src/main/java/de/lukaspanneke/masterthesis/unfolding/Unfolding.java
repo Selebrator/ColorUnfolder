@@ -162,6 +162,7 @@ public class Unfolding {
 			Set<Place> mark = markingPlaces(event);
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {
+				boolean seenBefore;
 				if (COLORED) {
 					Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
 							.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
@@ -171,16 +172,16 @@ public class Unfolding {
 					if (PRINT_COLOR_CUTOFF_INFO) {
 						System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 					}
-					if (Predicate.isTautology(check)) {
-						event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
-					}
+					seenBefore = Predicate.isTautology(check);
 				} else {
-					eventsWithSameUncoloredMarking.stream()
-							.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
-							.findAny()
-							.ifPresent(e -> event.setCutoff(CutoffReason.CUT_OFF_CONDITION));
+					seenBefore = eventsWithSameUncoloredMarking.stream()
+							.anyMatch(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0);
 				}
-				eventsWithSameUncoloredMarking.add(event);
+				if (seenBefore) {
+					event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
+				} else {
+					eventsWithSameUncoloredMarking.add(event);
+				}
 			} else {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
