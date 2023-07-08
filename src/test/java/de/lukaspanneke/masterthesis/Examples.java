@@ -804,6 +804,7 @@ public class Examples {
 		try (StringWriter stringWriter = new StringWriter()) {
 			unf.render(stringWriter);
 			System.out.println(stringWriter);
+			System.out.println(stringWriter.toString().lines().count() - 2 + " lines");
 			Process clip = new ProcessBuilder("xclip", "-sel", "clip").start();
 			try (var out = clip.outputWriter()) {
 				out.append(stringWriter.toString()).flush();
