@@ -23,6 +23,18 @@ public class Examples {
 		renderAndClip(Unfolding.unfold(net, 11));
 	}
 
+	@Test
+	void runMany() {
+		Unfolding.unfold(div_by_two(), 10);
+		Unfolding.unfold(lots_of_concurrency(), 10);
+		Unfolding.unfold(lambdaswitch(), 15);
+		Unfolding.unfold(mutex(), 10);
+		Unfolding.unfold(romer_example_2_6(), 10);
+		Unfolding.unfold(romer_example_3_4(), 10);
+		Unfolding.unfold(wurdemann_example_1(), 10);
+		Unfolding.unfold(colorConflict(), 10);
+	}
+
 	Net isqrt(int i) {
 		// https://en.wikipedia.org/wiki/Integer_square_root
 		if (i <= 1) {
