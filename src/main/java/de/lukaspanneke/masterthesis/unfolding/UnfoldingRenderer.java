@@ -50,7 +50,7 @@ public class UnfoldingRenderer {
 	}
 
 	private String displayName(Event node) {
-		return RENDER_DEBUG ? node.toString() : node.transition().name();
+		return node.toString();
 	}
 
 	public void render(Writer writer) throws IOException {
