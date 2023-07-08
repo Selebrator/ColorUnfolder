@@ -84,7 +84,7 @@ public class UnfoldingRenderer {
 				StringJoiner xlabel = new StringJoiner("\n");
 				if (RENDER_DEBUG) {
 					if (node.hasContext()) {
-						xlabel.add("h(cut) = " + Unfolding.markingPlaces(node));
+						xlabel.add("pi(cut) = " + Unfolding.markingPlaces(node));
 					}
 					if (!Formula.top().equals(node.guard())) {
 						xlabel.add(node.guard().toString());

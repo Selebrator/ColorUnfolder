@@ -170,7 +170,7 @@ public class Unfolding {
 							.collect(Formula.or());
 					Formula<Variable> check = markingColors(event).implies(colorHistory);
 					if (PRINT_COLOR_CUTOFF_INFO) {
-						System.out.println("  Checking if " + event + " with h(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
+						System.out.println("  Checking if " + event + " with pi(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 					}
 					seenBefore = Predicate.isTautology(check);
 				} else {
@@ -276,7 +276,7 @@ public class Unfolding {
 	}
 
 	/**
-	 * h(cut(cone(event)))
+	 * pi(cut(cone(event)))
 	 */
 	public static Set<Place> markingPlaces(Event event) {
 		return event.coneCut().stream()
