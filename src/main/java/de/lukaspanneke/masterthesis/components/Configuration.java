@@ -9,11 +9,11 @@ public final class Configuration implements Comparable<Configuration> {
 			Comparator.comparingInt(Configuration::size)
 					.thenComparing(Configuration::parikh)
 					.thenComparing(Configuration::foata);
-	private final Set<IEvent> events;
+	private final Set<Event> events;
 	private Parikh parikh;
 	private Foata foata;
 
-	public Configuration(Set<IEvent> events) {
+	public Configuration(Set<Event> events) {
 		this.events = Set.copyOf(events);
 	}
 
@@ -21,7 +21,7 @@ public final class Configuration implements Comparable<Configuration> {
 		return events.size();
 	}
 
-	public Set<IEvent> events() {
+	public Set<Event> events() {
 		return events;
 	}
 
@@ -45,10 +45,10 @@ public final class Configuration implements Comparable<Configuration> {
 	}
 
 	private static class Parikh implements Comparable<Parikh> {
-		private static final Comparator<Iterable<IEvent>> ORDER = new LexicographicOrder<>(IEvent::compareTo);
-		private final List<IEvent> data;
+		private static final Comparator<Iterable<Event>> ORDER = new LexicographicOrder<>(Event::compareTo);
+		private final List<Event> data;
 
-		public Parikh(Set<IEvent> configuration) {
+		public Parikh(Set<Event> configuration) {
 			this.data = configuration.stream()
 					.sorted(Comparator.comparingInt(event -> event.transition().index()))
 					.toList();
@@ -64,9 +64,9 @@ public final class Configuration implements Comparable<Configuration> {
 		private static final Comparator<Iterable<Configuration>> ORDER = new LexicographicOrder<>(Comparator.comparing(Configuration::parikh));
 		private final List<Configuration> data;
 
-		public Foata(Set<IEvent> configuration) {
+		public Foata(Set<Event> configuration) {
 			this.data = configuration.stream()
-					.collect(Collectors.groupingBy(IEvent::depth))
+					.collect(Collectors.groupingBy(Event::depth))
 					.entrySet()
 					.stream()
 					.sorted(Comparator.comparingInt(Map.Entry::getKey))

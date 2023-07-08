@@ -52,8 +52,8 @@ public class Unfolding {
 	/**
 	 * Stores all unexplored events.
 	 */
-	private final PriorityQueue<PossibleExtension> possibleExtensions = new PriorityQueue<>(
-			Comparator.comparing(PossibleExtension::coneConfiguration));
+	private final PriorityQueue<Event> possibleExtensions = new PriorityQueue<>(
+			Comparator.comparing(Event::coneConfiguration));
 
 	/**
 	 * Stores what conditions are concurrent with each other,
@@ -87,48 +87,36 @@ public class Unfolding {
 						.map(e -> new Variable(e.getKey().name()).eq(e.getValue()))
 						.collect(Formula.and())
 		);
-		this.initialEvent = new Event(this.eventIndex++, new PossibleExtension(initialTransition, Set.of()));
+		this.initialEvent = new Event(this.eventIndex++, initialTransition, Set.of());
 	}
 
 	/**
 	 * Simple implementation of the ERV algorithm blueprint.
 	 */
 	private void construct() {
-		if (PRINT_PROGRESS) {
-			System.out.println("Initializing");
-		}
-		for (Map.Entry<Place, Variable> post : initialEvent.transition().postSet().entrySet()) {
-			this.addCondition(makeCondition(initialEvent, post.getKey(), post.getValue()));
-		}
-		this.addEvent(initialEvent);
-		if (PRINT_PROGRESS) {
-			System.out.println("Initialization done");
-		}
-
-		PossibleExtension extension;
-		if (PRINT_PROGRESS) {
-			System.out.println("Possible Extensions: " + this.possibleExtensions);
-		}
-		while ((extension = this.possibleExtensions.poll()) != null) {
+		Event event = this.initialEvent;
+		do {
 			if (PRINT_PROGRESS) {
-				System.out.println("Next event " + extension + " with preset " + extension.preset());
+				System.out.println("Next event " + event + " with preset " + event.preset());
 			}
-			Optional<Event> cutoffPredecessor = extension.prepre().stream().filter(Event::isCutoff).findAny();
+			Optional<Event> cutoffPredecessor = event.prepre().stream().filter(Event::isCutoff).findAny();
 			if (cutoffPredecessor.isPresent()) {
-				if (PRINT_COLOR_CUTOFF_INFO) {
-					System.out.println("  " + extension + " is after cut-off event " + cutoffPredecessor.get() + ". skipping.");
+				throw new AssertionError(event + " is after cut-off event " + cutoffPredecessor.get() + ".");
+			}
+			link(event);
+			for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
+				link(makeCondition(event, post.getKey(), post.getValue()));
+			}
+			event.calcContext();
+			if (!isCutoff(event)) {
+				for (Condition condition : event.postset()) {
+					findPe(condition);
 				}
-				continue;
 			}
-			Event event = new Event(this.eventIndex++, extension);
-			for (Map.Entry<Place, Variable> post : extension.transition().postSet().entrySet()) {
-				this.addCondition(makeCondition(event, post.getKey(), post.getValue()));
-			}
-			this.addEvent(event);
 			if (PRINT_PROGRESS) {
 				System.out.println("Possible Extensions: " + this.possibleExtensions);
 			}
-		}
+		} while ((event = this.possibleExtensions.poll()) != null);
 		if (PRINT_PROGRESS) {
 			System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 		}
@@ -144,28 +132,33 @@ public class Unfolding {
 	 * that is, it must pick a new color, then a new variable is created for it.
 	 */
 	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
-		Variable eventToConditionVariable = preEvent.transition().preSet().entrySet().stream()
+		Variable internalVariable = preEvent.transition().preSet().entrySet().stream()
 				.filter(entry -> entry.getValue().equals(transitionToPlaceVariable))
 				.findAny()
 				.map(tEntry -> preEvent.preset().stream()
 						.filter(condition -> condition.place().equals(tEntry.getKey()))
 						.findAny().orElseThrow(() -> new AssertionError("such a condition must exist"))
-						.preVariable())
+						.internalVariable())
 				.orElseGet(() -> transitionToPlaceVariable.local(preEvent.name()));
-		return new Condition(this.conditionIndex++, correspondingPlace, preEvent, eventToConditionVariable);
+		return new Condition(this.conditionIndex++, correspondingPlace, preEvent, internalVariable);
+	}
+
+	private void link(Event event) {
+		event.preset().forEach(condition -> condition.postset().add(event));
+	}
+
+	private void link(Condition condition) {
+		condition.preset().postset().add(condition);
 	}
 
 	/**
-	 * Add an event and check if it's a cut-off event.
+	 * Check if an event is a cut-off event.
 	 */
-	private void addEvent(Event event) {
-		event.preset().forEach(condition -> condition.postset().add(event));
+	private boolean isCutoff(Event event) {
 		if (event.depth() >= depthBound) {
 			event.setCutoff(CutoffReason.DEPTH);
-			return;
 		}
 		if (CUTOFF) {
-			event.calcContext();
 			Set<Place> mark = markingPlaces(event);
 			Set<Event> eventsWithSameUncoloredMarking = this.marks.get(mark);
 			if (eventsWithSameUncoloredMarking != null) {
@@ -192,19 +185,20 @@ public class Unfolding {
 				this.marks.put(mark, new HashSet<>(Set.of(event)));
 			}
 		}
+		return event.isCutoff();
 	}
 
 	/**
-	 * Add a condition and find all new possible extensions enabled by it.
+	 * Find and add all new possible extensions enabled by a new condition
 	 */
-	private void addCondition(Condition condition) {
+	private void findPe(Condition condition) {
 		if (PRINT_PROGRESS) {
-			System.out.println("  Add condition " + condition);
+			System.out.println("  Find extensions for " + condition);
 		}
 		this.concurrencyMatrix.add(condition);
-		condition.preset().postset().add(condition);
 
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
+				.filter(c -> !c.preset().isCutoff())
 				.collect(Collectors.groupingBy(Condition::place));
 		if (placeToConditions.containsKey(condition.place())) {
 			throw new AssertionError("net not safe. two conditions with the same place are concurrent.",
@@ -227,9 +221,9 @@ public class Unfolding {
 						continue;
 					}
 				}
-				PossibleExtension extension = new PossibleExtension(transition, preset);
+				Event extension = new Event(this.eventIndex++, transition, preset);
 				if (PRINT_PROGRESS) {
-					System.out.println("    Extend PE with (" + transition + ", " + Arrays.toString(candidate) + ")");
+					System.out.println("    Extend PE with " + extension + " with preset " + extension.preset());
 				}
 				this.possibleExtensions.add(extension);
 			}

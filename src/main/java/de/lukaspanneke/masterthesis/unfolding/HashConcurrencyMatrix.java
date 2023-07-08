@@ -26,7 +26,7 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 				.map(this::get)
 				.reduce(Sets::intersection)
 				.orElseGet(Collections::emptySet);
-		Set<Condition> result = new HashSet<>(Sets.union(cob, newCondition.preset().postset()));
+		Set<Condition> result = new HashSet<>(Sets.union(cob, Sets.intersection(newCondition.preset().postset(), this.storage.keySet())));
 		this.storage.put(newCondition, result);
 		for (Condition condition : result) {
 			this.get(condition).add(newCondition);

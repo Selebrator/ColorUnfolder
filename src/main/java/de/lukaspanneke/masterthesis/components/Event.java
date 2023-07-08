@@ -11,13 +11,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /* Transition (t, X, pred) in E */
-public final class Event implements IEvent {
+public final class Event implements Comparable<Event> {
 
 	private final int index;
 	private final String name;
 	private final Transition transition;
 	private final Set<Condition> preset;
-	private final Set<Condition> postset = new HashSet<>();
+	private Set<Condition> postset = new HashSet<>();
 	private final Formula<Variable> localPred;
 	private final Formula<Variable> conePred;
 	private final int depth;
@@ -27,26 +27,34 @@ public final class Event implements IEvent {
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
 
-	public Event(int index, PossibleExtension extension) {
-		this(index, "e" + index, extension);
+	public Event(int index, Transition transition, Set<Condition> preset) {
+		this(index, "e" + index, transition, preset);
 	}
 
-	public Event(int index, String name, PossibleExtension extension) {
+	public Event(int index, String name, Transition transition, Set<Condition> preset) {
 		this.index = index;
 		this.name = name;
-		this.transition = extension.transition();
-		this.preset = Set.copyOf(extension.preset());
-		this.depth = extension.depth();
-		this.coneConfiguration = extension.coneConfiguration();
+		this.transition = transition;
+		this.preset = Set.copyOf(preset);
+		this.depth = 1 + preset.stream()
+				.mapToInt(condition -> condition.preset().depth())
+				.max().orElse(0);
+		Set<Event> coneConfiguration = new HashSet<>();
+		coneConfiguration.add(this);
+		for (Condition condition : preset) {
+			coneConfiguration.addAll(condition.preset().coneConfiguration().events());
+		}
+		this.coneConfiguration = new Configuration(coneConfiguration);
 		this.localPred = Unfolding.guard(name(), transition(), preset());
 		this.conePred = this.localPred.and(Unfolding.history(preset()));
 	}
 
 	public void calcContext() {
 		Set<Event> prepre = prepre();
+		this.postset = Set.copyOf(this.postset);
 		this.conePreset = Set.copyOf(Sets.union(this.preset(), prepre.stream().map(Event::conePreset).reduce(Sets::union).orElseGet(Set::of)));
-		this.conePostset = Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of));
-		this.coneCut = Sets.difference(conePostset(), conePreset());
+		this.conePostset = Set.copyOf(Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of)));
+		this.coneCut = Set.copyOf(Sets.difference(conePostset(), conePreset()));
 	}
 
 	public String name() {
@@ -114,6 +122,11 @@ public final class Event implements IEvent {
 
 	public Configuration coneConfiguration() {
 		return coneConfiguration;
+	}
+
+	@Override
+	public int compareTo(Event that) {
+		return Integer.compare(this.transition().index(), that.transition().index());
 	}
 
 	@Override
