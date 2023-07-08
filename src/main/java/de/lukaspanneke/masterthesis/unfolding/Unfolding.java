@@ -255,7 +255,7 @@ public class Unfolding {
 					List<Place> transitionPreset = originalVariableToPresetPlaces.getValue();
 					List<Variable> mustEqVariables = preset.stream()
 							.filter(condition -> transitionPreset.contains(condition.place()))
-							.map(Condition::preVariable)
+							.map(Condition::internalVariable)
 							.distinct()
 							.collect(Collectors.toList());
 					Variable representative = mustEqVariables.get(0).value();
@@ -297,12 +297,12 @@ public class Unfolding {
 	 */
 	public static Formula<Variable> markingColors(Event event) {
 		Formula<Variable> cutPlaceAliasing = event.coneCut().stream()
-				.map(condition -> condition.preVariable().eq(new Variable(condition.place().name())))
+				.map(condition -> condition.internalVariable().eq(new Variable(condition.place().name())))
 				.collect(Formula.and());
 		Formula<Variable> conePredicate = event.conePredicate();
 		Set<Variable> quantifiedVariables = conePredicate.support();
 		quantifiedVariables.addAll(event.coneCut().stream()
-				.map(Condition::preVariable)
+				.map(Condition::internalVariable)
 				.collect(Collectors.toSet()));
 		return QuantifiedFormula.of(QuantifiedFormula.Quantifier.EXISTS, quantifiedVariables, conePredicate.and(cutPlaceAliasing));
 	}

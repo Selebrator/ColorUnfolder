@@ -113,7 +113,7 @@ public class UnfoldingRenderer {
 					.append(nodeName(to)).append("\"")
 					.append(" [label=\"");
 			if (RENDER_DEBUG) {
-				writer.append(to.preVariable().name());
+				writer.append(to.internalVariable().name());
 			} else {
 				writer.append(from.transition().postSet().get(to.place()).name());
 			}
@@ -127,7 +127,7 @@ public class UnfoldingRenderer {
 						.append(nodeName(to)).append("\"")
 						.append(" [label=\"");
 				if (RENDER_DEBUG) {
-					writer.append(from.preVariable().name());
+					writer.append(from.internalVariable().name());
 				} else {
 					writer.append(to.transition().preSet().get(from.place()).name());
 				}

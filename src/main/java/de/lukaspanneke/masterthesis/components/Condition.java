@@ -10,7 +10,7 @@ public record Condition(
 		String name,
 		Place place,
 		Event preset,
-		Variable preVariable,
+		Variable internalVariable,
 		Set<Event> postset
 ) implements Comparable<Condition> {
 
