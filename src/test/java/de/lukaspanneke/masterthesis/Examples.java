@@ -98,6 +98,48 @@ public class Examples {
 		return new Net(new Marking(Map.of(s0, i)));
 	}
 
+	Net failed_attempt_cutoff_star_example() {
+		Variable
+				x = new Variable("x"),
+				y = new Variable("y");
+		Place
+				p1 = new Place(1),
+				p2 = new Place(2),
+				p3 = new Place(3),
+				p4 = new Place(4),
+				p5 = new Place(5),
+				p6 = new Place(6);
+		Transition
+				t = new Transition(1, "t", y.eq(x.plus(1))),
+				u = new Transition(2, "u"),
+				a = new Transition(3, "a"),
+				b = new Transition(4, "b");
+
+		link(p1, x, t);
+		link(t, y, p1);
+		link(p1, x, a);
+		link(a, y, p1);
+		link(p3, t);
+		link(t, p3);
+		link(p3, a);
+		link(p3, u);
+		link(a, p5);
+		link(u, p5);
+
+		link(p2, x, t);
+		link(t, y, p2);
+		link(p2, x, b);
+		link(b, y, p2);
+		link(p4, t);
+		link(t, p4);
+		link(p4, b);
+		link(p4, u);
+		link(b, p6);
+		link(u, p6);
+
+		return new Net(new Marking(Map.of(p1, 0, p3, 0, p2, 0, p4, 0)));
+	}
+
 	Net infinite_markings() {
 		// can not have cut-off events
 		Variable
