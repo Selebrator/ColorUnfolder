@@ -22,16 +22,18 @@ public class UnfoldingRenderer {
 	}
 
 	private void collectNodes(Condition condition) {
-		conditions.add(condition);
-		for (Event event : condition.postset()) {
-			collectNodes(event);
+		if(conditions.add(condition)) {
+			for (Event event : condition.postset()) {
+				collectNodes(event);
+			}
 		}
 	}
 
 	private void collectNodes(Event event) {
-		events.add(event);
-		for (Condition condition : event.postset()) {
-			collectNodes(condition);
+		if(events.add(event)) {
+			for (Condition condition : event.postset()) {
+				collectNodes(condition);
+			}
 		}
 	}
 
