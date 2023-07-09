@@ -199,7 +199,11 @@ public class Unfolding {
 		this.concurrencyMatrix.add(condition);
 
 		Map<Place, List<Condition>> placeToConditions = this.concurrencyMatrix.get(condition).stream()
-				.filter(c -> !c.preset().isCutoff())
+				.peek(c -> {
+					if (c.preset().isCutoff()) {
+						throw new AssertionError("conditions in the postset of a cut-off event should not be in the concurrency matrix. but " + c + " in post(" + c.preset() + ") is.");
+					}
+				})
 				.collect(Collectors.groupingBy(Condition::place));
 		if (placeToConditions.containsKey(condition.place())) {
 			throw new AssertionError("net not safe. two conditions with the same place are concurrent.",
