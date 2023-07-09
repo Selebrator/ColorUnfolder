@@ -9,32 +9,41 @@ public final class Configuration implements Comparable<Configuration> {
 			Comparator.comparingInt(Configuration::size)
 					.thenComparing(Configuration::parikh)
 					.thenComparing(Configuration::foata);
-	private final Set<Event> events;
-	private Parikh parikh;
+	private final Parikh parikh;
 	private Foata foata;
 
-	public Configuration(Set<Event> events) {
-		this.events = Set.copyOf(events);
+	public static Configuration newConeConfiguration(Event event, Collection<Condition> preset) {
+		Set<Event> events = new HashSet<>();
+		events.add(event);
+		for (Condition condition : preset) {
+			events.addAll(condition.preset().coneConfiguration().events());
+		}
+		return new Configuration(events);
 	}
 
-	public int size() {
-		return events.size();
+	private Configuration(Set<Event> events) {
+		this.parikh = new Parikh(events);
 	}
 
-	public Set<Event> events() {
-		return events;
+	private Configuration(List<Event> events) {
+		this.parikh = new Parikh(events);
+	}
+
+	private int size() {
+		return this.parikh.data.size();
+	}
+
+	private Collection<Event> events() {
+		return this.parikh.data;
 	}
 
 	private Parikh parikh() {
-		if (this.parikh == null) {
-			this.parikh = new Parikh(this.events);
-		}
 		return parikh;
 	}
 
 	private Foata foata() {
 		if (this.foata == null) {
-			this.foata = new Foata(this.events);
+			this.foata = new Foata(this.events());
 		}
 		return foata;
 	}
@@ -48,7 +57,7 @@ public final class Configuration implements Comparable<Configuration> {
 		private static final Comparator<Iterable<Event>> ORDER = new LexicographicOrder<>(Event::compareTo);
 		private final List<Event> data;
 
-		public Parikh(Set<Event> configuration) {
+		public Parikh(Collection<Event> configuration) {
 			this.data = configuration.stream()
 					.sorted(Comparator.comparingInt(event -> event.transition().index()))
 					.toList();
@@ -64,14 +73,13 @@ public final class Configuration implements Comparable<Configuration> {
 		private static final Comparator<Iterable<Configuration>> ORDER = new LexicographicOrder<>(Comparator.comparing(Configuration::parikh));
 		private final List<Configuration> data;
 
-		public Foata(Set<Event> configuration) {
+		public Foata(Collection<Event> configuration) {
 			this.data = configuration.stream()
 					.collect(Collectors.groupingBy(Event::depth))
 					.entrySet()
 					.stream()
 					.sorted(Comparator.comparingInt(Map.Entry::getKey))
 					.map(Map.Entry::getValue)
-					.map(Set::copyOf)
 					.map(Configuration::new)
 					.toList();
 		}
@@ -114,16 +122,16 @@ public final class Configuration implements Comparable<Configuration> {
 		if (obj == this) return true;
 		if (obj == null || obj.getClass() != this.getClass()) return false;
 		var that = (Configuration) obj;
-		return Objects.equals(this.events, that.events);
+		return Objects.equals(this.events(), that.events());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(events);
+		return Objects.hash(events());
 	}
 
 	@Override
 	public String toString() {
-		return events.toString();
+		return events().toString();
 	}
 }

@@ -39,12 +39,7 @@ public final class Event implements Comparable<Event> {
 		this.depth = 1 + preset.stream()
 				.mapToInt(condition -> condition.preset().depth())
 				.max().orElse(0);
-		Set<Event> coneConfiguration = new HashSet<>();
-		coneConfiguration.add(this);
-		for (Condition condition : preset) {
-			coneConfiguration.addAll(condition.preset().coneConfiguration().events());
-		}
-		this.coneConfiguration = new Configuration(coneConfiguration);
+		this.coneConfiguration = Configuration.newConeConfiguration(this, preset);
 		this.localPred = Unfolding.guard(name(), transition(), preset());
 		this.conePred = this.localPred.and(Unfolding.history(preset()));
 	}
