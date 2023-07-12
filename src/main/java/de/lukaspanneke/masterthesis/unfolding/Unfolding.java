@@ -37,7 +37,7 @@ public class Unfolding {
 	/**
 	 * Counter for the next event index.
 	 */
-	private int eventIndex = 0;
+	private int eventIndex = 1;
 
 	/**
 	 * Counter for the next condition index.
@@ -87,7 +87,8 @@ public class Unfolding {
 						.map(e -> new Variable(e.getKey().name()).eq(e.getValue()))
 						.collect(Formula.and())
 		);
-		this.initialEvent = new Event(this.eventIndex++, initialTransition, Set.of());
+		Formula<Variable> initialGuard = guard("e0", initialTransition, Set.of());
+		this.initialEvent = new Event(this.eventIndex, "e0", initialTransition, Set.of(), initialGuard, initialGuard);
 	}
 
 	/**
@@ -219,16 +220,24 @@ public class Unfolding {
 					continue;
 				}
 				Set<Condition> preset = Set.of(candidate);
+				Formula<Variable> guard;
+				Formula<Variable> conePredicate;
+				String eventName = "e" + this.eventIndex;
 				if (COLORED) {
+					guard = guard(eventName, transition, preset);
+					conePredicate = guard.and(history(preset));
 					if (PRINT_COLOR_CONFLICT_INFO) {
 						System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
 					}
-					if (!Predicate.isSatisfiable(guard("⊤", transition, preset).and(history(preset)))) {
+					if (!Predicate.isSatisfiable(conePredicate)) {
 						//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 						continue;
 					}
+				} else {
+					guard = null;
+					conePredicate = null;
 				}
-				Event extension = new Event(this.eventIndex++, transition, preset);
+				Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate);
 				if (PRINT_PROGRESS) {
 					System.out.println("    Extend PE with " + extension + " with preset " + extension.preset());
 				}

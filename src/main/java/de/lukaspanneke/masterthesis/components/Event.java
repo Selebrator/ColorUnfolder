@@ -27,11 +27,7 @@ public final class Event implements Comparable<Event> {
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
 
-	public Event(int index, Transition transition, Set<Condition> preset) {
-		this(index, "e" + index, transition, preset);
-	}
-
-	public Event(int index, String name, Transition transition, Set<Condition> preset) {
+	public Event(int index, String name, Transition transition, Set<Condition> preset, Formula<Variable> localPred, Formula<Variable> conePred) {
 		this.index = index;
 		this.name = name;
 		this.transition = transition;
@@ -40,8 +36,8 @@ public final class Event implements Comparable<Event> {
 				.mapToInt(condition -> condition.preset().depth())
 				.max().orElse(0);
 		this.coneConfiguration = Configuration.newConeConfiguration(this, preset);
-		this.localPred = Unfolding.guard(name(), transition(), preset());
-		this.conePred = this.localPred.and(Unfolding.history(preset()));
+		this.localPred = localPred;
+		this.conePred = conePred;
 	}
 
 	public void calcContext() {
