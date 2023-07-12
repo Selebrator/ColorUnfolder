@@ -18,11 +18,11 @@ public final class Event implements Comparable<Event> {
 	private final Transition transition;
 	private final Set<Condition> preset;
 	private Set<Condition> postset = new HashSet<>();
-	private final Formula<Variable> localPred;
-	private final Formula<Variable> conePred;
+	private Formula<Variable> localPred;
+	private Formula<Variable> conePred;
 	private final int depth;
 	private CutoffReason cutoffReason = null;
-	private final Configuration coneConfiguration;
+	private Configuration coneConfiguration;
 	private Set<Condition> conePreset;
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
@@ -52,6 +52,15 @@ public final class Event implements Comparable<Event> {
 		this.coneCut = Set.copyOf(Sets.difference(conePostset(), conePreset()));
 	}
 
+	public void dropMemoryOfCutoff() {
+		this.localPred = null;
+		this.conePred = null;
+		this.coneConfiguration = null;
+		this.conePreset = null;
+		this.conePostset = null;
+		this.coneCut = null;
+	}
+
 	public String name() {
 		return name;
 	}
@@ -73,11 +82,11 @@ public final class Event implements Comparable<Event> {
 	}
 
 	private Set<Condition> conePreset() {
-		return conePreset;
+		return Objects.requireNonNull(conePreset);
 	}
 
 	private Set<Condition> conePostset() {
-		return conePostset;
+		return Objects.requireNonNull(conePostset);
 	}
 
 	public boolean hasContext() {
@@ -86,17 +95,17 @@ public final class Event implements Comparable<Event> {
 
 	public Set<Condition> coneCut() {
 		if (coneCut == null) {
-			throw new IllegalStateException("tried to access " + name() + ".coneCut before calling calcContext");
+			throw new IllegalStateException("tried to access " + name() + ".coneCut before calling calcContext or after calling dropMemoryOfCutoff");
 		}
 		return coneCut;
 	}
 
 	public Formula<Variable> guard() {
-		return localPred;
+		return Objects.requireNonNull(localPred);
 	}
 
 	public Formula<Variable> conePredicate() {
-		return conePred;
+		return Objects.requireNonNull(conePred);
 	}
 
 	public int depth() {
@@ -116,7 +125,7 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public Configuration coneConfiguration() {
-		return coneConfiguration;
+		return Objects.requireNonNull(coneConfiguration);
 	}
 
 	@Override
