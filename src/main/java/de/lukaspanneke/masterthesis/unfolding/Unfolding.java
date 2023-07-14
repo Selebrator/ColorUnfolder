@@ -112,8 +112,6 @@ public class Unfolding {
 				for (Condition condition : event.postset()) {
 					findPe(condition);
 				}
-			} else {
-				event.dropMemoryOfCutoff();
 			}
 			if (PRINT_PROGRESS) {
 				System.out.println("Possible Extensions: " + this.possibleExtensions);
@@ -182,6 +180,7 @@ public class Unfolding {
 				}
 				if (seenBefore) {
 					event.setCutoff(CutoffReason.CUT_OFF_CONDITION);
+					event.dropMemoryOfCutoff();
 				} else {
 					eventsWithSameUncoloredMarking.add(event);
 				}
