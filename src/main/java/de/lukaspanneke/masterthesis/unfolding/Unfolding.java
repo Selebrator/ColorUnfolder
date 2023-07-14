@@ -88,7 +88,7 @@ public class Unfolding {
 						.collect(Formula.and())
 		);
 		Formula<Variable> initialGuard = guard("e0", initialTransition, Set.of());
-		this.initialEvent = new Event(this.eventIndex, "e0", initialTransition, Set.of(), initialGuard, initialGuard);
+		this.initialEvent = new Event(0, "e0", initialTransition, Set.of(), initialGuard, initialGuard);
 	}
 
 	/**
