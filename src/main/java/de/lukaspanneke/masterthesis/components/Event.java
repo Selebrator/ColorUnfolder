@@ -1,6 +1,7 @@
 package de.lukaspanneke.masterthesis.components;
 
 import com.google.common.collect.Sets;
+import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 
@@ -49,7 +50,9 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public void dropMemoryOfCutoff() {
-		this.localPred = null;
+		if (!Options.RENDER_DEBUG) {
+			this.localPred = null;
+		}
 		this.conePred = null;
 		this.coneConfiguration = null;
 		this.conePreset = null;
