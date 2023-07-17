@@ -35,6 +35,18 @@ public class Unfolding {
 	private final boolean COLORED = true;
 
 	/**
+	 * The transitions that we want to know if they are firable.
+	 * Empty set, if we don't want to check fire-ability.
+	 */
+	private final Set<Transition> targetTransitions;
+
+	/**
+	 * The first event we found for a {@link #targetTransitions target transition}.
+	 * Returned by {@link #foundTarget()}.
+	 */
+	private Event targetEvent;
+
+	/**
 	 * Counter for the next event index.
 	 */
 	private int eventIndex = 1;
@@ -69,13 +81,18 @@ public class Unfolding {
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
 	public static Unfolding unfold(Net net, int depth) {
-		Unfolding ans = new Unfolding(net, depth);
+		return unfold(net, depth, Set.of());
+	}
+
+	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions) {
+		Unfolding ans = new Unfolding(net, depth, targetTransitions);
 		ans.construct();
 		return ans;
 	}
 
-	private Unfolding(Net original, int depthBound) {
+	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions) {
 		this.depthBound = depthBound;
+		this.targetTransitions = Set.copyOf(targetTransitions);
 		Marking initialMarking = original.initialMarking();
 		Transition initialTransition = new Transition(
 				Integer.MIN_VALUE,
@@ -108,6 +125,13 @@ public class Unfolding {
 			for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
 				link(makeCondition(event, post.getKey(), post.getValue()));
 			}
+			if (this.targetTransitions.contains(event.transition())) {
+				if (PRINT_PROGRESS) {
+					System.out.println("Found target transition " + event + " in " + event.coneConfiguration());
+				}
+				this.targetEvent = event;
+				break;
+			}
 			if (!isCutoff(event)) {
 				for (Condition condition : event.postset()) {
 					findPe(condition);
@@ -117,7 +141,7 @@ public class Unfolding {
 				System.out.println("Possible Extensions: " + this.possibleExtensions);
 			}
 		} while ((event = this.possibleExtensions.poll()) != null);
-		if (PRINT_PROGRESS) {
+		if (PRINT_PROGRESS && this.possibleExtensions.isEmpty()) {
 			System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 		}
 	}
@@ -322,5 +346,9 @@ public class Unfolding {
 
 	public Event getInitialEvent() {
 		return initialEvent;
+	}
+
+	public Optional<Event> foundTarget() {
+		return Optional.ofNullable(this.targetEvent);
 	}
 }

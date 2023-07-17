@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Examples {
 
@@ -602,6 +606,20 @@ public class Examples {
 		return new Net(new Marking(Map.of(s1, 1, s2, 1, m, 1)));
 	}
 
+	@Test
+	void mutexCanEnterCriticalSection() {
+		Net net = mutex();
+		Set<Transition> enter = net.collectNodes().transitions().stream()
+				.filter(transition -> transition.name().startsWith("entr"))
+				.collect(Collectors.toUnmodifiableSet());
+		assertEquals(2, enter.size(), enter.toString());
+
+		Unfolding unfolding = Unfolding.unfold(net, Integer.MAX_VALUE, enter);
+		//renderAndClip(unfolding);
+		System.out.println("target event: " + unfolding.foundTarget());
+		assertTrue(unfolding.foundTarget().isPresent());
+	}
+
 	Net romer_example_2_6() {
 		Place
 				p1 = new Place(1),
@@ -706,7 +724,7 @@ public class Examples {
 		Transition
 				t1 = new Transition(1, y.gt(0).and(z.lt(0))),
 				t2 = new Transition(2, x.neq(0)),
-				t3 = new Transition(3),
+				t3 = new Transition(3), // the transition that can never fire
 				t4 = new Transition(4);
 		link(p1, x, t1);
 		link(t1, y, p2);
@@ -719,6 +737,19 @@ public class Examples {
 		link(p3, x, t3);
 		link(t3, x, p5);
 		return new Net(new Marking(Map.of(p1, 1)));
+	}
+
+	@Test
+	void colorConflictNeverFires() {
+		Net net = colorConflict();
+		Transition t3 = net.collectNodes().transitions().stream()
+				.filter(transition -> transition.index() == 3)
+				.findAny().orElseThrow(() -> new AssertionError("could not get reference of t3"));
+
+		Unfolding unfolding = Unfolding.unfold(net, Integer.MAX_VALUE, Set.of(t3));
+		//renderAndClip(unfolding);
+		System.out.println("target event: " + unfolding.foundTarget());
+		assertTrue(unfolding.foundTarget().isEmpty());
 	}
 
 	//Net xiang() {
