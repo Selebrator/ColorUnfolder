@@ -7,15 +7,18 @@ import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Timeout(value = 1, unit = TimeUnit.MINUTES) // because a bug is likely to result in an infinite loop
 public class Examples {
 
 	static Variable VAR = new Variable(".");
@@ -29,14 +32,14 @@ public class Examples {
 
 	@Test
 	void runMany() {
-		Unfolding.unfold(div_by_two(), 10);
-		Unfolding.unfold(lots_of_concurrency(), 10);
-		Unfolding.unfold(lambdaswitch(), 15);
-		Unfolding.unfold(mutex(), 10);
-		Unfolding.unfold(romer_example_2_6(), 10);
-		Unfolding.unfold(romer_example_3_4(), 10);
-		Unfolding.unfold(wurdemann_example_1(), 10);
-		Unfolding.unfold(colorConflict(), 10);
+		Unfolding.unfold(div_by_two());
+		Unfolding.unfold(lots_of_concurrency());
+		Unfolding.unfold(lambdaswitch());
+		Unfolding.unfold(mutex());
+		Unfolding.unfold(romer_example_2_6());
+		Unfolding.unfold(romer_example_3_4());
+		Unfolding.unfold(wurdemann_example_1());
+		Unfolding.unfold(colorConflict());
 	}
 
 	Net isqrt(int i) {

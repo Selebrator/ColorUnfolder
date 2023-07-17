@@ -80,8 +80,16 @@ public class Unfolding {
 	 */
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
+	public static Unfolding unfold(Net net) {
+		return unfold(net, Integer.MAX_VALUE, Set.of());
+	}
+
 	public static Unfolding unfold(Net net, int depth) {
 		return unfold(net, depth, Set.of());
+	}
+
+	public static Unfolding unfold(Net net, Set<Transition> targetTransitions) {
+		return unfold(net, Integer.MAX_VALUE, targetTransitions);
 	}
 
 	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions) {
@@ -114,6 +122,10 @@ public class Unfolding {
 	private void construct() {
 		Event event = this.initialEvent;
 		do {
+			if (Thread.interrupted()) {
+				System.out.println("Interrupted");
+				break;
+			}
 			if (PRINT_PROGRESS) {
 				System.out.println("Next event " + event + " with preset " + event.preset());
 			}
