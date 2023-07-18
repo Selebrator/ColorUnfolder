@@ -8,33 +8,33 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package private */ final class Implication<A> extends Formula<A> {
+/* package private */ final class Implication extends Formula {
 
-	private final Formula<A> lhs;
-	private final Formula<A> rhs;
+	private final Formula lhs;
+	private final Formula rhs;
 
-	private Implication(Formula<A> lhs, Formula<A> rhs) {
+	private Implication(Formula lhs, Formula rhs) {
 		this.lhs = lhs;
 		this.rhs = rhs;
 	}
 
-	public static <A> Implication<A> of(Formula<A> lhs, Formula<A> rhs) {
-		return new Implication<>(lhs, rhs);
+	public static Implication of(Formula lhs, Formula rhs) {
+		return new Implication(lhs, rhs);
 	}
 
 	@Override
-	protected void collectSupport(Set<A> accumulator) {
+	protected void collectSupport(Set<Variable> accumulator) {
 		lhs.collectSupport(accumulator);
 		rhs.collectSupport(accumulator);
 	}
 
 	@Override
-	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula substitute(Map<Variable, Variable> map) {
 		return lhs.substitute(map).implies(rhs.substitute(map));
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return solver.mkTerm(Kind.IMPLIES, lhs.toCvc5(solver, atoms), rhs.toCvc5(solver, atoms));
 	}
 

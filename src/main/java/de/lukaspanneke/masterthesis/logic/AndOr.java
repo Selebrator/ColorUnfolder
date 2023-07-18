@@ -12,18 +12,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/* package-private */ final class AndOr<A> extends Formula<A> {
+/* package-private */ final class AndOr extends Formula {
 
 	/* invariant: formulas.size() >= 2 */
-	private final List<Formula<A>> formulas;
+	private final List<Formula> formulas;
 	private final Operator operator;
 
-	private AndOr(Formula<A> f1, Operator operator, Formula<A> f2) {
+	private AndOr(Formula f1, Operator operator, Formula f2) {
 		this.formulas = List.of(f1, f2);
 		this.operator = operator;
 	}
 
-	private AndOr(Operator operator, Collection<? extends Formula<A>> formulas) {
+	private AndOr(Operator operator, Collection<? extends Formula> formulas) {
 		if (formulas.size() < 2) {
 			throw new IllegalArgumentException(operator.name() + " has to be applied to at least 2 arguments");
 		}
@@ -31,15 +31,15 @@ import java.util.stream.Stream;
 		this.operator = operator;
 	}
 
-	public static <A> AndOr<A> of(Formula<A> f1, Operator operator, Formula<A> f2) {
+	public static AndOr of(Formula f1, Operator operator, Formula f2) {
 		assert f1 != null && f2 != null;
-		if (f1 instanceof AndOr<A> c1 && f2 instanceof AndOr<A> c2) {
+		if (f1 instanceof AndOr c1 && f2 instanceof AndOr c2) {
 			if (c1.operator == operator && c2.operator == operator) {
-				List<Formula<A>> compose = Stream.concat(c1.formulas.stream(), c2.formulas.stream()).toList();
-				return new AndOr<>(operator, compose);
+				List<Formula> compose = Stream.concat(c1.formulas.stream(), c2.formulas.stream()).toList();
+				return new AndOr(operator, compose);
 			} else if (c1.operator == operator || c2.operator == operator) {
-				AndOr<A> same;
-				Formula<A> different;
+				AndOr same;
+				Formula different;
 				boolean sameFirst;
 				if (c1.operator == operator) {
 					same = c1;
@@ -50,48 +50,48 @@ import java.util.stream.Stream;
 					same = c2;
 					sameFirst = false;
 				}
-				List<Formula<A>> compose = (sameFirst
+				List<Formula> compose = (sameFirst
 						? Stream.concat(same.formulas.stream(), Stream.of(different))
 						: Stream.concat(Stream.of(different), same.formulas.stream()))
 						.toList();
-				return new AndOr<>(operator, compose);
+				return new AndOr(operator, compose);
 			} else {
-				return new AndOr<>(f1, operator, f2);
+				return new AndOr(f1, operator, f2);
 			}
 		} else if (f1 instanceof AndOr || f2 instanceof AndOr) {
-			AndOr<A> c;
-			Formula<A> f;
+			AndOr c;
+			Formula f;
 			boolean compositionFirst;
 			if (f1 instanceof AndOr) {
-				c = (AndOr<A>) f1;
+				c = (AndOr) f1;
 				f = f2;
 				compositionFirst = true;
 			} else {
 				f = f1;
-				c = (AndOr<A>) f2;
+				c = (AndOr) f2;
 				compositionFirst = false;
 			}
 			if (c.operator == operator) {
-				List<Formula<A>> compose = (compositionFirst
+				List<Formula> compose = (compositionFirst
 						? Stream.concat(c.formulas.stream(), Stream.of(f))
 						: Stream.concat(Stream.of(f), c.formulas.stream()))
 						.toList();
-				return new AndOr<>(operator, compose);
+				return new AndOr(operator, compose);
 			} else {
-				return new AndOr<>(f1, operator, f2);
+				return new AndOr(f1, operator, f2);
 			}
 		} else {
-			return new AndOr<>(f1, operator, f2);
+			return new AndOr(f1, operator, f2);
 		}
 	}
 
-	public static <A> Formula<A> of(Operator operator, Collection<? extends Formula<A>> formulas) {
-		Formula<A> dominating = switch (operator) {
+	public static Formula of(Operator operator, Collection<? extends Formula> formulas) {
+		Formula dominating = switch (operator) {
 			case AND -> bottom();
 			case OR -> top();
 		};
 		var vanishing = dominating.not();
-		Set<Formula<A>> terms = formulas.stream()
+		Set<Formula> terms = formulas.stream()
 				.filter(formula -> formula != vanishing)
 				.collect(Collectors.toSet());
 		if (terms.isEmpty()) {
@@ -103,21 +103,21 @@ import java.util.stream.Stream;
 		if (terms.stream().anyMatch(formula -> formula == dominating)) {
 			return dominating;
 		}
-		return new AndOr<>(operator, terms);
+		return new AndOr(operator, terms);
 	}
 
 	@Override
-	protected void collectSupport(Set<A> accumulator) {
-		for (Formula<A> formula : formulas) {
+	protected void collectSupport(Set<Variable> accumulator) {
+		for (Formula formula : formulas) {
 			formula.collectSupport(accumulator);
 		}
 	}
 
 	@Override
-	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula substitute(Map<Variable, Variable> map) {
 		var collector = switch (operator) {
-			case AND -> Formula.<A>and();
-			case OR -> Formula.<A>or();
+			case AND -> Formula.and();
+			case OR -> Formula.or();
 		};
 		return formulas.stream()
 				.map(f -> f.substitute(map))
@@ -125,7 +125,7 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return solver.mkTerm(operator.toCvc5(), formulas.stream()
 				.map(formula -> formula.toCvc5(solver, atoms))
 				.toArray(Term[]::new));

@@ -1,5 +1,7 @@
 package de.lukaspanneke.masterthesis.components;
 
+import de.lukaspanneke.masterthesis.logic.Variable;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;

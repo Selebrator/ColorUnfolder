@@ -1,15 +1,27 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.logic;
 
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
-import de.lukaspanneke.masterthesis.logic.Atom;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
-public record Variable(String name) implements Atom<Variable>, Comparable<Variable> {
+public record Variable(String name) implements ArithmeticExpression, Comparable<Variable> {
 
 	public Variable local(String discriminator) {
 		return new Variable(name + "_" + discriminator);
+	}
+
+	@Override
+	public void collectSupport(Set<Variable> accumulator) {
+		accumulator.add(this);
+	}
+
+	@Override
+	public ArithmeticExpression substitute(Map<Variable, Variable> map) {
+		Variable ans = map.get(this);
+		return ans != null ? ans : this;
 	}
 
 	@Override
@@ -25,10 +37,5 @@ public record Variable(String name) implements Atom<Variable>, Comparable<Variab
 	@Override
 	public String toString() {
 		return name;
-	}
-
-	@Override
-	public Variable value() {
-		return this;
 	}
 }

@@ -1,6 +1,7 @@
 package de.lukaspanneke.masterthesis.components;
 
 import de.lukaspanneke.masterthesis.logic.Formula;
+import de.lukaspanneke.masterthesis.logic.Variable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,14 +12,14 @@ public record Transition(
 		String name,
 		Map<Place, Variable> preSet,
 		Map<Place, Variable> postSet,
-		Formula<Variable> guard
+		Formula guard
 ) implements Comparable<Transition> {
 
 	public Transition(int index) {
 		this(index, "t" + index);
 	}
 
-	public Transition(int index, Formula<Variable> guard) {
+	public Transition(int index, Formula guard) {
 		this(index, "t" + index, guard);
 	}
 
@@ -26,7 +27,7 @@ public record Transition(
 		this(index, name, Formula.top());
 	}
 
-	public Transition(int index, String name, Formula<Variable> guard) {
+	public Transition(int index, String name, Formula guard) {
 		this(index, name, new HashMap<>(), new HashMap<>(), guard);
 	}
 

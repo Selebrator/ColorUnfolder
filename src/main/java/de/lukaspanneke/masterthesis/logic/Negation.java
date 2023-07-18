@@ -7,34 +7,34 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package-private */ final class Negation<A> extends Formula<A> {
+/* package-private */ final class Negation extends Formula {
 
-	private final Formula<A> f;
+	private final Formula f;
 
-	private Negation(Formula<A> f) {
+	private Negation(Formula f) {
 		this.f = f;
 	}
 
-	public static <A> Formula<A> of(Formula<A> f) {
-		if (f instanceof Negation<A> n) {
+	public static Formula of(Formula f) {
+		if (f instanceof Negation n) {
 			return n.f;
 		} else {
-			return new Negation<>(f);
+			return new Negation(f);
 		}
 	}
 
 	@Override
-	protected void collectSupport(Set<A> accumulator) {
+	protected void collectSupport(Set<Variable> accumulator) {
 		this.f.collectSupport(accumulator);
 	}
 
 	@Override
-	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula substitute(Map<Variable, Variable> map) {
 		return f.substitute(map).not();
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return f.toCvc5(solver, atoms).notTerm();
 	}
 

@@ -11,33 +11,33 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-public sealed abstract class Formula<A> permits AndOr, Bottom, Comparison, Equality, Implication, Negation, QuantifiedFormula, Top {
+public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality, Implication, Negation, QuantifiedFormula, Top {
 
-	public final Set<A> support() {
-		Set<A> ans = new HashSet<>();
+	public final Set<Variable> support() {
+		Set<Variable> ans = new HashSet<>();
 		collectSupport(ans);
 		return ans;
 	}
 
-	protected abstract void collectSupport(Set<A> accumulator);
+	protected abstract void collectSupport(Set<Variable> accumulator);
 
-	public abstract Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map);
+	public abstract Formula substitute(Map<Variable, Variable> map);
 
-	public abstract Term toCvc5(Solver solver, Function<A, Term> atoms);
+	public abstract Term toCvc5(Solver solver, Function<Variable, Term> atoms);
 
-	public static <A> Formula<A> top() {
+	public static Formula top() {
 		return Top.instance();
 	}
 
-	public static <A> Formula<A> bottom() {
+	public static Formula bottom() {
 		return Bottom.instance();
 	}
 
-	public Formula<A> not() {
+	public Formula not() {
 		return Negation.of(this);
 	}
 
-	public Formula<A> and(Formula<A> rhs) {
+	public Formula and(Formula rhs) {
 		if (rhs == top()) {
 			return this;
 		} else if (rhs == bottom()) {
@@ -46,15 +46,15 @@ public sealed abstract class Formula<A> permits AndOr, Bottom, Comparison, Equal
 		return AndOr.of(this, AndOr.Operator.AND, rhs);
 	}
 
-	public static <A> Formula<A> and(List<? extends Formula<A>> formulas) {
+	public static Formula and(List<? extends Formula> formulas) {
 		return AndOr.of(AndOr.Operator.AND, formulas);
 	}
 
-	public static <A> Collector<Formula<A>, ?, Formula<A>> and() {
+	public static Collector<Formula, ?, Formula> and() {
 		return Collectors.collectingAndThen(Collectors.toList(), Formula::and);
 	}
 
-	public Formula<A> or(Formula<A> rhs) {
+	public Formula or(Formula rhs) {
 		if (rhs == top()) {
 			return rhs;
 		} else if (rhs == bottom()) {
@@ -63,26 +63,26 @@ public sealed abstract class Formula<A> permits AndOr, Bottom, Comparison, Equal
 		return AndOr.of(this, AndOr.Operator.OR, rhs);
 	}
 
-	public static <A> Formula<A> or(List<? extends Formula<A>> formulas) {
+	public static Formula or(List<? extends Formula> formulas) {
 		return AndOr.of(AndOr.Operator.OR, formulas);
 	}
 
-	public static <A> Collector<Formula<A>, ?, Formula<A>> or() {
+	public static Collector<Formula, ?, Formula> or() {
 		return Collectors.collectingAndThen(Collectors.toList(), Formula::or);
 	}
 
-	public Formula<A> implies(Formula<A> rhs) {
+	public Formula implies(Formula rhs) {
 		if (rhs == top()) {
 			return rhs;
 		}
 		return Implication.of(this, rhs);
 	}
 
-	public static <A> Formula<A> eq(List<? extends ArithmeticExpression<A>> atoms) {
+	public static Formula eq(List<? extends ArithmeticExpression> atoms) {
 		return Equality.of(atoms);
 	}
 
-	public static <A> Collector<ArithmeticExpression<A>, ?, Formula<A>> eq() {
+	public static Collector<ArithmeticExpression, ?, Formula> eq() {
 		return Collectors.collectingAndThen(Collectors.toList(), Formula::eq);
 	}
 }

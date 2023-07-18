@@ -1,7 +1,7 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
-import de.lukaspanneke.masterthesis.components.Variable;
 import de.lukaspanneke.masterthesis.logic.Formula;
+import de.lukaspanneke.masterthesis.logic.Variable;
 import io.github.cvc5.Result;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Sort;
@@ -14,7 +14,7 @@ import static de.lukaspanneke.masterthesis.Options.*;
 
 public class Predicate {
 
-	private static Result checkSat(Formula<Variable> formula) {
+	private static Result checkSat(Formula formula) {
 		Solver solver = new Solver();
 		if (SHOW_MODEL) {
 			solver.setOption("produce-models", "true");
@@ -35,7 +35,7 @@ public class Predicate {
 		return result;
 	}
 
-	public static boolean isSatisfiable(Formula<Variable> formula) {
+	public static boolean isSatisfiable(Formula formula) {
 		if (SHOW_FORMULAS) {
 			System.out.println("      " + formula);
 		}
@@ -47,7 +47,7 @@ public class Predicate {
 		return result.isSat();
 	}
 
-	public static boolean isTautology(Formula<Variable> formula) {
+	public static boolean isTautology(Formula formula) {
 		if (SHOW_FORMULAS) {
 			System.out.println("    " + formula);
 		}

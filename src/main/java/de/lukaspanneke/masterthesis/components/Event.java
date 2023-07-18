@@ -3,7 +3,6 @@ package de.lukaspanneke.masterthesis.components;
 import com.google.common.collect.Sets;
 import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.logic.Formula;
-import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -19,8 +18,8 @@ public final class Event implements Comparable<Event> {
 	private final Transition transition;
 	private final Set<Condition> preset;
 	private Set<Condition> postset = new HashSet<>();
-	private Formula<Variable> localPred;
-	private Formula<Variable> conePred;
+	private Formula localPred;
+	private Formula conePred;
 	private final int depth;
 	private CutoffReason cutoffReason = null;
 	private Configuration coneConfiguration;
@@ -28,7 +27,7 @@ public final class Event implements Comparable<Event> {
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
 
-	public Event(int index, String name, Transition transition, Set<Condition> preset, Formula<Variable> localPred, Formula<Variable> conePred) {
+	public Event(int index, String name, Transition transition, Set<Condition> preset, Formula localPred, Formula conePred) {
 		this.index = index;
 		this.name = name;
 		this.transition = transition;
@@ -99,11 +98,11 @@ public final class Event implements Comparable<Event> {
 		return coneCut;
 	}
 
-	public Formula<Variable> guard() {
+	public Formula guard() {
 		return Objects.requireNonNull(localPred);
 	}
 
-	public Formula<Variable> conePredicate() {
+	public Formula conePredicate() {
 		return Objects.requireNonNull(conePred);
 	}
 

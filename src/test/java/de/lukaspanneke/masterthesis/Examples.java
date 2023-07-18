@@ -2,7 +2,7 @@ package de.lukaspanneke.masterthesis;
 
 import de.lukaspanneke.masterthesis.components.Place;
 import de.lukaspanneke.masterthesis.components.Transition;
-import de.lukaspanneke.masterthesis.components.Variable;
+import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;

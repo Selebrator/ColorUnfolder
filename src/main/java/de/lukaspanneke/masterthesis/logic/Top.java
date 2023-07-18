@@ -7,49 +7,49 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package-private */ final class Top<A> extends Formula<A> {
+/* package-private */ final class Top extends Formula {
 
 	private static final Top INSTANCE = new Top();
 
 	private Top() {
 	}
 
-	public static <A> Top<A> instance() {
+	public static Top instance() {
 		return INSTANCE;
 	}
 
 	@Override
-	protected void collectSupport(Set<A> accumulator) {
+	protected void collectSupport(Set<Variable> accumulator) {
 		// no-op
 	}
 
 	@Override
-	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula substitute(Map<Variable, Variable> map) {
 		return this;
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return solver.mkTrue();
 	}
 
 	@Override
-	public Formula<A> not() {
+	public Formula not() {
 		return bottom();
 	}
 
 	@Override
-	public Formula<A> and(Formula<A> rhs) {
+	public Formula and(Formula rhs) {
 		return rhs;
 	}
 
 	@Override
-	public Formula<A> or(Formula<A> rhs) {
+	public Formula or(Formula rhs) {
 		return this;
 	}
 
 	@Override
-	public Formula<A> implies(Formula<A> rhs) {
+	public Formula implies(Formula rhs) {
 		return rhs;
 	}
 

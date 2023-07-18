@@ -8,35 +8,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package-private */ final class Calculation<A> implements ArithmeticExpression<A> {
+/* package-private */ final class Calculation implements ArithmeticExpression {
 
-	private final ArithmeticExpression<A> e1;
-	private final ArithmeticExpression<A> e2;
+	private final ArithmeticExpression e1;
+	private final ArithmeticExpression e2;
 	private final Operator operator;
 
-	private Calculation(ArithmeticExpression<A> e1, Operator operator, ArithmeticExpression<A> e2) {
+	private Calculation(ArithmeticExpression e1, Operator operator, ArithmeticExpression e2) {
 		this.e1 = e1;
 		this.e2 = e2;
 		this.operator = operator;
 	}
 
-	public static <A> Calculation<A> of(ArithmeticExpression<A> e1, Operator operator, ArithmeticExpression<A> e2) {
-		return new Calculation<>(e1, operator, e2);
+	public static Calculation of(ArithmeticExpression e1, Operator operator, ArithmeticExpression e2) {
+		return new Calculation(e1, operator, e2);
 	}
 
 	@Override
-	public void collectSupport(Set<A> accumulator) {
+	public void collectSupport(Set<Variable> accumulator) {
 		this.e1.collectSupport(accumulator);
 		this.e2.collectSupport(accumulator);
 	}
 
 	@Override
-	public ArithmeticExpression<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
-		return new Calculation<>(e1.substitute(map), operator, e2.substitute(map));
+	public ArithmeticExpression substitute(Map<Variable, Variable> map) {
+		return new Calculation(e1.substitute(map), operator, e2.substitute(map));
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return solver.mkTerm(operator.toCvc5(), e1.toCvc5(solver, atoms), e2.toCvc5(solver, atoms));
 	}
 

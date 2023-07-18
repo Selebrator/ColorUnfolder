@@ -8,42 +8,42 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/* package-private */ final class Equality<A> extends Formula<A> {
+/* package-private */ final class Equality extends Formula {
 
-	private final Set<ArithmeticExpression<A>> terms;
+	private final Set<ArithmeticExpression> terms;
 
-	private Equality(Set<ArithmeticExpression<A>> terms) {
+	private Equality(Set<ArithmeticExpression> terms) {
 		this.terms = terms;
 	}
 
-	public static <A> Formula<A> of(ArithmeticExpression<A> lhs, ArithmeticExpression<A> rhs) {
+	public static Formula of(ArithmeticExpression lhs, ArithmeticExpression rhs) {
 		return Equality.of(List.of(lhs, rhs));
 	}
 
-	public static <A> Formula<A> of(Collection<? extends ArithmeticExpression<A>> equalTerms) {
-		Set<ArithmeticExpression<A>> terms = new LinkedHashSet<>(equalTerms);
+	public static Formula of(Collection<? extends ArithmeticExpression> equalTerms) {
+		Set<ArithmeticExpression> terms = new LinkedHashSet<>(equalTerms);
 		if (terms.size() <= 1) {
 			return top();
 		}
-		return new Equality<>(Collections.unmodifiableSet(terms));
+		return new Equality(Collections.unmodifiableSet(terms));
 	}
 
 	@Override
-	protected void collectSupport(Set<A> accumulator) {
-		for (ArithmeticExpression<A> term : terms) {
+	protected void collectSupport(Set<Variable> accumulator) {
+		for (ArithmeticExpression term : terms) {
 			term.collectSupport(accumulator);
 		}
 	}
 
 	@Override
-	public Formula<A> substitute(Map<? extends Atom<A>, ? extends Atom<A>> map) {
+	public Formula substitute(Map<Variable, Variable> map) {
 		return terms.stream()
 				.map(expr -> expr.substitute(map))
 				.collect(Formula.eq());
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<A, Term> atoms) {
+	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
 		return solver.mkTerm(Kind.EQUAL, terms.stream()
 				.map(expr -> expr.toCvc5(solver, atoms))
 				.toArray(Term[]::new));

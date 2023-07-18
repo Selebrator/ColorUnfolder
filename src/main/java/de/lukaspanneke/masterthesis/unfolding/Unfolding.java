@@ -4,6 +4,7 @@ import de.lukaspanneke.masterthesis.CartesianProduct;
 import de.lukaspanneke.masterthesis.components.*;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.QuantifiedFormula;
+import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
 
@@ -101,7 +102,7 @@ public class Unfolding {
 						.map(e -> new Variable(e.getKey().name()).eq(e.getValue()))
 						.collect(Formula.and())
 		);
-		Formula<Variable> initialGuard = guard("e0", initialTransition, Set.of());
+		Formula initialGuard = guard("e0", initialTransition, Set.of());
 		this.initialEvent = new Event(0, "e0", initialTransition, Set.of(), initialGuard, initialGuard);
 	}
 
@@ -190,11 +191,11 @@ public class Unfolding {
 			if (eventsWithSameUncoloredMarking != null) {
 				boolean seenBefore;
 				if (COLORED) {
-					Formula<Variable> colorHistory = eventsWithSameUncoloredMarking.stream()
+					Formula colorHistory = eventsWithSameUncoloredMarking.stream()
 							.filter(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0)
 							.map(Unfolding::markingColors)
 							.collect(Formula.or());
-					Formula<Variable> check = markingColors(event).implies(colorHistory);
+					Formula check = markingColors(event).implies(colorHistory);
 					if (PRINT_COLOR_CUTOFF_INFO) {
 						System.out.println("  Checking if " + event + " with pi(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 					}
@@ -244,8 +245,8 @@ public class Unfolding {
 					continue;
 				}
 				Set<Condition> preset = Set.of(candidate);
-				Formula<Variable> guard;
-				Formula<Variable> conePredicate;
+				Formula guard;
+				Formula conePredicate;
 				String eventName = "e" + this.eventIndex;
 				if (COLORED) {
 					guard = guard(eventName, transition, preset);
@@ -275,7 +276,7 @@ public class Unfolding {
 	 *
 	 * <p>Cached as {@link Event#guard()}
 	 */
-	public static Formula<Variable> guard(String name, Transition transition, Set<Condition> preset) {
+	public static Formula guard(String name, Transition transition, Set<Condition> preset) {
 		Map<Variable, Variable> guardSubstitution = transition.guard().support().stream()
 				.collect(Collectors.toMap(variable -> variable, variable -> variable.local(name)));
 		return transition.preSet().entrySet().stream()
@@ -292,7 +293,7 @@ public class Unfolding {
 							.map(Condition::internalVariable)
 							.distinct()
 							.collect(Collectors.toList());
-					Variable representative = mustEqVariables.get(0).value();
+					Variable representative = mustEqVariables.get(0);
 					guardSubstitution.put(variable, representative);
 					return mustEqVariables;
 				})
@@ -306,7 +307,7 @@ public class Unfolding {
 	 *
 	 * <p>Almost cached as {@link Event#conePredicate()}. That copy is and'ed with the guard.
 	 */
-	public static Formula<Variable> history(Set<Condition> preset) {
+	public static Formula history(Set<Condition> preset) {
 		return preset.stream()
 				.map(Condition::preset)
 				.distinct()
@@ -329,11 +330,11 @@ public class Unfolding {
 	 *
 	 * <p>Example: ∃ p1_⊥, x_e1: p1_⊥ = 1 ∧ p1_⊥ < x_e1 ∧ x_e1 = p2
 	 */
-	public static Formula<Variable> markingColors(Event event) {
-		Formula<Variable> cutPlaceAliasing = event.coneCut().stream()
+	public static Formula markingColors(Event event) {
+		Formula cutPlaceAliasing = event.coneCut().stream()
 				.map(condition -> condition.internalVariable().eq(new Variable(condition.place().name())))
 				.collect(Formula.and());
-		Formula<Variable> conePredicate = event.conePredicate();
+		Formula conePredicate = event.conePredicate();
 		Set<Variable> quantifiedVariables = conePredicate.support();
 		quantifiedVariables.addAll(event.coneCut().stream()
 				.map(Condition::internalVariable)
