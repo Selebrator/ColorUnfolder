@@ -24,17 +24,6 @@ public class Unfolding {
 	private final int depthBound;
 
 	/**
-	 * true if the cutoff criterion should be applied.
-	 * false if all event up to the depth bound should be explored.
-	 */
-	private final boolean CUTOFF = true;
-
-	/**
-	 * false if the net is low-level.
-	 */
-	private final boolean COLORED = true;
-
-	/**
 	 * The transitions that we want to know if they are firable.
 	 * Empty set, if we don't want to check fire-ability.
 	 */

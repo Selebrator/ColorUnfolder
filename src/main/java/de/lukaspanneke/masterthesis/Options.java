@@ -21,4 +21,15 @@ public class Options {
 
 	/** Render the unfolding with debug info */
 	public static final boolean RENDER_DEBUG = false;
+
+	/**
+	 * true if the cutoff criterion should be applied.
+	 * false if all event up to the depth bound should be explored.
+	 */
+	public static final boolean CUTOFF = true;
+
+	/**
+	 * false if the net is low-level.
+	 */
+	public static final boolean COLORED = true;
 }
