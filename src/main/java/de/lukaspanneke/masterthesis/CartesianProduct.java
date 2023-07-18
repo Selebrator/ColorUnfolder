@@ -9,6 +9,7 @@ public class CartesianProduct<T> implements Iterable<T[]> {
 	private final Iterable<T>[] iterables;
 	private final Function<Integer, T[]> arrayConstructor;
 
+	@SuppressWarnings("unchecked")
 	public CartesianProduct(Function<Integer, T[]> arrayConstructor, List<? extends Iterable<T>> iterables) {
 		this.arrayConstructor = arrayConstructor;
 		this.iterables = iterables.toArray(Iterable[]::new);
@@ -25,6 +26,7 @@ public class CartesianProduct<T> implements Iterable<T[]> {
 		private final int size;
 		private boolean empty;
 
+		@SuppressWarnings("unchecked")
 		public CartesianIterator() {
 			this.size = iterables.length;
 			this.iterators = new Iterator[size];
