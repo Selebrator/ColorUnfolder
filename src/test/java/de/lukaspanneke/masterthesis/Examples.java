@@ -39,8 +39,6 @@ public class Examples {
 		Unfolding.unfold(mutex());
 		Unfolding.unfold(romer_example_2_6());
 		Unfolding.unfold(romer_example_3_4());
-		Unfolding.unfold(wurdemann_example_1());
-		Unfolding.unfold(colorConflict());
 	}
 
 	Net isqrt(int i) {
@@ -712,7 +710,8 @@ public class Examples {
 		return new Net(new Marking(Map.of(p2, 1, p7, 1, p4, 1)));
 	}
 
-	Net wurdemann_example_1() {
+	@Test
+	void wurdemann_example_1() {
 		Variable
 				k = new Variable("k"),
 				l = new Variable("l"),
@@ -732,7 +731,12 @@ public class Examples {
 		link(p2, l, t3);
 		link(t2, ll, p2);
 		link(t3, k, p3);
-		return new Net(new Marking(Map.of(p1, 0)));
+		Net net = new Net(new Marking(Map.of(p1, 0)));
+
+		Unfolding unfolding = Unfolding.unfold(net);
+		//renderAndClip(unfolding);
+		assertEquals(5, unfolding.getNumberEvents());
+		assertEquals(6, unfolding.getNumberConditions());
 	}
 
 	Net colorConflict() {
@@ -776,6 +780,8 @@ public class Examples {
 		//renderAndClip(unfolding);
 		System.out.println("target event: " + unfolding.foundTarget());
 		assertTrue(unfolding.foundTarget().isEmpty());
+		assertEquals(3, unfolding.getNumberEvents());
+		assertEquals(5, unfolding.getNumberConditions());
 	}
 
 	//Net xiang() {
