@@ -7,10 +7,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public record Variable(String name) implements ArithmeticExpression, Comparable<Variable> {
+public record Variable(String name, Domain domain) implements ArithmeticExpression, Comparable<Variable> {
+
+	public Variable(String name) {
+		this(name, variable -> Formula.top());
+	}
 
 	public Variable local(String discriminator) {
-		return new Variable(name + "_" + discriminator);
+		return new Variable(name + "_" + discriminator, domain);
+	}
+
+	public Formula domainConstraint() {
+		return this.domain.constraint(this);
 	}
 
 	@Override

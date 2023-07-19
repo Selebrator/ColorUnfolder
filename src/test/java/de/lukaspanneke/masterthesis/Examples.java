@@ -2,6 +2,7 @@ package de.lukaspanneke.masterthesis;
 
 import de.lukaspanneke.masterthesis.components.Place;
 import de.lukaspanneke.masterthesis.components.Transition;
+import de.lukaspanneke.masterthesis.logic.Domain;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
@@ -212,6 +213,28 @@ public class Examples {
 		link(p, x, t);
 		link(t, y, p);
 		return new Net(new Marking(Map.of(p, 0)));
+	}
+
+	@Test
+	void counting_up_finite() {
+		int max = 5;
+		Domain domain = variable -> variable.geq(0).and(variable.leq(max));
+		// can not have cut-off events
+		Variable
+				x = new Variable("x", domain),
+				y = new Variable("y", domain);
+		Place
+				p = new Place(1, "p");
+		Transition
+				t = new Transition(1, "t", y.eq(x.plus(1)));
+		link(p, x, t);
+		link(t, y, p);
+		Net net = new Net(new Marking(Map.of(p, 0)));
+
+		Unfolding unfolding = Unfolding.unfold(net);
+		//renderAndClip(unfolding);
+		assertEquals(max, unfolding.getNumberEvents());
+		assertEquals(max + 1, unfolding.getNumberConditions());
 	}
 
 	Net div_by_two() {

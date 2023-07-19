@@ -3,11 +3,9 @@ package de.lukaspanneke.masterthesis.components;
 import com.google.common.collect.Sets;
 import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.logic.Formula;
+import de.lukaspanneke.masterthesis.logic.Variable;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /* Transition (t, X, pred) in E */
@@ -26,8 +24,9 @@ public final class Event implements Comparable<Event> {
 	private Set<Condition> conePreset;
 	private Set<Condition> conePostset;
 	private Set<Condition> coneCut;
+	private Map<Variable, Variable> postVariableSubstitution;
 
-	public Event(int index, String name, Transition transition, Set<Condition> preset, Formula localPred, Formula conePred) {
+	public Event(int index, String name, Transition transition, Set<Condition> preset, Formula localPred, Formula conePred, Map<Variable, Variable> postVariableSubstitution) {
 		this.index = index;
 		this.name = name;
 		this.transition = transition;
@@ -38,11 +37,20 @@ public final class Event implements Comparable<Event> {
 		this.coneConfiguration = Configuration.newConeConfiguration(this, preset);
 		this.localPred = localPred;
 		this.conePred = conePred;
+		this.postVariableSubstitution = Map.copyOf(postVariableSubstitution);
+	}
+
+	public Map<Variable, Variable> postVariableSubstitution() {
+		return Objects.requireNonNull(postVariableSubstitution);
+	}
+
+	public void finalizePostset() {
+		this.postVariableSubstitution = null;
+		this.postset = Set.copyOf(this.postset);
 	}
 
 	public void calcContext() {
 		Set<Event> prepre = prepre();
-		this.postset = Set.copyOf(this.postset);
 		this.conePreset = Set.copyOf(Sets.union(this.preset(), prepre.stream().map(Event::conePreset).reduce(Sets::union).orElseGet(Set::of)));
 		this.conePostset = Set.copyOf(Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of)));
 		this.coneCut = Set.copyOf(Sets.difference(conePostset(), conePreset()));

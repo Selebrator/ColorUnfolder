@@ -102,8 +102,9 @@ public class Unfolding {
 						.map(e -> new Variable(e.getKey().name()).eq(e.getValue()))
 						.collect(Formula.and())
 		);
-		Formula initialGuard = guard("e0", initialTransition, Set.of());
-		this.initialEvent = new Event(0, "e0", initialTransition, Set.of(), initialGuard, initialGuard);
+		InternalGuard internalGuard = internalGuard("e0", initialTransition, Set.of());
+		Formula initialGuard = internalGuard.apply(initialTransition.guard());
+		this.initialEvent = new Event(0, "e0", initialTransition, Set.of(), initialGuard, initialGuard, internalGuard.substitution);
 	}
 
 	/**
@@ -125,8 +126,9 @@ public class Unfolding {
 			}
 			link(event);
 			for (Map.Entry<Place, Variable> post : event.transition().postSet().entrySet()) {
-				link(makeCondition(event, post.getKey(), post.getValue()));
+				link(new Condition(this.conditionIndex++, post.getKey(), event, event.postVariableSubstitution().get(post.getValue())));
 			}
+			event.finalizePostset();
 			if (this.targetTransitions.contains(event.transition())) {
 				if (PRINT_PROGRESS) {
 					System.out.println("Found target transition " + event + " in " + event.coneConfiguration());
@@ -146,27 +148,6 @@ public class Unfolding {
 		if (PRINT_PROGRESS && this.possibleExtensions.isEmpty()) {
 			System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 		}
-	}
-
-	/**
-	 * Create a condition and rename its variable
-	 * such that the variable name uniquely identifies the event that first created the token.
-	 *
-	 * <p>If an event solely forwards the token, or adds constraints to it's color,
-	 * the output variable is the same as the input variable.
-	 * But if the event creates a token,
-	 * that is, it must pick a new color, then a new variable is created for it.
-	 */
-	private Condition makeCondition(Event preEvent, Place correspondingPlace, Variable transitionToPlaceVariable) {
-		Variable internalVariable = preEvent.transition().preSet().entrySet().stream()
-				.filter(entry -> entry.getValue().equals(transitionToPlaceVariable))
-				.findAny()
-				.map(tEntry -> preEvent.preset().stream()
-						.filter(condition -> condition.place().equals(tEntry.getKey()))
-						.findAny().orElseThrow(() -> new AssertionError("such a condition must exist"))
-						.internalVariable())
-				.orElseGet(() -> transitionToPlaceVariable.local(preEvent.name()));
-		return new Condition(this.conditionIndex++, correspondingPlace, preEvent, internalVariable);
 	}
 
 	private void link(Event event) {
@@ -248,8 +229,9 @@ public class Unfolding {
 				Formula guard;
 				Formula conePredicate;
 				String eventName = "e" + this.eventIndex;
+				InternalGuard internalGuard = internalGuard(eventName, transition, preset);
 				if (COLORED) {
-					guard = guard(eventName, transition, preset);
+					guard = internalGuard.apply(transition.guard());
 					conePredicate = guard.and(history(preset));
 					if (PRINT_COLOR_CONFLICT_INFO) {
 						System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
@@ -262,7 +244,7 @@ public class Unfolding {
 					guard = null;
 					conePredicate = null;
 				}
-				Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate);
+				Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate, internalGuard.substitution);
 				if (PRINT_PROGRESS) {
 					System.out.println("    Extend PE with " + extension + " with preset " + extension.preset());
 				}
@@ -271,15 +253,24 @@ public class Unfolding {
 		}
 	}
 
+	private record InternalGuard(Map<Variable, Variable> substitution, Formula modification) {
+		public Formula apply(Formula guard) {
+			return guard.substitute(substitution).and(modification);
+		}
+	}
+
 	/**
-	 * Guard of an event (with internal variables).
+	 * Find internal variable to use for the guard,
+	 * such that the variable name uniquely identifies the event that first created the token.
 	 *
-	 * <p>Cached as {@link Event#guard()}
+	 * <p>If an event solely forwards the token, or adds constraints to it's color,
+	 * the output variable is the same as the input variable.
+	 * But if the event creates a token,
+	 * that is, it must pick a new color, then a new variable is created for it.
 	 */
-	public static Formula guard(String name, Transition transition, Set<Condition> preset) {
-		Map<Variable, Variable> guardSubstitution = transition.guard().support().stream()
-				.collect(Collectors.toMap(variable -> variable, variable -> variable.local(name)));
-		return transition.preSet().entrySet().stream()
+	public static InternalGuard internalGuard(String name, Transition transition, Set<Condition> preset) {
+		Map<Variable, Variable> guardSubstitution = new HashMap<>();
+		Formula eq = transition.preSet().entrySet().stream()
 				.collect(Collectors.groupingBy(
 						Map.Entry::getValue,
 						Collectors.mapping(Map.Entry::getKey, Collectors.toList())
@@ -298,8 +289,20 @@ public class Unfolding {
 					return mustEqVariables;
 				})
 				.map(Formula::eq)
-				.collect(Formula.and())
-				.and(transition.guard().substitute(guardSubstitution));
+				.collect(Formula.and());
+
+		List<Variable> fresh = new ArrayList<>();
+		transition.postSet().values().stream()
+				.distinct()
+				.forEach(variable -> guardSubstitution.computeIfAbsent(variable, v -> {
+					Variable ans = v.local(name);
+					fresh.add(ans);
+					return ans;
+				}));
+		Formula constraints = fresh.stream()
+				.map(Variable::domainConstraint)
+				.collect(Formula.and());
+		return new InternalGuard(Map.copyOf(guardSubstitution), eq.and(constraints));
 	}
 
 	/**
@@ -348,6 +351,17 @@ public class Unfolding {
 
 	public Event getInitialEvent() {
 		return initialEvent;
+	}
+
+	/**
+	 * Excludes initial event.
+	 */
+	public int getNumberEvents() {
+		return this.eventIndex - 1;
+	}
+
+	public int getNumberConditions() {
+		return this.conditionIndex - 1;
 	}
 
 	public Optional<Event> foundTarget() {
