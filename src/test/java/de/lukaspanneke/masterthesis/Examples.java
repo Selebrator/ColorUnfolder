@@ -35,7 +35,6 @@ public class Examples {
 	void runMany() {
 		Unfolding.unfold(div_by_two());
 		Unfolding.unfold(lots_of_concurrency());
-		Unfolding.unfold(lambdaswitch());
 		Unfolding.unfold(mutex());
 		Unfolding.unfold(romer_example_2_6());
 		Unfolding.unfold(romer_example_3_4());
@@ -314,6 +313,16 @@ public class Examples {
 		link(p11, t8, p12);
 		link(p12, t9, p13);
 		return new Net(new Marking(Map.of(p1, 1, p5, 1, p9, 1)));
+	}
+
+	@Test
+	void lambdaswitch_size() throws IOException {
+		try (StringWriter out = new StringWriter()) {
+			Unfolding.unfold(lambdaswitch()).render(out);
+			long size = out.toString().lines().count() - 2;
+			long expected = Options.RENDER_DEBUG ? 1018 : 1005;
+			assertEquals(expected, size);
+		}
 	}
 
 	Net lambdaswitch() {
