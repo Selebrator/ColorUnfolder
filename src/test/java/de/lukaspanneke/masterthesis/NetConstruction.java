@@ -15,7 +15,7 @@ public class NetConstruction {
 
 	public static void renderAndClip(Net net) {
 		try (StringWriter stringWriter = new StringWriter()) {
-			net.render(stringWriter);
+			net.renderDot(stringWriter);
 			System.out.println(stringWriter);
 			Process clip;
 			try {

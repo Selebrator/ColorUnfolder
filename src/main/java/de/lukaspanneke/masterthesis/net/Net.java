@@ -42,7 +42,7 @@ public record Net(Marking initialMarking) {
 		}
 	}
 
-	public void render(Writer writer) throws IOException {
+	public void renderDot(Writer writer) throws IOException {
 		writer.append("digraph ").append("net").append(" {\n");
 
 		Nodes nodes = collectNodes();
@@ -59,10 +59,10 @@ public record Net(Marking initialMarking) {
 				if (token != null) {
 					options.put("label", String.valueOf(token));
 				} else {
-					options.put("label", "\"\"");
+					options.put("label", "");
 				}
 				writer.append(options.entrySet().stream()
-						.map(option -> option.getKey() + "=" + option.getValue())
+						.map(option -> option.getKey() + "=\"" + option.getValue() + "\"")
 						.collect(Collectors.joining(",", "[", "]")));
 				writer.append(";\n");
 			}
@@ -94,5 +94,52 @@ public record Net(Marking initialMarking) {
 		}
 
 		writer.append("}\n");
+	}
+
+	public void renderLlPep(Writer writer) throws IOException {
+		writer.append("PEP\n");
+		writer.append("PTNet\n");
+		writer.append("FORMAT_N\n");
+
+		writer.append("PL\n");
+		Nodes nodes = collectNodes();
+		for (Place place : nodes.places()) {
+			writer
+					.append(String.valueOf(place.index()))
+					.append("\"").append(place.name()).append("\"")
+					.append("0@0M").append(String.valueOf(initialMarking().tokens().getOrDefault(place, 0)))
+					.append("\n");
+		}
+
+		writer.append("TR\n");
+		for (Transition transition : nodes.transitions()) {
+			writer
+					.append(String.valueOf(transition.index()))
+					.append("\"").append(transition.name()).append("\"")
+					.append("0@0")
+					.append("\n");
+		}
+
+		writer.append("TP\n");
+		for (Transition transition : nodes.transitions()) {
+			for (Place place : transition.postSet().keySet()) {
+				writer
+						.append(String.valueOf(transition.index()))
+						.append("<")
+						.append(String.valueOf(place.index()))
+						.append("\n");
+			}
+		}
+
+		writer.append("PT\n");
+		for (Place place : nodes.places()) {
+			for (Transition transition : place.postSet()) {
+				writer
+						.append(String.valueOf(place.index()))
+						.append(">")
+						.append(String.valueOf(transition.index()))
+						.append("\n");
+			}
+		}
 	}
 }
