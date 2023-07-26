@@ -17,7 +17,12 @@ public class NetConstruction {
 		try (StringWriter stringWriter = new StringWriter()) {
 			net.render(stringWriter);
 			System.out.println(stringWriter);
-			Process clip = new ProcessBuilder("xclip", "-sel", "clip").start();
+			Process clip;
+			try {
+				clip = new ProcessBuilder("xclip", "-sel", "clip").start();
+			} catch (IOException e) {
+				return;
+			}
 			try (var out = clip.outputWriter()) {
 				out.append(stringWriter.toString()).flush();
 			}
@@ -31,7 +36,12 @@ public class NetConstruction {
 			unf.render(stringWriter);
 			System.out.println(stringWriter);
 			System.out.println(stringWriter.toString().lines().count() - 2 + " lines");
-			Process clip = new ProcessBuilder("xclip", "-sel", "clip").start();
+			Process clip;
+			try {
+				clip = new ProcessBuilder("xclip", "-sel", "clip").start();
+			} catch (IOException e) {
+				return;
+			}
 			try (var out = clip.outputWriter()) {
 				out.append(stringWriter.toString()).flush();
 			}
