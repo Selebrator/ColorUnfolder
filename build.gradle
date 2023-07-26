@@ -13,14 +13,15 @@ dependencies {
     implementation("com.google.guava:guava:31.1-jre")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation(files("../cvc5/build/install/share/java/cvc5.jar"))
+    implementation(files("lib/cvc5-1.0.6-dev-50e0ae5.jar"))
 }
 
 tasks.test {
     systemProperty(
             "java.library.path",
-            "../cvc5/build/install/lib/"
+            "lib"
     )
+    environment "LD_LIBRARY_PATH", "lib"
 }
 
 tasks.test {
