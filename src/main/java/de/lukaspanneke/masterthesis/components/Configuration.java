@@ -1,14 +1,32 @@
 package de.lukaspanneke.masterthesis.components;
 
+import de.lukaspanneke.masterthesis.Options;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public final class Configuration implements Comparable<Configuration> {
 
-	private static final Comparator<Configuration> ORDER =
-			Comparator.comparingInt(Configuration::size)
-					.thenComparing(Configuration::parikh)
-					.thenComparing(Configuration::foata);
+	public enum AdequateOrder {
+		MC_MILLAN {
+			@Override
+			public Comparator<Configuration> comparator() {
+				return Comparator.comparingInt(Configuration::size)
+						.thenComparing(Configuration::parikh);
+			}
+		},
+		ESPARZA {
+			@Override
+			public Comparator<Configuration> comparator() {
+				return Comparator.comparingInt(Configuration::size)
+						.thenComparing(Configuration::parikh)
+						.thenComparing(Configuration::foata);
+			}
+		};
+
+		public abstract Comparator<Configuration> comparator();
+	}
+
 	private final Parikh parikh;
 	private Foata foata;
 
@@ -50,7 +68,7 @@ public final class Configuration implements Comparable<Configuration> {
 
 	@Override
 	public int compareTo(Configuration that) {
-		return ORDER.compare(this, that);
+		return Options.ORDER.compare(this, that);
 	}
 
 	private static class Parikh implements Comparable<Parikh> {

@@ -1,8 +1,12 @@
 package de.lukaspanneke.masterthesis;
 
+import de.lukaspanneke.masterthesis.components.Configuration;
+
+import java.util.Comparator;
+
 public class Options {
 	/** Print top level progress */
-	public static final boolean PRINT_PROGRESS = false;
+	public static final boolean PRINT_PROGRESS = true;
 
 	/** Print concurrency matrix */
 	public static final boolean PRINT_CONCURRENCY_INFO = false;
@@ -32,4 +36,9 @@ public class Options {
 	 * false if the net is low-level.
 	 */
 	public static final boolean COLORED = true;
+
+	/**
+	 * The order to use to compare configurations.
+	 */
+	public static final Comparator<Configuration> ORDER = Configuration.AdequateOrder.ESPARZA.comparator();
 }
