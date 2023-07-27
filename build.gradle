@@ -17,6 +17,7 @@ dependencies {
 }
 
 tasks.test {
+    maxHeapSize = "8g"
     systemProperty(
             "java.library.path",
             "../cvc5/build/install/lib/"

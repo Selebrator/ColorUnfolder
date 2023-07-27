@@ -2,19 +2,18 @@ ColorUnfolder
 =============
 ⚠️ **Under construction** ⚠️
 
-This program is the first to implement the generalized Esparza/Römer/Vogler unfolding algorithm for high-level (colored) Petri nets.
+This program implements the generalized Esparza/Römer/Vogler unfolding algorithm for high-level (colored) Petri nets.
+That is, an algorithm to find a complete finite prefix of the maximal branching process.
 
-Related Tools
--------------
-
-- [Mole](http://www.lsv.fr/~schwoon/tools/mole/)
-  is a well known implementation of the Esparza/Römer/Vogler unfolding algorithm for low-level Petri nets.
-
-- We use [cvc5](https://github.com/cvc5/cvc5) to decide the predicates.
+Other authors also use the term "unfolding" differently,
+to refer to the low-level net expressed through the high-level net.
+We call that low-level net the expansion of the high-level net
+and also implement an algorithm to calculate the expansion.
 
 Features
 --------
 
+- [ ] User interface
 - [x] Low-level mode
 - [ ] Net parser
 - [x] Unfolding algorithm
@@ -23,8 +22,16 @@ Features
 - [x] Unfolding up to bounded depth
 - [x] Complete finite prefix with cut-offs
 - [x] Reachability of target transitions
-- [ ] High-level to low-level expansion algorithm
+- [x] High-level to low-level expansion algorithm
 - [ ] Benchmarking tool
+
+Related Tools
+-------------
+
+- [Mole](http://www.lsv.fr/~schwoon/tools/mole/)
+  is a well known implementation of the Esparza/Römer/Vogler unfolding algorithm for low-level Petri nets.
+
+- We use [cvc5](https://github.com/cvc5/cvc5) to decide the predicates.
 
 Related Publications
 --------------------

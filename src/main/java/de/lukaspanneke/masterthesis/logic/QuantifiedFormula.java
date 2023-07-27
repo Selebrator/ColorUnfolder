@@ -26,6 +26,11 @@ public final class QuantifiedFormula extends Formula {
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		throw new UnsupportedOperationException();  // TODO implement if needed
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		throw new UnsupportedOperationException();  // TODO implement if needed
 	}

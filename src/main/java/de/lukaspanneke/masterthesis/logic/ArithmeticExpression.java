@@ -9,6 +9,8 @@ import java.util.function.Function;
 
 public sealed interface ArithmeticExpression permits Variable, Calculation, Constant {
 
+	int evaluate(Map<Variable, Integer> assignment);
+
 	void collectSupport(Set<Variable> accumulator);
 
 	ArithmeticExpression substitute(Map<Variable, Variable> map);
@@ -19,7 +21,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Equality.of(this, other);
 	}
 
-	default Formula eq(long other) {
+	default Formula eq(int other) {
 		return this.eq(Constant.of(other));
 	}
 
@@ -27,7 +29,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Comparison.of(this, Comparison.Operator.LESS_THEN, other);
 	}
 
-	default Formula lt(long other) {
+	default Formula lt(int other) {
 		return this.lt(Constant.of(other));
 	}
 
@@ -35,7 +37,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Comparison.of(this, Comparison.Operator.LESS_EQUALS, other);
 	}
 
-	default Formula leq(long other) {
+	default Formula leq(int other) {
 		return this.leq(Constant.of(other));
 	}
 
@@ -43,7 +45,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Comparison.of(this, Comparison.Operator.GREATER_THEN, other);
 	}
 
-	default Formula gt(long other) {
+	default Formula gt(int other) {
 		return this.gt(Constant.of(other));
 	}
 
@@ -51,7 +53,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Comparison.of(this, Comparison.Operator.GREATER_EQUALS, other);
 	}
 
-	default Formula geq(long other) {
+	default Formula geq(int other) {
 		return this.geq(Constant.of(other));
 	}
 
@@ -59,7 +61,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Comparison.of(this, Comparison.Operator.NOT_EQUALS, other);
 	}
 
-	default Formula neq(long other) {
+	default Formula neq(int other) {
 		return this.neq(Constant.of(other));
 	}
 
@@ -67,7 +69,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Calculation.of(this, Calculation.Operator.PLUS, other);
 	}
 
-	default ArithmeticExpression plus(long other) {
+	default ArithmeticExpression plus(int other) {
 		return this.plus(Constant.of(other));
 	}
 
@@ -75,7 +77,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Calculation.of(this, Calculation.Operator.MINUS, other);
 	}
 
-	default ArithmeticExpression minus(long other) {
+	default ArithmeticExpression minus(int other) {
 		return this.minus(Constant.of(other));
 	}
 
@@ -83,7 +85,7 @@ public sealed interface ArithmeticExpression permits Variable, Calculation, Cons
 		return Calculation.of(this, Calculation.Operator.TIMES, other);
 	}
 
-	default ArithmeticExpression times(long other) {
+	default ArithmeticExpression times(int other) {
 		return this.times(Constant.of(other));
 	}
 }

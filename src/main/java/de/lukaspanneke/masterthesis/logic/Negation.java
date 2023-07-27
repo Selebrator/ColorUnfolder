@@ -24,6 +24,11 @@ import java.util.function.Function;
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		return !this.f.evaluate(assignment);
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		this.f.collectSupport(accumulator);
 	}

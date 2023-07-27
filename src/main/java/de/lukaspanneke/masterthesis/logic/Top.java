@@ -19,6 +19,11 @@ import java.util.function.Function;
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		return true;
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		// no-op
 	}

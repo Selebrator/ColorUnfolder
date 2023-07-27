@@ -2,6 +2,7 @@ package de.lukaspanneke.masterthesis;
 
 import de.lukaspanneke.masterthesis.components.Place;
 import de.lukaspanneke.masterthesis.components.Transition;
+import de.lukaspanneke.masterthesis.expansion.Expansion;
 import de.lukaspanneke.masterthesis.logic.Domain;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
@@ -10,6 +11,7 @@ import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -110,8 +112,26 @@ public class FastGrowingExtension {
 	void speed(int n, int m) {
 		Net expansion = expansion(n, m);
 		long before = System.currentTimeMillis();
-		Unfolding.unfold(expansion);
+		Unfolding unfolding = Unfolding.unfold(expansion);
 		long after = System.currentTimeMillis();
 		System.out.println(n + "," + m + " took " + (after - before) + " ms");
+		try (var dot = new StringWriter()) {
+			unfolding.render(dot);
+			System.out.println(dot.toString().lines().count());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	// time to compute unfolding of expansion / size of expansion
+
+	@Test
+	void expansion() {
+		int n = 3;
+		int m = 6;
+		Net.Nodes manual = expansion(n, m).collectNodes();
+		Net.Nodes algorithm = Expansion.expand(net(n, m), 1, m + 1).collectNodes();
+		assertEquals(manual.places().size(), algorithm.places().size());
+		assertEquals(manual.transitions().size(), algorithm.transitions().size());
 	}
 }

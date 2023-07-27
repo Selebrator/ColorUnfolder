@@ -23,6 +23,11 @@ import java.util.function.Function;
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		return !this.lhs.evaluate(assignment) || this.rhs.evaluate(assignment);
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		lhs.collectSupport(accumulator);
 		rhs.collectSupport(accumulator);

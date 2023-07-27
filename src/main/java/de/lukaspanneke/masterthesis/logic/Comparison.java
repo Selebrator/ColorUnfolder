@@ -25,6 +25,19 @@ import java.util.function.Function;
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		long e1 = this.e1.evaluate(assignment);
+		long e2 = this.e2.evaluate(assignment);
+		return switch (this.operator) {
+			case LESS_THEN -> e1 < e2;
+			case LESS_EQUALS -> e1 <= e2;
+			case NOT_EQUALS -> e1 != e2;
+			case GREATER_EQUALS -> e1 >= e2;
+			case GREATER_THEN -> e1 > e2;
+		};
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		this.e1.collectSupport(accumulator);
 		this.e2.collectSupport(accumulator);

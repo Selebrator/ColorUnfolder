@@ -25,6 +25,17 @@ import java.util.function.Function;
 	}
 
 	@Override
+	public int evaluate(Map<Variable, Integer> assignment) {
+		int e1 = this.e1.evaluate(assignment);
+		int e2 = this.e2.evaluate(assignment);
+		return switch (this.operator) {
+			case PLUS -> e1 + e2;
+			case MINUS -> e1 - e2;
+			case TIMES -> e1 * e2;
+		};
+	}
+
+	@Override
 	public void collectSupport(Set<Variable> accumulator) {
 		this.e1.collectSupport(accumulator);
 		this.e2.collectSupport(accumulator);

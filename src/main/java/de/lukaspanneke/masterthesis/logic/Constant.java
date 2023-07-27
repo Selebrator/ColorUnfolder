@@ -9,14 +9,19 @@ import java.util.function.Function;
 
 /* package-private */ final class Constant implements ArithmeticExpression {
 
-	private final long constant;
+	private final int constant;
 
-	private Constant(long constant) {
+	private Constant(int constant) {
 		this.constant = constant;
 	}
 
-	public static Constant of(long constant) {
+	public static Constant of(int constant) {
 		return new Constant(constant);
+	}
+
+	@Override
+	public int evaluate(Map<Variable, Integer> assignment) {
+		return this.constant;
 	}
 
 	@Override

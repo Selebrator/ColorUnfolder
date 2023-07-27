@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality, Implication, Negation, QuantifiedFormula, Top {
 
+	public abstract boolean evaluate(Map<Variable, Integer> assignment);
+
 	public final Set<Variable> support() {
 		Set<Variable> ans = new HashSet<>();
 		collectSupport(ans);

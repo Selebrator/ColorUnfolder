@@ -29,6 +29,13 @@ import java.util.stream.Collectors;
 	}
 
 	@Override
+	public boolean evaluate(Map<Variable, Integer> assignment) {
+		return terms.stream()
+				.map(term -> term.evaluate(assignment))
+				.collect(Collectors.toSet()).size() <= 1;
+	}
+
+	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
 		for (ArithmeticExpression term : terms) {
 			term.collectSupport(accumulator);

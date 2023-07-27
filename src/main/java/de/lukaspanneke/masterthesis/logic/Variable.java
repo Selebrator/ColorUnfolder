@@ -22,6 +22,11 @@ public record Variable(String name, Domain domain) implements ArithmeticExpressi
 	}
 
 	@Override
+	public int evaluate(Map<Variable, Integer> assignment) {
+		return assignment.get(this);
+	}
+
+	@Override
 	public void collectSupport(Set<Variable> accumulator) {
 		accumulator.add(this);
 	}
