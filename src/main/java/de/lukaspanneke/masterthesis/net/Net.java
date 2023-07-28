@@ -1,7 +1,5 @@
 package de.lukaspanneke.masterthesis.net;
 
-import de.lukaspanneke.masterthesis.components.Place;
-import de.lukaspanneke.masterthesis.components.Transition;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;
 

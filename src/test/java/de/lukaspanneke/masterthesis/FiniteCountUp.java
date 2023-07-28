@@ -1,7 +1,7 @@
 package de.lukaspanneke.masterthesis;
 
-import de.lukaspanneke.masterthesis.components.Place;
-import de.lukaspanneke.masterthesis.components.Transition;
+import de.lukaspanneke.masterthesis.net.Place;
+import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.logic.Domain;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;

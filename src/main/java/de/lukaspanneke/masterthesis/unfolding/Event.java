@@ -1,8 +1,9 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;
+import de.lukaspanneke.masterthesis.net.Transition;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -1,4 +1,4 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.net;
 
 import java.util.HashSet;
 import java.util.Objects;

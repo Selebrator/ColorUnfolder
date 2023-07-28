@@ -1,6 +1,6 @@
 package de.lukaspanneke.masterthesis;
 
-import de.lukaspanneke.masterthesis.components.Configuration;
+import de.lukaspanneke.masterthesis.unfolding.Configuration;
 
 import java.util.Comparator;
 

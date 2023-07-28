@@ -1,4 +1,4 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.Options;
 

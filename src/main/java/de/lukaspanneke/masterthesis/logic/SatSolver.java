@@ -1,7 +1,5 @@
-package de.lukaspanneke.masterthesis.unfolding;
+package de.lukaspanneke.masterthesis.logic;
 
-import de.lukaspanneke.masterthesis.logic.Formula;
-import de.lukaspanneke.masterthesis.logic.Variable;
 import io.github.cvc5.Result;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Sort;
@@ -12,7 +10,7 @@ import java.util.Map;
 
 import static de.lukaspanneke.masterthesis.Options.*;
 
-public class Predicate {
+public class SatSolver {
 
 	private static Result checkSat(Formula formula) {
 		Solver solver = new Solver();

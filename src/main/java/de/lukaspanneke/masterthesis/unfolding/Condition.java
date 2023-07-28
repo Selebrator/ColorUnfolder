@@ -1,6 +1,7 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.logic.Variable;
+import de.lukaspanneke.masterthesis.net.Place;
 
 import java.util.HashSet;
 import java.util.Objects;

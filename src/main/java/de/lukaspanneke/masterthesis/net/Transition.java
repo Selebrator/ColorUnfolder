@@ -1,4 +1,4 @@
-package de.lukaspanneke.masterthesis.components;
+package de.lukaspanneke.masterthesis.net;
 
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;

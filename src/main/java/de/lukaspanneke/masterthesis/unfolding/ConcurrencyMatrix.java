@@ -1,7 +1,5 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
-import de.lukaspanneke.masterthesis.components.Condition;
-
 import java.util.Set;
 
 /*

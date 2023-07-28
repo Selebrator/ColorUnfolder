@@ -1,7 +1,5 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
-import de.lukaspanneke.masterthesis.components.Condition;
-import de.lukaspanneke.masterthesis.components.Event;
 import de.lukaspanneke.masterthesis.logic.Formula;
 
 import java.io.IOException;
@@ -22,7 +20,7 @@ public class UnfoldingRenderer {
 	}
 
 	private void collectNodes(Condition condition) {
-		if(conditions.add(condition)) {
+		if (conditions.add(condition)) {
 			for (Event event : condition.postset()) {
 				collectNodes(event);
 			}
@@ -30,7 +28,7 @@ public class UnfoldingRenderer {
 	}
 
 	private void collectNodes(Event event) {
-		if(events.add(event)) {
+		if (events.add(event)) {
 			for (Condition condition : event.postset()) {
 				collectNodes(condition);
 			}

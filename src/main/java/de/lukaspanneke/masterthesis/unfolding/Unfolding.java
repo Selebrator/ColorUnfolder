@@ -1,12 +1,14 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.CartesianProduct;
-import de.lukaspanneke.masterthesis.components.*;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.QuantifiedFormula;
+import de.lukaspanneke.masterthesis.logic.SatSolver;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
+import de.lukaspanneke.masterthesis.net.Place;
+import de.lukaspanneke.masterthesis.net.Transition;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -180,7 +182,7 @@ public class Unfolding {
 					if (PRINT_COLOR_CUTOFF_INFO) {
 						System.out.println("  Checking if " + event + " with pi(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 					}
-					seenBefore = Predicate.isTautology(check);
+					seenBefore = SatSolver.isTautology(check);
 				} else {
 					seenBefore = eventsWithSameUncoloredMarking.stream()
 							.anyMatch(otherEvent -> otherEvent.coneConfiguration().compareTo(event.coneConfiguration()) < 0);
@@ -236,7 +238,7 @@ public class Unfolding {
 					if (PRINT_COLOR_CONFLICT_INFO) {
 						System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
 					}
-					if (!Predicate.isSatisfiable(conePredicate)) {
+					if (!SatSolver.isSatisfiable(conePredicate)) {
 						//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 						continue;
 					}
