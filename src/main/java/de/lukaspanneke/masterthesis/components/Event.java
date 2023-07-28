@@ -1,6 +1,5 @@
 package de.lukaspanneke.masterthesis.components;
 
-import com.google.common.collect.Sets;
 import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;
@@ -50,10 +49,34 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public void calcContext() {
-		Set<Event> prepre = prepre();
-		this.conePreset = Set.copyOf(Sets.union(this.preset(), prepre.stream().map(Event::conePreset).reduce(Sets::union).orElseGet(Set::of)));
-		this.conePostset = Set.copyOf(Sets.union(this.postset(), prepre.stream().map(Event::conePostset).reduce(Sets::union).orElseGet(Set::of)));
-		this.coneCut = Set.copyOf(Sets.difference(conePostset(), conePreset()));
+		Collection<Condition> pre;
+		{
+			int conePresetSize = this.preset.stream()
+					.mapToInt(condition -> condition.preset().conePreset.size())
+					.sum() + this.preset.size();
+			pre = new ArrayList<>(conePresetSize);
+			pre.addAll(this.preset);
+			for (Condition condition : this.preset) {
+				pre.addAll(condition.preset().conePreset);
+			}
+			assert conePresetSize == pre.size() : conePresetSize + " != " + pre.size();
+			this.conePreset = Set.copyOf(pre);
+		}
+		Collection<Condition> post;
+		{
+			int conePostsetSize = this.preset.stream()
+					.mapToInt(condition -> condition.preset().conePostset.size())
+					.sum() + this.postset.size();
+			post = new ArrayList<>(conePostsetSize);
+			post.addAll(this.postset);
+			for (Condition condition : this.preset) {
+				post.addAll(condition.preset().conePostset);
+			}
+			assert conePostsetSize == post.size() : conePostsetSize + " != " + post.size();
+			this.conePostset = Set.copyOf(post);
+		}
+		post.removeAll(pre);
+		this.coneCut = Set.copyOf(post);
 	}
 
 	public void dropMemoryOfCutoff() {
@@ -85,14 +108,6 @@ public final class Event implements Comparable<Event> {
 
 	public Set<Condition> postset() {
 		return postset;
-	}
-
-	private Set<Condition> conePreset() {
-		return Objects.requireNonNull(conePreset);
-	}
-
-	private Set<Condition> conePostset() {
-		return Objects.requireNonNull(conePostset);
 	}
 
 	public boolean hasContext() {
