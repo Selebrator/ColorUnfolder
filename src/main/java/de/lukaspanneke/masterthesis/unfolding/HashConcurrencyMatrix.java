@@ -1,6 +1,5 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
-import com.google.common.collect.Sets;
 import de.lukaspanneke.masterthesis.TableRenderer;
 import de.lukaspanneke.masterthesis.components.Condition;
 
@@ -22,11 +21,13 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 
 	@Override
 	public void add(Condition newCondition) {
-		Set<Condition> cob = newCondition.prepre().stream()
-				.map(this::get)
-				.reduce(Sets::intersection)
-				.orElseGet(Collections::emptySet);
-		Set<Condition> result = new HashSet<>(Sets.union(cob, Sets.intersection(newCondition.preset().postset(), this.storage.keySet())));
+		Set<Condition> result = new HashSet<>(this.storage.keySet());
+		for (Condition condition : newCondition.prepre()) {
+			result.retainAll(this.get(condition));
+		}
+		newCondition.preset().postset().stream()
+				.filter(this.storage::containsKey)
+				.forEach(result::add);
 		this.storage.put(newCondition, result);
 		for (Condition condition : result) {
 			this.get(condition).add(newCondition);
