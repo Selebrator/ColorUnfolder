@@ -1,0 +1,17 @@
+SORT Col = [
+	0, 1, 2, 3
+];
+
+PLACE
+	p: Col;
+
+MARKING
+	p: 0;
+
+TRANSITION t
+	VAR
+		x: Col,
+		y: Col;
+	CONSUME p: x;
+	PRODUCE p: y;
+	GUARD y = x + 1;

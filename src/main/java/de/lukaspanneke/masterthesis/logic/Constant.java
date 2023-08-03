@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-/* package-private */ final class Constant implements ArithmeticExpression {
+public final class Constant implements ArithmeticExpression {
 
 	private final int constant;
 
@@ -17,6 +17,10 @@ import java.util.function.Function;
 
 	public static Constant of(int constant) {
 		return new Constant(constant);
+	}
+
+	public int value() {
+		return constant;
 	}
 
 	@Override

@@ -15,7 +15,7 @@ Features
 
 - [ ] User interface
 - [x] Low-level mode
-- [ ] Net parser
+- [x] Net parser
 - [x] Unfolding algorithm
 - [x] Unfolding/prefix renderer
 - [x] Internal structure renderer

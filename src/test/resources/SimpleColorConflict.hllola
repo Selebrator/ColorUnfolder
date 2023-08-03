@@ -1,0 +1,38 @@
+PLACE
+	p1: Int,
+	p2: Int,
+	p3: Int,
+	p4: Int,
+	p5: Int,
+	p6: Int;
+
+MARKING
+	p1: 1;
+
+TRANSITION t1
+	VAR
+		x: Int,
+		y: Int,
+		z: Int;
+	CONSUME p1: x;
+	PRODUCE
+		p2: y,
+		p3: z;
+	GUARD y > 0 AND z < 0;
+
+TRANSITION t2
+	VAR x: Int;
+	CONSUME p2: x;
+	PRODUCE p4: x;
+
+TRANSITION t3
+	VAR x: Int;
+	CONSUME
+		p2: x,
+		p3: x;
+	PRODUCE p5: x;
+
+TRANSITION t4
+	VAR x: Int;
+	CONSUME p3: x;
+	PRODUCE p6: x;
