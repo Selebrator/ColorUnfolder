@@ -6,7 +6,7 @@ import java.util.Comparator;
 
 public class Options {
 	/** Print top level progress */
-	public static final boolean PRINT_PROGRESS = true;
+	public static final boolean PRINT_PROGRESS = false;
 
 	/** Print concurrency matrix */
 	public static final boolean PRINT_CONCURRENCY_INFO = false;

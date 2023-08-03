@@ -3,8 +3,15 @@ plugins {
     id("antlr")
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "de.lukaspanneke.masterthesis"
+version = "0.1-dev"
+
+java {
+    java {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+}
 
 repositories {
     mavenCentral()
@@ -16,6 +23,18 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(files("../cvc5/build/install/share/java/cvc5.jar"))
+}
+
+tasks.register('buildExecutableApp', Jar) {
+    manifest {
+        attributes('Main-Class': 'de.lukaspanneke.masterthesis.ui.Main')
+    }
+    archiveBaseName = "color-unfolder-with-dependencies"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
 }
 
 generateGrammarSource {
