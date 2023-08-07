@@ -1,6 +1,7 @@
 package de.lukaspanneke.masterthesis.parser;
 
 import de.lukaspanneke.masterthesis.logic.Domain;
+import de.lukaspanneke.masterthesis.logic.FiniteDomain;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
@@ -91,11 +92,11 @@ public class HlLolaParser {
 			}
 			Domain domain;
 			if (cont) {
-				domain = var -> var.geq(min).and(var.leq(max));
+				domain = FiniteDomain.fullRange(min, max);
 			} else {
-				domain = var -> sortedElements.stream()
+				domain = new FiniteDomain(var -> sortedElements.stream()
 						.map(var::eq)
-						.collect(Formula.or());
+						.collect(Formula.or()), min, max);
 			}
 			var overwritten = domains.put(domainName, domain);
 			if (overwritten != null) {

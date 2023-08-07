@@ -1,12 +1,13 @@
 package de.lukaspanneke.masterthesis;
 
-import de.lukaspanneke.masterthesis.net.Place;
-import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.expansion.Expansion;
 import de.lukaspanneke.masterthesis.logic.Domain;
+import de.lukaspanneke.masterthesis.logic.FiniteDomain;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
+import de.lukaspanneke.masterthesis.net.Place;
+import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class FastGrowingExtension {
 
 	Net net(int n, int m) {
-		Domain domain = v -> v.geq(1).and(v.leq(m));
+		Domain domain = FiniteDomain.fullRange(1, m);
 		Variable x = new Variable("x", domain);
 		Variable y = new Variable("y", domain);
 		Transition t = new Transition(0);
@@ -130,7 +131,7 @@ public class FastGrowingExtension {
 		int n = 3;
 		int m = 6;
 		Net.Nodes manual = expansion(n, m).collectNodes();
-		Net.Nodes algorithm = Expansion.expand(net(n, m), 1, m + 1).collectNodes();
+		Net.Nodes algorithm = Expansion.expand(net(n, m), 1, m).collectNodes();
 		assertEquals(manual.places().size(), algorithm.places().size());
 		assertEquals(manual.transitions().size(), algorithm.transitions().size());
 	}

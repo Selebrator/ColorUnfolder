@@ -1,11 +1,12 @@
 package de.lukaspanneke.masterthesis;
 
-import de.lukaspanneke.masterthesis.net.Place;
-import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.logic.Domain;
+import de.lukaspanneke.masterthesis.logic.FiniteDomain;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
+import de.lukaspanneke.masterthesis.net.Place;
+import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ public class FiniteCountUp {
 
 	int max = 5;
 	Domain
-			domain = variable -> variable.geq(0).and(variable.leq(max));
+			domain = FiniteDomain.fullRange(0, max);
 	Variable
 			x = new Variable("x", domain),
 			y = new Variable("y", domain);
