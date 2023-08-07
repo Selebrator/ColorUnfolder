@@ -20,14 +20,14 @@ public class Expansion {
 	/**
 	 * Given a high-level net, this produces the low-level net with the same behaviour
 	 */
-	public static Net expand(Net hlNet, int lowerIncl, int upperExcl) {
+	public static Net expand(Net hlNet, int lowerIncl, int upperIncl) {
 		int[] llPlaceId = {1};
 		int[] llTransId = {1};
 		Net.Nodes nodes = hlNet.collectNodes();
 		Map<Place, Map<Integer, Place>> hlToLlPlaces = nodes.places().stream()
 				.collect(Collectors.toMap(
 						place -> place,
-						place -> IntStream.range(lowerIncl, upperExcl)
+						place -> IntStream.rangeClosed(lowerIncl, upperIncl)
 								.boxed()
 								.collect(Collectors.toMap(
 										i -> i,
@@ -43,7 +43,7 @@ public class Expansion {
 						Stream.concat(
 								hlTrans.preSet().values().stream(),
 								hlTrans.postSet().values().stream()),
-						lowerIncl, upperExcl)
+						lowerIncl, upperIncl)
 				.filter(assignment -> hlTrans.guard().evaluate(assignment))
 				.forEach(assignment -> {
 					Function<Map<Place, Variable>, Map<Place, Variable>> hlToLlFlow = set -> set.entrySet().stream()
@@ -66,10 +66,10 @@ public class Expansion {
 	}
 
 	record VariableAssignment(Variable variable, int assignment) {
-		static Stream<Map<Variable, Integer>> itr(Stream<Variable> variables, int lowerIncl, int upperExcl) {
+		static Stream<Map<Variable, Integer>> itr(Stream<Variable> variables, int lowerIncl, int upperIncl) {
 			CartesianProduct<VariableAssignment> assignments = new CartesianProduct<>(VariableAssignment[]::new,
 					variables.distinct()
-							.<Iterable<VariableAssignment>>map(variable -> () -> IntStream.range(lowerIncl, upperExcl)
+							.<Iterable<VariableAssignment>>map(variable -> () -> IntStream.rangeClosed(lowerIncl, upperIncl)
 									.mapToObj(i -> new VariableAssignment(variable, i)).iterator())
 							.toList());
 			return StreamSupport.stream(assignments.spliterator(), false)
