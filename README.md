@@ -13,7 +13,7 @@ and also implement an algorithm to calculate the expansion.
 Features
 --------
 
-- [ ] User interface
+- [x] User interface
 - [x] Low-level mode
 - [x] Net parser
 - [x] Unfolding algorithm
