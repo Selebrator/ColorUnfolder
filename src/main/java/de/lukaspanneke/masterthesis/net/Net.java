@@ -76,6 +76,7 @@ public record Net(Marking initialMarking) {
 			}
 		}
 
+		writer.append("node[shape=hexagon];");
 		for (Transition transition : transitions) {
 			for (Map.Entry<Place, Variable> entry : transition.preSet().entrySet()) {
 				Place place = entry.getKey();

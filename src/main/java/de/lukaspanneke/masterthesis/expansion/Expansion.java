@@ -9,7 +9,9 @@ import de.lukaspanneke.masterthesis.net.Place;
 import de.lukaspanneke.masterthesis.net.Transition;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.*;
 
@@ -44,7 +46,15 @@ public class Expansion {
 								hlTrans.preSet().values().stream(),
 								hlTrans.postSet().values().stream()),
 						lowerIncl, upperIncl)
-				.filter(assignment -> hlTrans.guard().evaluate(assignment))
+				.filter(assignment -> {
+					Set<Variable> variables = new HashSet<>(hlTrans.guard().support());
+					variables.addAll(hlTrans.preSet().values());
+					variables.addAll(hlTrans.postSet().values());
+					Formula variableDomainConstraints = variables.stream()
+							.map(Variable::domainConstraint)
+							.collect(Formula.and());
+					return hlTrans.guard().and(variableDomainConstraints).evaluate(assignment);
+				})
 				.forEach(assignment -> {
 					Function<Map<Place, Variable>, Map<Place, Variable>> hlToLlFlow = set -> set.entrySet().stream()
 							.collect(Collectors.toMap(
