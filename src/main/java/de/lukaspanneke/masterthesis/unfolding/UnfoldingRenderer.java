@@ -84,7 +84,7 @@ public class UnfoldingRenderer {
 					if (node.hasContext()) {
 						xlabel.add("pi(cut) = " + Unfolding.markingPlaces(node));
 					}
-					if (!Formula.top().equals(node.guard())) {
+					if (node.guard() != null && !Formula.top().equals(node.guard())) {
 						xlabel.add(node.guard().toString());
 					}
 				} else {

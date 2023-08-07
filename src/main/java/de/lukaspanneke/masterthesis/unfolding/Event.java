@@ -123,7 +123,7 @@ public final class Event implements Comparable<Event> {
 	}
 
 	public Formula guard() {
-		return Objects.requireNonNull(localPred);
+		return localPred;
 	}
 
 	public Formula conePredicate() {
