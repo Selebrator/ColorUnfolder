@@ -26,6 +26,9 @@ public record Net(Marking initialMarking) {
 
 	private void collectNodes(Transition transition, Set<Place> places, Set<Transition> transitions) {
 		if (transitions.add(transition)) {
+			for (Place place : transition.preSet().keySet()) {
+				collectNodes(place, places, transitions);
+			}
 			for (Place place : transition.postSet().keySet()) {
 				collectNodes(place, places, transitions);
 			}
@@ -34,6 +37,9 @@ public record Net(Marking initialMarking) {
 
 	private void collectNodes(Place place, Set<Place> places, Set<Transition> transitions) {
 		if (places.add(place)) {
+			for (Transition transition : place.preSet()) {
+				collectNodes(transition, places, transitions);
+			}
 			for (Transition transition : place.postSet()) {
 				collectNodes(transition, places, transitions);
 			}

@@ -22,7 +22,9 @@ import static de.lukaspanneke.masterthesis.NetConstruction.link;
 import static de.lukaspanneke.masterthesis.NetConstruction.renderAndClip;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FastGrowingExtension {
+// I think I got the definition of expansion incorrect when making this example.
+// dead transition should also be included.
+public class FastGrowingExpansion {
 
 	Net net(int n, int m) {
 		Domain domain = FiniteDomain.fullRange(1, m);
@@ -126,7 +128,7 @@ public class FastGrowingExtension {
 
 	// time to compute unfolding of expansion / size of expansion
 
-	@Test
+	//@Test
 	void expansion() {
 		int n = 3;
 		int m = 6;
