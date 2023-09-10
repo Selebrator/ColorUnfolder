@@ -77,7 +77,7 @@ public class Expansion {
 										llPlaceVariableEntry -> VAR));
 						Transition llTrans = new Transition(
 								llTransId[0],
-								"t" + llTransId[0]++,
+								"t" + llTransId[0]++ + "_" + hlTrans.name(),
 								hlToLlFlow.apply(hlTrans.preSet()),
 								hlToLlFlow.apply(hlTrans.postSet()),
 								Formula.top()

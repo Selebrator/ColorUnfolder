@@ -131,13 +131,20 @@ public class Main implements Callable<Integer> {
 		Set<Transition> targetTransitions;
 		if (targetTransition != null) {
 			List<Pattern> targetTransitionPatterns = Arrays.stream(targetTransition)
+					.map(pattern -> {
+						if (expansionRange != null) {
+							return "t\\d+_" + pattern;
+						} else {
+							return pattern;
+						}
+					})
 					.map(Pattern::compile)
 					.toList();
 			targetTransitions = net.collectNodes().transitions().stream()
 					.filter(transition -> targetTransitionPatterns.stream().anyMatch(pattern -> pattern.matcher(transition.name()).matches()))
 					.collect(Collectors.toSet());
 
-			System.err.println("target transitions: " + targetTransitions);
+			System.err.println("Checking reachability of target transitions: " + targetTransitions);
 		} else {
 			targetTransitions = Set.of();
 		}
