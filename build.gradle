@@ -23,7 +23,7 @@ dependencies {
     antlr 'org.antlr:antlr4:4.12.0'
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation(files("../cvc5/build/install/share/java/cvc5.jar"))
+    implementation(files("lib/cvc5.jar"))
 }
 
 tasks.register('buildExecutableApp', Jar) {
@@ -47,7 +47,7 @@ tasks.test {
     maxHeapSize = "8g"
     systemProperty(
             "java.library.path",
-            "../cvc5/build/install/lib/"
+            "./lib/"
     )
 }
 

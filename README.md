@@ -51,3 +51,12 @@ Javier Esparza, Stefan Römer, and Walter Vogler.
 “An Improvement of McMillan’s Unfolding Algorithm”.
 In: Formal Methods in System Design 20.3 (2002), pp. 285–310.
 doi: [10.1023/A:1014746130920](https://www.doi.org/10.1023/A:1014746130920).
+
+Building
+--------
+
+```sh
+./get-cvc5.sh                 # build cvc5 with java bindings. Takes a long time ~10 minutes
+./gradlew buildExecutableApp  # build color-unfolder
+./color-unfolder --help       # start using it
+```
