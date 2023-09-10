@@ -180,6 +180,8 @@ public class Main implements Callable<Integer> {
 				net.renderLlPep(out);
 			} else if (outputFormat.equalsIgnoreCase("DOT") || outputFormat.equalsIgnoreCase("GRAPHVIZ")) {
 				net.renderDot(out);
+			} else if (outputFormat.equalsIgnoreCase("none")) {
+				// no-op
 			} else {
 				System.err.println("unsupported low-level output format: " + outputFormat);
 				return 1;
@@ -198,6 +200,8 @@ public class Main implements Callable<Integer> {
 		try (Writer out = new BufferedWriter(new OutputStreamWriter(os))) {
 			if (outputFormat.equalsIgnoreCase("DOT") || outputFormat.equalsIgnoreCase("GRAPHVIZ")) {
 				unfolding.render(out);
+			} else if (outputFormat.equalsIgnoreCase("none")) {
+				// no-op
 			} else {
 				System.err.println("unsupported low-level output format: " + outputFormat);
 				return 1;
