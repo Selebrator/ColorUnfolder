@@ -6,6 +6,7 @@ import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.parser.HlLolaParser;
 import de.lukaspanneke.masterthesis.unfolding.Configuration;
+import de.lukaspanneke.masterthesis.unfolding.Event;
 import de.lukaspanneke.masterthesis.unfolding.Unfolding;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -15,6 +16,7 @@ import picocli.CommandLine.Parameters;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
@@ -141,7 +143,16 @@ public class Main implements Callable<Integer> {
 		}
 
 		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions);
-		return renderOutput(unfolding);
+		renderOutput(unfolding);
+		if (targetTransition != null) {
+			Optional<Event> target = unfolding.foundTarget();
+			if (target.isPresent()) {
+				System.err.println("Target transition " + target.get().transition().name() + " can fire: " + target.get().coneConfiguration().firingSequenceString());
+			} else {
+				System.err.println("No target transition can fire");
+			}
+		}
+		return 0;
 	}
 
 	private int renderOutput(Net net) throws IOException {

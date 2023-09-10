@@ -152,4 +152,12 @@ public final class Configuration implements Comparable<Configuration> {
 	public String toString() {
 		return events().toString();
 	}
+
+	public String firingSequenceString() {
+		return foata().data.stream()
+				.map(configuration -> configuration.parikh().data.stream()
+						.map(event -> event.transition().name())
+						.collect(Collectors.joining(",", "[", "]")))
+				.collect(Collectors.joining(""));
+	}
 }
