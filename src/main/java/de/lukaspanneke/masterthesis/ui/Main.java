@@ -121,7 +121,10 @@ public class Main implements Callable<Integer> {
 			} catch (Exception e) {
 				throw new IllegalArgumentException("range must be of form \"lowerIncl..upperIncl\". For example -1..1", e);
 			}
+			long before = System.currentTimeMillis();
 			net = Expansion.expand(net, lowerIncl, upperIncl);
+			long after = System.currentTimeMillis();
+			System.err.println("Expanding took " + (after - before) + " ms");
 			Options.COLORED = false;
 		}
 		if (noUnfold) {
@@ -149,7 +152,10 @@ public class Main implements Callable<Integer> {
 			targetTransitions = Set.of();
 		}
 
+		long before = System.currentTimeMillis();
 		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions);
+		long after = System.currentTimeMillis();
+		System.err.println("Unfolding took " + (after - before) + " ms");
 		renderOutput(unfolding);
 		if (targetTransition != null) {
 			Optional<Event> target = unfolding.foundTarget();
