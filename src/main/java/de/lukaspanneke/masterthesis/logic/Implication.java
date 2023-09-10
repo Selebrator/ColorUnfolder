@@ -7,6 +7,7 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /* package private */ final class Implication extends Formula {
 
@@ -23,8 +24,8 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment) {
-		return !this.lhs.evaluate(assignment) || this.rhs.evaluate(assignment);
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
+		return !this.lhs.evaluate(assignment, assignments) || this.rhs.evaluate(assignment, assignments);
 	}
 
 	@Override

@@ -53,7 +53,7 @@ public class Expansion {
 					Formula variableDomainConstraints = variables.stream()
 							.map(Variable::domainConstraint)
 							.collect(Formula.and());
-					return hlTrans.guard().and(variableDomainConstraints).evaluate(assignment);
+					return hlTrans.guard().and(variableDomainConstraints).evaluate(assignment, varStream -> VariableAssignment.itr(varStream, lowerIncl, upperIncl));
 				})
 				.forEach(assignment -> {
 					Function<Map<Place, Variable>, Map<Place, Variable>> hlToLlFlow = set -> set.entrySet().stream()

@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public final class QuantifiedFormula extends Formula {
 
@@ -26,18 +28,34 @@ public final class QuantifiedFormula extends Formula {
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment) {
-		throw new UnsupportedOperationException();  // TODO implement if needed
+	public boolean evaluate(
+			Map<Variable, Integer> assignment,
+			Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments
+	) {
+		Predicate<Map<Variable, Integer>> pred = map -> {
+			Map<Variable, Integer> newAssignment = new HashMap<>(assignment);
+			newAssignment.putAll(map);
+			return f.evaluate(newAssignment, assignments);
+		};
+		Stream<Map<Variable, Integer>> allAssignments = assignments.apply(variables.stream());
+		return switch (quantifier) {
+			case EXISTS -> allAssignments.anyMatch(pred);
+			case FORALL -> allAssignments.allMatch(pred);
+		};
 	}
 
 	@Override
 	protected void collectSupport(Set<Variable> accumulator) {
-		throw new UnsupportedOperationException();  // TODO implement if needed
+		// free variables
+		f.collectSupport(accumulator);
+		accumulator.removeAll(variables);
 	}
 
 	@Override
 	public Formula substitute(Map<Variable, Variable> map) {
-		throw new UnsupportedOperationException();  // TODO implement if needed
+		Map<Variable, Variable> newMap = new HashMap<>(map);
+		variables.forEach(newMap::remove);
+		return QuantifiedFormula.of(quantifier, variables, f.substitute(newMap));
 	}
 
 	@Override

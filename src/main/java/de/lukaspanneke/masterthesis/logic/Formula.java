@@ -10,10 +10,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality, Implication, Negation, QuantifiedFormula, Top {
 
-	public abstract boolean evaluate(Map<Variable, Integer> assignment);
+	public abstract boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments);
 
 	public final Set<Variable> support() {
 		Set<Variable> ans = new HashSet<>();

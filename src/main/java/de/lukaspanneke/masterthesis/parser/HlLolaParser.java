@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class HlLolaParser {
 
@@ -161,7 +162,7 @@ public class HlLolaParser {
 					throw new ParserException("place with name " + placeName + " at line " + line + " char " + shar + " already has a token. we only allow safe nets!.");
 				}
 				Domain domain = placeToDomain.get(placeName);
-				if (!domain.constraint(TEST_VARIABLE).evaluate(Map.of(TEST_VARIABLE, value))) {
+				if (!domain.constraint(TEST_VARIABLE).evaluate(Map.of(TEST_VARIABLE, value), unused -> Stream.of(Map.of()))) {
 					Token inlaidSymbol = ctx.constant(i).getStart();
 					int line = inlaidSymbol.getLine();
 					int shar = inlaidSymbol.getCharPositionInLine();

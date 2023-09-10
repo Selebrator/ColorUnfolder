@@ -6,6 +6,7 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /* package-private */ final class Negation extends Formula {
 
@@ -24,8 +25,8 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment) {
-		return !this.f.evaluate(assignment);
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
+		return !this.f.evaluate(assignment, assignments);
 	}
 
 	@Override

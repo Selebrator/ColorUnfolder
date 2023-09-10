@@ -7,6 +7,7 @@ import io.github.cvc5.Term;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /* package-private */ final class Equality extends Formula {
 
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment) {
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
 		return terms.stream()
 				.map(term -> term.evaluate(assignment))
 				.collect(Collectors.toSet()).size() <= 1;

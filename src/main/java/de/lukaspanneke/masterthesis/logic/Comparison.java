@@ -7,6 +7,7 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /* package-private */ final class Comparison extends Formula {
 
@@ -25,7 +26,7 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment) {
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
 		long e1 = this.e1.evaluate(assignment);
 		long e2 = this.e2.evaluate(assignment);
 		return switch (this.operator) {
