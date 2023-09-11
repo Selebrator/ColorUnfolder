@@ -50,6 +50,7 @@ tasks.test {
             "java.library.path",
             "./lib/"
     )
+    environment "LD_LIBRARY_PATH", "lib"
 }
 
 tasks.test {

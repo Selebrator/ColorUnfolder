@@ -43,7 +43,7 @@ jobs:
           path: |
             lib/cvc5.jar
             lib/libcvc5jni.so
-            lib/libcvc5.so
+            lib/libcvc5.so.1
           key: cvc5-libs-${{ hashFiles('get-cvc5.sh') }}
 
       - if: ${{ steps.cvc5-lib-cache.outputs.cache-hit != 'true' }}

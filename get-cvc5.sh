@@ -31,5 +31,5 @@ make install || exit 1
 cd ../../..
 
 cp -L build/cvc5/build/install/share/java/cvc5.jar lib/
-cp -L build/cvc5/build/install/lib/libcvc5.so lib/
+cp -L build/cvc5/build/install/lib/libcvc5.so.1 lib/
 cp -L build/cvc5/build/install/lib/libcvc5jni.so lib/
