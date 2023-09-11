@@ -36,7 +36,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install cvc5
+      - name: Load cvc5 from cache
+        id: cvc5-lib-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            lib/cvc5.jar
+            lib/libcvc5jni.so
+            lib/libcvc5.so
+          key: cvc5-libs-${{ hashFiles('get-cvc5.sh') }}
+
+      - if: ${{ steps.cvc5-lib-cache.outputs.cache-hit != 'true' }}
+        name: Install cvc5
         run: ./get-cvc5.sh
 
       - name: gradle test
