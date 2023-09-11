@@ -1,0 +1,53 @@
+name: Run tests on push
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt -y update
+          sudo apt install -y \
+            build-essential \
+            ccache \
+            libbsd-dev \
+            libcln-dev \
+            libedit-dev \
+            libgmp-dev \
+            libtinfo-dev \
+            flex \
+            libfl-dev \
+            flexc++
+          python3 -m pip install --user pexpect setuptools tomli
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install cvc5
+        run: ./get-cvc5.sh
+
+      - name: gradle test
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: test -i
+
+      - name: Build executable
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildExecutableApp
+
+      - name: Run executable
+        run: ./color-unfolder --help
