@@ -147,4 +147,44 @@ public record Net(Marking initialMarking) {
 			}
 		}
 	}
+
+	public void renderHlLola(Writer writer) throws IOException {
+		// TODO implement other domains. currently, all domains are rendered as Int.
+		Nodes nodes = collectNodes();
+		writer.append(nodes.places().stream()
+				.map(place -> "\t" + place.name() + ": Int")
+				.collect(Collectors.joining(",\n", "PLACE\n", ";\n")));
+		writer.append("\n");
+		writer.append(initialMarking().tokens().entrySet().stream()
+				.map(mark -> "\t" + mark.getKey().name() + ": " + mark.getValue())
+				.collect(Collectors.joining(",\n", "MARKING\n", ";\n")));
+		writer.append("\n");
+		for (Transition transition : nodes.transitions()) {
+			writer.append("TRANSITION ").append(transition.name()).append("\n");
+			Set<Variable> edgeVariables = new HashSet<>();
+			edgeVariables.addAll(transition.preSet().values());
+			edgeVariables.addAll(transition.postSet().values());
+			if (!edgeVariables.isEmpty()) {
+				writer.append(edgeVariables.stream()
+						.map(variable -> "\t\t" + variable.name() + ": Int")
+						.collect(Collectors.joining(",\n", "\tVAR\n", ";\n")));
+			}
+			if (!transition.preSet().isEmpty()) {
+				writer.append(transition.preSet().entrySet().stream()
+						.map(edge -> "\t\t" + edge.getKey().name() + ": " + edge.getValue().name())
+						.collect(Collectors.joining(",\n", "\tCONSUME\n", ";\n")));
+			}
+			if (!transition.postSet().isEmpty()) {
+				writer.append(transition.postSet().entrySet().stream()
+						.map(edge -> "\t\t" + edge.getKey().name() + ": " + edge.getValue().name())
+						.collect(Collectors.joining(",\n", "\tPRODUCE\n", ";\n")));
+			}
+			// TODO guards still use unicode symbols for operators like AND OR EXISTS ...
+			if (!Formula.top().equals(transition.guard())) {
+				writer.append("\tGUARD ").append(String.valueOf(transition.guard())).append("\n");
+			}
+			writer.append("\n");
+			writer.flush();
+		}
+	}
 }
