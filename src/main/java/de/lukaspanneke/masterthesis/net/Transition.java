@@ -6,6 +6,9 @@ import de.lukaspanneke.masterthesis.logic.Variable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record Transition(
 		int index,
@@ -29,6 +32,15 @@ public record Transition(
 
 	public Transition(int index, String name, Formula guard) {
 		this(index, name, new HashMap<>(), new HashMap<>(), guard);
+	}
+
+	public void validate() {
+		Set<Variable> support = guard.support();
+		Set<Variable> adjacent = Stream.concat(preSet.values().stream(), postSet.values().stream()).collect(Collectors.toSet());
+		support.removeAll(adjacent);
+		if (!support.isEmpty()) {
+			throw new IllegalArgumentException("guard uses undeclared variable: " + support);
+		}
 	}
 
 	@Override

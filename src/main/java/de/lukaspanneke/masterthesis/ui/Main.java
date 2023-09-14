@@ -1,6 +1,7 @@
 package de.lukaspanneke.masterthesis.ui;
 
 import de.lukaspanneke.masterthesis.Options;
+import de.lukaspanneke.masterthesis.examples.Examples;
 import de.lukaspanneke.masterthesis.expansion.Expansion;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.net.Transition;
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
 @Command(
@@ -100,7 +102,32 @@ public class Main implements Callable<Integer> {
 			Options.PRINT_COLOR_CONFLICT_INFO = true;
 		}
 		Net net;
-		{
+
+		if (this.inputFile.startsWith("isqrt#")) {
+			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
+		} else if (this.inputFile.equals("restaurant")) {
+			net = Examples.restaurant();
+		} else if (this.inputFile.startsWith("mastermind")) {
+			//           code guess
+			//           |    |
+			//mastermind#4182#6123
+			int offset = "mastermind#".length();
+			String[] split = this.inputFile.split("#");
+			net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
+		} else if (this.inputFile.startsWith("buckets")) {
+			String[] split = this.inputFile.split("#");
+			int goal = Integer.parseInt(split[1]);
+			int[] buckets = IntStream.range(2, split.length)
+					.map(i -> Integer.parseInt(split[i]))
+					.toArray();
+			net = Examples.buckets(buckets, goal);
+		} else if (this.inputFile.startsWith("parallelAmnesia#")) {
+			net = Examples.parallelAmnesia(Integer.parseInt(this.inputFile.substring("parallelAmnesia#".length())));
+		} else if (this.inputFile.startsWith("fast-growing#")) {
+			String params = this.inputFile.substring("fast-growing#".length());
+			String[] split = params.split("#");
+			net = Examples.fastGrowing(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+		} else {
 			InputStream is;
 			if (this.inputFile.equals("-")) {
 				is = System.in;
