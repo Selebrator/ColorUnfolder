@@ -27,7 +27,7 @@ public class SatSolver {
 		}
 		if (SHOW_MODEL && result.isSat()) {
 			for (Term atom : atoms.values()) {
-				System.out.println(atom + " = " + solver.getValue(atom));
+				System.err.println(atom + " = " + solver.getValue(atom));
 			}
 		}
 		return result;
@@ -35,24 +35,24 @@ public class SatSolver {
 
 	public static boolean isSatisfiable(Formula formula) {
 		if (SHOW_FORMULAS) {
-			System.out.println("      " + formula);
+			System.err.println("      " + formula);
 		}
 		Result result = checkSat(formula);
 		if (PRINT_COLOR_CONFLICT_INFO) {
 			String answer = result.isSat() ? "SAT" : result.isUnsat() ? "UNSAT" : result.toString();
-			System.out.println("      " + answer);
+			System.err.println("      " + answer);
 		}
 		return result.isSat();
 	}
 
 	public static boolean isTautology(Formula formula) {
 		if (SHOW_FORMULAS) {
-			System.out.println("    " + formula);
+			System.err.println("    " + formula);
 		}
 		Result result = checkSat(formula.not());
 		if (PRINT_COLOR_CUTOFF_INFO) {
 			String answer = result.isUnsat() ? "TAUTOLOGY" : result.isSat() ? "NOT A TAUTOLOGY" : result.toString();
-			System.out.println("    " + answer);
+			System.err.println("    " + answer);
 		}
 		return result.isUnsat();
 	}

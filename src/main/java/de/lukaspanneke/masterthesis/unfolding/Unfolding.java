@@ -116,11 +116,11 @@ public class Unfolding {
 		Event event = this.initialEvent;
 		do {
 			if (Thread.interrupted()) {
-				System.out.println("Interrupted");
+				System.err.println("Interrupted");
 				break;
 			}
 			if (PRINT_PROGRESS) {
-				System.out.println("Next event " + event + " with preset " + event.preset());
+				System.err.println("Next event " + event + " with preset " + event.preset());
 			}
 			Optional<Event> cutoffPredecessor = event.prepre().stream().filter(Event::isCutoff).findAny();
 			if (cutoffPredecessor.isPresent()) {
@@ -133,7 +133,7 @@ public class Unfolding {
 			event.finalizePostset();
 			if (this.targetTransitions.contains(event.transition())) {
 				if (PRINT_PROGRESS) {
-					System.out.println("Found target transition " + event + " in " + event.coneConfiguration());
+					System.err.println("Found target transition " + event + " in " + event.coneConfiguration());
 				}
 				this.targetEvent = event;
 				break;
@@ -144,11 +144,11 @@ public class Unfolding {
 				}
 			}
 			if (PRINT_PROGRESS) {
-				System.out.println("Possible Extensions: " + this.possibleExtensions);
+				System.err.println("Possible Extensions: " + this.possibleExtensions);
 			}
 		} while ((event = this.possibleExtensions.poll()) != null);
 		if (PRINT_PROGRESS && this.possibleExtensions.isEmpty()) {
-			System.out.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
+			System.err.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 		}
 	}
 
@@ -180,7 +180,7 @@ public class Unfolding {
 							.collect(Formula.or());
 					Formula check = markingColors(event).implies(colorHistory);
 					if (PRINT_COLOR_CUTOFF_INFO) {
-						System.out.println("  Checking if " + event + " with pi(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
+						System.err.println("  Checking if " + event + " with pi(cut(cone(" + event.name() + "))) = " + mark + " is cut-off event. Is cut-off, if tautology:");
 					}
 					seenBefore = SatSolver.isTautology(check);
 				} else {
@@ -205,7 +205,7 @@ public class Unfolding {
 	 */
 	private void findPe(Condition condition) {
 		if (PRINT_PROGRESS) {
-			System.out.println("  Find extensions for " + condition);
+			System.err.println("  Find extensions for " + condition);
 		}
 		this.concurrencyMatrix.add(condition);
 
@@ -224,7 +224,7 @@ public class Unfolding {
 		for (Transition transition : condition.place().postSet()) {
 			for (Condition[] candidate : new CartesianProduct<>(Condition[]::new, transition.preSet().keySet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
 				if (!this.concurrencyMatrix.isCoset(candidate)) {
-					//System.out.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
+					//System.err.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				Set<Condition> preset = Set.of(candidate);
@@ -236,10 +236,10 @@ public class Unfolding {
 					guard = internalGuard.apply(transition.guard());
 					conePredicate = guard.and(history(preset));
 					if (PRINT_COLOR_CONFLICT_INFO) {
-						System.out.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
+						System.err.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
 					}
 					if (!SatSolver.isSatisfiable(conePredicate)) {
-						//System.out.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
+						//System.err.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
 						continue;
 					}
 				} else {
@@ -248,7 +248,7 @@ public class Unfolding {
 				}
 				Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate, internalGuard.substitution);
 				if (PRINT_PROGRESS) {
-					System.out.println("    Extend PE with " + extension + " with preset " + extension.preset());
+					System.err.println("    Extend PE with " + extension + " with preset " + extension.preset());
 				}
 				this.possibleExtensions.add(extension);
 			}

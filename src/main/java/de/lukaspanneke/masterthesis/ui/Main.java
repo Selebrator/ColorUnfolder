@@ -42,7 +42,7 @@ public class Main implements Callable<Integer> {
 	private String outputFile;
 
 	@Option(names = {"-T", "--output"}, paramLabel = "format", defaultValue = "DOT",
-			description = "Name of the output format. high-level: DOT; low-level: PEP, DOT.")
+			description = "Name of the output format. high-level: DOT, none; low-level: PEP, DOT, none.")
 	private String outputFormat;
 
 	@Option(names = {"-E", "--expand"}, paramLabel = "range",
@@ -81,6 +81,10 @@ public class Main implements Callable<Integer> {
 			description = "Verbose mode.")
 	private boolean[] verbose = new boolean[0];
 
+	@Option(names = {"--time"}, defaultValue = "false",
+			description = "Measure time spent expanding and unfolding.")
+	private boolean time;
+
 
 	@Override
 	public Integer call() throws IOException {
@@ -88,8 +92,12 @@ public class Main implements Callable<Integer> {
 		Options.ORDER = order.comparator();
 		Options.CUTOFF = !noCutoff;
 		Options.COLORED = !noColor;
-		if (verbose.length >= 1) {
+		if (verbose.length >= 2) {
 			Options.PRINT_PROGRESS = true;
+		}
+		if (verbose.length >= 3) {
+			Options.PRINT_COLOR_CUTOFF_INFO = true;
+			Options.PRINT_COLOR_CONFLICT_INFO = true;
 		}
 		Net net;
 		{
@@ -124,7 +132,9 @@ public class Main implements Callable<Integer> {
 			long before = System.currentTimeMillis();
 			net = Expansion.expand(net, lowerIncl, upperIncl);
 			long after = System.currentTimeMillis();
-			System.err.println("Expanding took " + (after - before) + " ms");
+			if (time) {
+				System.err.println("Expanding took " + (after - before) + " ms");
+			}
 			Options.COLORED = false;
 		}
 		if (noUnfold) {
@@ -147,7 +157,9 @@ public class Main implements Callable<Integer> {
 					.filter(transition -> targetTransitionPatterns.stream().anyMatch(pattern -> pattern.matcher(transition.name()).matches()))
 					.collect(Collectors.toSet());
 
-			System.err.println("Checking reachability of target transitions: " + targetTransitions);
+			if (verbose.length >= 1) {
+				System.err.println("Checking reachability of target transitions: " + targetTransitions);
+			}
 		} else {
 			targetTransitions = Set.of();
 		}
@@ -155,14 +167,23 @@ public class Main implements Callable<Integer> {
 		long before = System.currentTimeMillis();
 		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions);
 		long after = System.currentTimeMillis();
-		System.err.println("Unfolding took " + (after - before) + " ms");
+		if (time) {
+			System.err.println("Unfolding took " + (after - before) + " ms");
+		}
 		renderOutput(unfolding);
 		if (targetTransition != null) {
 			Optional<Event> target = unfolding.foundTarget();
 			if (target.isPresent()) {
-				System.err.println("Target transition " + target.get().transition().name() + " can fire: " + target.get().coneConfiguration().firingSequenceString());
+				if (verbose.length >= 1) {
+					System.err.println("Target transition " + target.get().transition().name() + " can fire:");
+				}
+				System.err.println(target.get().coneConfiguration().firingSequenceString());
+				return 0;
 			} else {
-				System.err.println("No target transition can fire");
+				if (verbose.length >= 1) {
+					System.err.println("No target transition can fire");
+				}
+				return 3;
 			}
 		}
 		return 0;
