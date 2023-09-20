@@ -171,7 +171,7 @@ public class Main implements Callable<Integer> {
 		if (targetTransition != null) {
 			List<Pattern> targetTransitionPatterns = Arrays.stream(targetTransition)
 					.map(pattern -> {
-						if (expansionRange != null) {
+						if (expansionRange != null && !jitExpand) {
 							return "t\\d+_" + pattern;
 						} else {
 							return pattern;

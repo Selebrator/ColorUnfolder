@@ -104,7 +104,7 @@ public class Unfolding {
 
 	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions, ExpansionRange expansionRange) {
 		this.depthBound = depthBound;
-		this.targetTransitions = Set.copyOf(targetTransitions);
+		this.targetTransitions = new HashSet<>(targetTransitions);
 		this.expansionRange = expansionRange;
 		Marking initialMarking = original.initialMarking();
 		Transition initialTransition = new Transition(
@@ -321,7 +321,11 @@ public class Unfolding {
 							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));
 					Map<Place, Variable> newTransitionPostset = hlTransition.postSet().entrySet().stream()
 							.collect(Collectors.toMap(entry -> newHlToLlPlace(entry.getKey(), assignment.get(entry.getValue())), Map.Entry::getValue));
-					return new Transition(this.llTransId++, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
+					Transition llTransition = new Transition(this.llTransId++, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
+					if (this.targetTransitions.contains(hlTransition)) {
+						this.targetTransitions.add(llTransition);
+					}
+					return llTransition;
 				})
 				.toList();
 	}
