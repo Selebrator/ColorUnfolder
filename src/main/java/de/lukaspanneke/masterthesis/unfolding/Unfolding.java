@@ -183,7 +183,7 @@ public class Unfolding {
 		if (expansionRange == null) {
 			return Set.of(hlPlace);
 		}
-		return new HashSet<>(hlToLlPlace.get(hlPlace).values());
+		return new HashSet<>(hlToLlPlace.getOrDefault(hlPlace, Collections.emptyMap()).values());
 	}
 
 	private Place llToHlPlace(Place llPlace) {
