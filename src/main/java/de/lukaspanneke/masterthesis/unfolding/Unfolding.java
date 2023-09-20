@@ -303,7 +303,10 @@ public class Unfolding {
 				return Collections.emptyList();
 			}
 		}
-		Formula guard = hlTransition.guard().support().stream()
+		Formula guard = Stream.concat(
+						hlTransition.preSet().values().stream(),
+						hlTransition.postSet().values().stream())
+				.distinct()
 				.map(Variable::domainConstraint)
 				.collect(Formula.and()).and(hlTransition.guard());
 		Set<Variable> postOnlyVariables = hlTransition.postSet().values().stream()
