@@ -15,7 +15,8 @@ public record Transition(
 		String name,
 		Map<Place, Variable> preSet,
 		Map<Place, Variable> postSet,
-		Formula guard
+		Formula guard,
+		int orderId
 ) implements Comparable<Transition> {
 
 	public Transition(int index) {
@@ -31,7 +32,11 @@ public record Transition(
 	}
 
 	public Transition(int index, String name, Formula guard) {
-		this(index, name, new HashMap<>(), new HashMap<>(), guard);
+		this(index, name, new HashMap<>(), new HashMap<>(), guard, index);
+	}
+
+	public Transition(int index, String name, Map<Place, Variable> preSet, Map<Place, Variable> postSet, Formula guard) {
+		this(index, name, preSet, postSet, guard, index);
 	}
 
 	public void validate() {
@@ -45,7 +50,7 @@ public record Transition(
 
 	@Override
 	public int compareTo(Transition that) {
-		return Integer.compare(this.index, that.index);
+		return Integer.compare(this.orderId, that.orderId);
 	}
 
 	@Override

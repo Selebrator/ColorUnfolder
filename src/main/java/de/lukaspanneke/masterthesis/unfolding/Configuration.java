@@ -77,7 +77,7 @@ public final class Configuration implements Comparable<Configuration> {
 
 		public Parikh(Collection<Event> configuration) {
 			this.data = configuration.stream()
-					.sorted(Comparator.comparingInt(event -> event.transition().index()))
+					.sorted(Comparator.comparing(Event::transition))
 					.toList();
 		}
 

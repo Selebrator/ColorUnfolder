@@ -324,7 +324,7 @@ public class Unfolding {
 							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));
 					Map<Place, Variable> newTransitionPostset = hlTransition.postSet().entrySet().stream()
 							.collect(Collectors.toMap(entry -> newHlToLlPlace(entry.getKey(), assignment.get(entry.getValue())), Map.Entry::getValue));
-					Transition llTransition = new Transition(this.llTransId--, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
+					Transition llTransition = new Transition(this.llTransId--, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top(), hlTransition.orderId());
 					if (this.targetTransitions.contains(hlTransition)) {
 						this.targetTransitions.add(llTransition);
 					}

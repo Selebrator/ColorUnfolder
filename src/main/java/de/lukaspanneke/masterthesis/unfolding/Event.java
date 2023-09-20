@@ -152,7 +152,7 @@ public final class Event implements Comparable<Event> {
 
 	@Override
 	public int compareTo(Event that) {
-		return Integer.compare(this.transition().index(), that.transition().index());
+		return this.transition().compareTo(that.transition());
 	}
 
 	@Override
