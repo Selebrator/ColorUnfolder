@@ -8,7 +8,8 @@ public record Place(
 		int index,
 		String name,
 		Set<Transition> preSet,
-		Set<Transition> postSet
+		Set<Transition> postSet,
+		Integer value // the value of a low-level place representing a high-level place. used when just in time expanding.
 ) implements Comparable<Place> {
 
 	public Place(int index) {
@@ -16,7 +17,11 @@ public record Place(
 	}
 
 	public Place(int index, String name) {
-		this(index, name, new HashSet<>(), new HashSet<>());
+		this(index, name, new HashSet<>(), new HashSet<>(), null);
+	}
+
+	public Place(int index, String name, int value) {
+		this(index, name, new HashSet<>(), new HashSet<>(), value);
 	}
 
 	@Override

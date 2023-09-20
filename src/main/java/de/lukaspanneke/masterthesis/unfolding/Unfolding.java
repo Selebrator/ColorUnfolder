@@ -1,6 +1,8 @@
 package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.CartesianProduct;
+import de.lukaspanneke.masterthesis.VariableAssignment;
+import de.lukaspanneke.masterthesis.expansion.ExpansionRange;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.QuantifiedFormula;
 import de.lukaspanneke.masterthesis.logic.SatSolver;
@@ -13,8 +15,8 @@ import de.lukaspanneke.masterthesis.net.Transition;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static de.lukaspanneke.masterthesis.Options.*;
 
@@ -72,6 +74,12 @@ public class Unfolding {
 	 */
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
+	/**
+	 * If set, use this range for the just in time expansion to construct the low-level unfolding.
+	 * Leave this null to construct the symbolic unfolding.
+	 */
+	private final ExpansionRange expansionRange;
+
 	public static Unfolding unfold(Net net) {
 		return unfold(net, Integer.MAX_VALUE, Set.of());
 	}
@@ -85,21 +93,26 @@ public class Unfolding {
 	}
 
 	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions) {
-		Unfolding ans = new Unfolding(net, depth, targetTransitions);
+		return unfold(net, depth, targetTransitions, null);
+	}
+
+	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions, ExpansionRange expansionRange) {
+		Unfolding ans = new Unfolding(net, depth, targetTransitions, expansionRange);
 		ans.construct();
 		return ans;
 	}
 
-	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions) {
+	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions, ExpansionRange expansionRange) {
 		this.depthBound = depthBound;
 		this.targetTransitions = Set.copyOf(targetTransitions);
+		this.expansionRange = expansionRange;
 		Marking initialMarking = original.initialMarking();
 		Transition initialTransition = new Transition(
 				Integer.MIN_VALUE,
 				"⊥",
 				Map.of(),
-				initialMarking.tokens().keySet().stream()
-						.collect(Collectors.toMap(Function.identity(), place -> new Variable(place.name()))),
+				initialMarking.tokens().entrySet().stream()
+						.collect(Collectors.toMap(entry -> newHlToLlPlace(entry.getKey(), entry.getValue()), entry -> new Variable(entry.getKey().name()))),
 				initialMarking.tokens().entrySet().stream()
 						.map(e -> new Variable(e.getKey().name()).eq(e.getValue()))
 						.collect(Formula.and())
@@ -150,6 +163,34 @@ public class Unfolding {
 		if (PRINT_PROGRESS && this.possibleExtensions.isEmpty()) {
 			System.err.println("DONE. Complete finite prefix of symbolic unfolding constructed.");
 		}
+	}
+
+	private final Map<Place, Map<Integer, Place>> hlToLlPlace = new HashMap<>();
+	private final Map<Place, Place> llToHlPlace = new HashMap<>();
+	int llPlaceId = 1;
+	int llTransId = 1;
+
+	private Place newHlToLlPlace(Place hlPlace, int value) {
+		if (expansionRange == null) {
+			return hlPlace;
+		}
+		Place llPlace = hlToLlPlace.computeIfAbsent(hlPlace, hl -> new HashMap<>()).computeIfAbsent(value, i -> new Place(llPlaceId++, hlPlace.name() + "#" + value, value));
+		llToHlPlace.put(llPlace, hlPlace);
+		return llPlace;
+	}
+
+	private Set<Place> hlToLlPlaces(Place hlPlace) {
+		if (expansionRange == null) {
+			return Set.of(hlPlace);
+		}
+		return new HashSet<>(hlToLlPlace.get(hlPlace).values());
+	}
+
+	private Place llToHlPlace(Place llPlace) {
+		if (expansionRange == null) {
+			return llPlace;
+		}
+		return llToHlPlace.get(llPlace);
 	}
 
 	private void link(Event event) {
@@ -221,38 +262,102 @@ public class Unfolding {
 					new AssertionError("adding " + condition + ", there should be no " + condition.place() + " in " + placeToConditions));
 		}
 		placeToConditions.put(condition.place(), List.of(condition));
-		for (Transition transition : condition.place().postSet()) {
-			for (Condition[] candidate : new CartesianProduct<>(Condition[]::new, transition.preSet().keySet().stream().map(place -> placeToConditions.getOrDefault(place, Collections.emptyList())).toList())) {
+		for (Transition transition : llToHlPlace(condition.place()).postSet()) {
+			CartesianProduct<Condition> candidates = new CartesianProduct<>(Condition[]::new, transition.preSet().keySet().stream()
+					.map(hlPrePlace -> hlToLlPlaces(hlPrePlace).stream()
+							.flatMap(llPrePlace -> placeToConditions.getOrDefault(llPrePlace, Collections.emptyList()).stream())
+							.toList()).toList());
+			for (Condition[] candidate : candidates) {
+				//System.err.println("  Candidate " + Arrays.toString(candidate));
 				if (!this.concurrencyMatrix.isCoset(candidate)) {
 					//System.err.println("  Conflict (structure) " + transition + " " + Arrays.toString(candidate));
 					continue;
 				}
 				Set<Condition> preset = Set.of(candidate);
-				Formula guard;
-				Formula conePredicate;
-				String eventName = "e" + this.eventIndex;
-				InternalGuard internalGuard = internalGuard(eventName, transition, preset);
-				if (COLORED) {
-					guard = internalGuard.apply(transition.guard());
-					conePredicate = guard.and(history(preset));
-					if (PRINT_COLOR_CONFLICT_INFO) {
-						System.err.println("    Checking color conflict for " + transition + " with co-set " + Arrays.toString(candidate) + ". No conflict if satisfiable:");
-					}
-					if (!SatSolver.isSatisfiable(conePredicate)) {
-						//System.err.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
-						continue;
+				if (this.expansionRange != null) {
+					for (Transition llTransition : jitExpand(transition, preset)) {
+						addPe(llTransition, preset);
 					}
 				} else {
-					guard = null;
-					conePredicate = null;
+					addPe(transition, preset);
 				}
-				Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate, internalGuard.substitution);
-				if (PRINT_PROGRESS) {
-					System.err.println("    Extend PE with " + extension + " with preset " + extension.preset());
-				}
-				this.possibleExtensions.add(extension);
 			}
 		}
+	}
+
+	/**
+	 * Compute all low-level transitions representing modes that the high-level transition can fire
+	 * with the given preset of low-level conditions.
+	 */
+	private Collection<Transition> jitExpand(Transition hlTransition, Set<Condition> preset) {
+		Map<Variable, Integer> preAssignment = new HashMap<>();
+		for (Condition preCondition : preset) {
+			Variable conditionToTransitionVariable = hlTransition.preSet().get(llToHlPlace(preCondition.place()));
+			int newVariableValue = preCondition.place().value();
+			Integer overwrittenValue = preAssignment.put(conditionToTransitionVariable, newVariableValue);
+			if (overwrittenValue != null && overwrittenValue != newVariableValue) {
+				// both places have the same variable but different values.
+				// this meas the implicit equality of the tokens on the places is violated
+				// and the hlTransition can not fire.
+				//System.err.println("  Unsat inbound variables for " + hlTransition + " with " + newVariableValue + " != " + overwrittenValue + " for " + conditionToTransitionVariable);
+				return Collections.emptyList();
+			}
+		}
+		Formula guard = hlTransition.guard().support().stream()
+				.map(Variable::domainConstraint)
+				.collect(Formula.and()).and(hlTransition.guard());
+		Set<Variable> postOnlyVariables = hlTransition.postSet().values().stream()
+				.filter(variable -> !preAssignment.containsKey(variable))
+				.collect(Collectors.toSet());
+		Stream<Map<Variable, Integer>> assignments = postOnlyVariables.isEmpty()
+				? Stream.of(preAssignment)
+				: VariableAssignment.itr(postOnlyVariables.stream(), this.expansionRange.lowerIncl(), this.expansionRange.upperIncl())
+				.peek(postAssignment -> postAssignment.putAll(preAssignment));
+		return assignments
+				.filter(assignment -> guard.evaluate(assignment, varStream -> VariableAssignment.itr(varStream,
+						this.expansionRange.lowerIncl(), this.expansionRange.upperIncl())))
+				.map(assignment -> {
+					Map<Place, Variable> newTransitionPreset = preset.stream()
+							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));
+					Map<Place, Variable> newTransitionPostset = hlTransition.postSet().entrySet().stream()
+							.collect(Collectors.toMap(entry -> newHlToLlPlace(entry.getKey(), assignment.get(entry.getValue())), Map.Entry::getValue));
+					return new Transition(this.llTransId++, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
+				})
+				.toList();
+	}
+
+	/**
+	 * Insert an event in the possible extensions, after checking that it is not in color-conflict.
+	 *
+	 * @implNote these steps are combined into one method,
+	 * because that allows us to reuse the formula for checking color-conflicts.
+	 * Hopefully future me can understand this :/
+	 */
+	private Optional<Event> addPe(Transition transition, Set<Condition> preset) {
+		Formula guard;
+		Formula conePredicate;
+		String eventName = "e" + this.eventIndex;
+		InternalGuard internalGuard = internalGuard(eventName, transition, preset);
+		if (COLORED) {
+			guard = internalGuard.apply(transition.guard());
+			conePredicate = guard.and(history(preset));
+			if (PRINT_COLOR_CONFLICT_INFO) {
+				System.err.println("    Checking color conflict for " + transition + " with co-set " + preset + ". No conflict if satisfiable:");
+			}
+			if (!SatSolver.isSatisfiable(conePredicate)) {
+				//System.err.println("  Conflict (color) for " + transition + " " + Arrays.toString(candidate));
+				return Optional.empty();
+			}
+		} else {
+			guard = null;
+			conePredicate = null;
+		}
+		Event extension = new Event(this.eventIndex++, eventName, transition, preset, guard, conePredicate, internalGuard.substitution);
+		if (PRINT_PROGRESS) {
+			System.err.println("    Extend PE with " + extension + " with preset " + extension.preset());
+		}
+		this.possibleExtensions.add(extension);
+		return Optional.of(extension);
 	}
 
 	private record InternalGuard(Map<Variable, Variable> substitution, Formula modification) {

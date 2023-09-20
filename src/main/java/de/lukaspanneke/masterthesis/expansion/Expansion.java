@@ -1,6 +1,6 @@
 package de.lukaspanneke.masterthesis.expansion;
 
-import de.lukaspanneke.masterthesis.CartesianProduct;
+import de.lukaspanneke.masterthesis.VariableAssignment;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.Variable;
 import de.lukaspanneke.masterthesis.net.Marking;
@@ -9,7 +9,6 @@ import de.lukaspanneke.masterthesis.net.Place;
 import de.lukaspanneke.masterthesis.net.Transition;
 import me.tongfei.progressbar.ProgressBar;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class Expansion {
 
@@ -88,20 +86,4 @@ public class Expansion {
 		}
 		return new Net(new Marking(initial));
 	}
-
-	record VariableAssignment(Variable variable, int assignment) {
-		static Stream<Map<Variable, Integer>> itr(Stream<Variable> variables, int lowerIncl, int upperIncl) {
-			CartesianProduct<VariableAssignment> assignments = new CartesianProduct<>(VariableAssignment[]::new,
-					variables.distinct()
-							.<Iterable<VariableAssignment>>map(variable -> () -> IntStream.rangeClosed(lowerIncl, upperIncl)
-									.mapToObj(i -> new VariableAssignment(variable, i)).iterator())
-							.toList());
-			return StreamSupport.stream(assignments.spliterator(), false)
-					.map(assignment -> Arrays.stream(assignment)
-							.collect(Collectors.toMap(
-									VariableAssignment::variable,
-									VariableAssignment::assignment)));
-		}
-	}
-
 }

@@ -4,6 +4,7 @@ import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -23,7 +24,11 @@ public record Variable(String name, Domain domain) implements ArithmeticExpressi
 
 	@Override
 	public int evaluate(Map<Variable, Integer> assignment) {
-		return assignment.get(this);
+		try {
+			return assignment.get(this);
+		} catch (NullPointerException e) {
+			throw new NoSuchElementException("No value for " + this + " in assignment " + assignment, e);
+		}
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package de.lukaspanneke.masterthesis.ui;
 import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.examples.Examples;
 import de.lukaspanneke.masterthesis.expansion.Expansion;
+import de.lukaspanneke.masterthesis.expansion.ExpansionRange;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.parser.HlLolaParser;
@@ -50,6 +51,10 @@ public class Main implements Callable<Integer> {
 	@Option(names = {"-E", "--expand"}, paramLabel = "range",
 			description = "Expand the high-level net to it's low-level representation. For the domain {-2, 0, 2} you would pass range=\"-2..2\".")
 	private String expansionRange;
+
+	@Option(names = {"--jit-expand"}, defaultValue = "true",
+			description = "Build the unfolding of the expansion without building the expansion.")
+	private boolean jitExpand;
 
 	@Option(names = {"--no-unfold"}, defaultValue = "false",
 			description = "Don't unfold. Output the net or expansion.")
@@ -147,22 +152,16 @@ public class Main implements Callable<Integer> {
 			}
 		}
 		if (expansionRange != null) {
-			int lowerIncl;
-			int upperIncl;
-			try {
-				String[] split = expansionRange.split("\\.\\.", 2);
-				lowerIncl = Integer.parseInt(split[0]);
-				upperIncl = Integer.parseInt(split[1]);
-			} catch (Exception e) {
-				throw new IllegalArgumentException("range must be of form \"lowerIncl..upperIncl\". For example -1..1", e);
-			}
+			Options.COLORED = false;
+		}
+		if (expansionRange != null && !jitExpand) {
+			ExpansionRange range = ExpansionRange.parse(this.expansionRange);
 			long before = System.currentTimeMillis();
-			net = Expansion.expand(net, lowerIncl, upperIncl);
+			net = Expansion.expand(net, range.lowerIncl(), range.upperIncl());
 			long after = System.currentTimeMillis();
 			if (time) {
 				System.err.println("Expanding took " + (after - before) + " ms");
 			}
-			Options.COLORED = false;
 		}
 		if (noUnfold) {
 			return renderOutput(net);
@@ -192,7 +191,8 @@ public class Main implements Callable<Integer> {
 		}
 
 		long before = System.currentTimeMillis();
-		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions);
+		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions,
+				this.expansionRange != null && this.jitExpand ? ExpansionRange.parse(this.expansionRange) : null);
 		long after = System.currentTimeMillis();
 		if (time) {
 			System.err.println("Unfolding took " + (after - before) + " ms");
