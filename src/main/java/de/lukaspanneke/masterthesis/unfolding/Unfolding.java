@@ -167,14 +167,14 @@ public class Unfolding {
 
 	private final Map<Place, Map<Integer, Place>> hlToLlPlace = new HashMap<>();
 	private final Map<Place, Place> llToHlPlace = new HashMap<>();
-	int llPlaceId = 1;
-	int llTransId = 1;
+	int llPlaceId = -1;
+	int llTransId = -1;
 
 	private Place newHlToLlPlace(Place hlPlace, int value) {
 		if (expansionRange == null) {
 			return hlPlace;
 		}
-		Place llPlace = hlToLlPlace.computeIfAbsent(hlPlace, hl -> new HashMap<>()).computeIfAbsent(value, i -> new Place(llPlaceId++, hlPlace.name() + "#" + value, value));
+		Place llPlace = hlToLlPlace.computeIfAbsent(hlPlace, hl -> new HashMap<>()).computeIfAbsent(value, i -> new Place(llPlaceId--, hlPlace.name() + "#" + value, value));
 		llToHlPlace.put(llPlace, hlPlace);
 		return llPlace;
 	}
@@ -324,7 +324,7 @@ public class Unfolding {
 							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));
 					Map<Place, Variable> newTransitionPostset = hlTransition.postSet().entrySet().stream()
 							.collect(Collectors.toMap(entry -> newHlToLlPlace(entry.getKey(), assignment.get(entry.getValue())), Map.Entry::getValue));
-					Transition llTransition = new Transition(this.llTransId++, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
+					Transition llTransition = new Transition(this.llTransId--, hlTransition.name(), newTransitionPreset, newTransitionPostset, Formula.top());
 					if (this.targetTransitions.contains(hlTransition)) {
 						this.targetTransitions.add(llTransition);
 					}
