@@ -15,7 +15,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: python3 -m pip install --user tomli
+        run: |
+          python3 -m pip install --user tomli
+          sudo apt update -y
+          sudo apt install -y bats
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -49,3 +52,6 @@ jobs:
 
       - name: Run executable
         run: ./color-unfolder --help
+
+      - name: Run CLI tests
+        run: ./cli-tests.bats
