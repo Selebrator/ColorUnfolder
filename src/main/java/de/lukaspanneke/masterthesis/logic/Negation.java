@@ -1,5 +1,6 @@
 package de.lukaspanneke.masterthesis.logic;
 
+import io.github.cvc5.Kind;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
 
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
 
 	@Override
 	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return f.toCvc5(solver, atoms).notTerm();
+		return solver.mkTerm(Kind.NOT, f.toCvc5(solver, atoms));
 	}
 
 	@Override
