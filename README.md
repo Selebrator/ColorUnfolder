@@ -10,20 +10,31 @@ to refer to the low-level net expressed through the high-level net.
 We call that low-level net the expansion of the high-level net
 and also implement an algorithm to calculate the expansion.
 
+We also implement an just-in-time expansion algorithm
+for building the low-level unfolding of the expansion of a high-level net
+without building the expansion.
+
 Features
 --------
 
-- [x] User interface
-- [x] Low-level mode
+- [x] High-level net to symbolic unfolding
+- [x] High-level net to low-level unfolding
+- [x] High-level net to low-level expansion net
+- [x] Low-level net to low-level unfolding
+- [x] Complete finite prefix of unfolding using cut-offs
+- [x] Unfolding up to bounded depth
+- [x] Reachability of target transitions
+- [x] Command-line user interface
 - [x] Net parser
-- [x] Unfolding algorithm
 - [x] Unfolding/prefix renderer
 - [x] Internal structure renderer
-- [x] Unfolding up to bounded depth
-- [x] Complete finite prefix with cut-offs
-- [x] Reachability of target transitions
-- [x] High-level to low-level expansion algorithm
-- [ ] Benchmarking tool
+- [ ] Tuples
+
+Non-goals
+---------
+
+- Non-safe nets. We require the input net to be safe.
+  That is, in every reachable marking there is at most one token on every place.
 
 Related Tools
 -------------
@@ -36,21 +47,33 @@ Related Tools
 Related Publications
 --------------------
 
-Nick Würdemann, Thomas Chatain, and Stefan Haar.
-“Taking Complete Finite Prefixes to High Level, Symbolically”.
-In: PETRI NETS ’23. LNCS 13929. 2023, pp. 123–144.
-doi: [10.1007/978-3-031-33620-1_7](https://www.doi.org/10.1007/978-3-031-33620-1_7).
-[Open Access](https://hal.science/hal-04029490v1)
+- Nick Würdemann, Thomas Chatain, and Stefan Haar.
+  “Taking Complete Finite Prefixes to High Level, Symbolically”.
+  In: PETRI NETS ’23. LNCS 13929. 2023, pp. 123–144.
+  doi: [10.1007/978-3-031-33620-1_7](https://www.doi.org/10.1007/978-3-031-33620-1_7).
+  [Open Access](https://hal.science/hal-04029490v1).\
+  Introducing the algorithm for building
+  complete finite prefixes of symbolic unfoldings for high-level Petri nets.
+  This is our primary source.
 
-Thomas Chatain and Claude Jard.
-“Symbolic Diagnosis of Partially Observable Concurrent Systems”.
-In: FORTE ’04. LNCS 3235. 2004, pp. 326–342.
-doi: [10.1007/978-3-540-30232-2_21](https://www.doi.org/10.1007/978-3-540-30232-2_21).
+- Thomas Chatain and Claude Jard.
+  “Symbolic Diagnosis of Partially Observable Concurrent Systems”.
+  In: FORTE ’04. LNCS 3235. 2004, pp. 326–342.
+  doi: [10.1007/978-3-540-30232-2_21](https://www.doi.org/10.1007/978-3-540-30232-2_21).\
+  Introducing symbolic unfoldings.
 
-Javier Esparza, Stefan Römer, and Walter Vogler.
-“An Improvement of McMillan’s Unfolding Algorithm”.
-In: Formal Methods in System Design 20.3 (2002), pp. 285–310.
-doi: [10.1023/A:1014746130920](https://www.doi.org/10.1023/A:1014746130920).
+- Javier Esparza, Stefan Römer, and Walter Vogler.
+  “An Improvement of McMillan’s Unfolding Algorithm”.
+  In: Formal Methods in System Design 20.3 (2002), pp. 285–310.
+  doi: [10.1023/A:1014746130920](https://www.doi.org/10.1023/A:1014746130920).\
+  Low-level unfolding algorithm that the symbolic approach is based on.
+
+- Victor Khomenko and Maciej Koutny.
+  “Branching Processes of High- Level Petri Nets”.
+  In: TACAS ’03. LNCS 2619. 2003, pp. 458–472.
+  doi: [10.1007/3-540-36577-X_34](https://www.doi.org/10.1007/3-540-36577-X_34).\
+  Introducing an efficient algorithm to build
+  complete finite prefixes of low-level unfoldings for high-level Petri nets.
 
 Building
 --------
@@ -60,3 +83,11 @@ Building
 ./gradlew buildExecutableApp  # build color-unfolder
 ./color-unfolder --help       # start using it
 ```
+
+If you want to compute symbolic unfoldings you need cvc5.
+Low-level nets and expansions of high-level nets work without cvc5.
+In either case, you need Java (jdk) 17 or later.
+
+To build cvc5 you need cmake, a C++ compiler, python and maybe some additional libraries.
+The error messages should be good enough to tell you what dependencies you might be missing.
+You can find instruction on cvc5's build dependencies [here](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst).
