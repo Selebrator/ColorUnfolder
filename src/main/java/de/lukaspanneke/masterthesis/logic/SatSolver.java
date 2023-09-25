@@ -12,48 +12,53 @@ import static de.lukaspanneke.masterthesis.Options.*;
 
 public class SatSolver {
 
-	private static Result checkSat(Formula formula) {
+	private static boolean checkSat(Formula formula) {
 		Solver solver = new Solver();
-		if (SHOW_MODEL) {
-			solver.setOption("produce-models", "true");
-		}
-		Sort integer = solver.getIntegerSort();
-		Map<Variable, Term> atoms = new HashMap<>();
-		Term cvc5Formula = formula.toCvc5(solver, v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name())));
-		solver.assertFormula(cvc5Formula);
-		Result result = solver.checkSat();
-		if (result.isNull() || result.isUnknown()) {
-			throw new AssertionError("SAT result is " + result + ". formula was " + formula + ", encoded as " + cvc5Formula);
-		}
-		if (SHOW_MODEL && result.isSat()) {
-			for (Term atom : atoms.values()) {
-				System.err.println(atom + " = " + solver.getValue(atom));
+		try {
+			if (SHOW_MODEL) {
+				solver.setOption("produce-models", "true");
 			}
+			Sort integer = solver.getIntegerSort();
+			Map<Variable, Term> atoms = new HashMap<>();
+			Term cvc5Formula = formula.toCvc5(solver, v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name())));
+			solver.assertFormula(cvc5Formula);
+			Result result = solver.checkSat();
+			if (SHOW_MODEL && result.isSat()) {
+				for (Term atom : atoms.values()) {
+					System.err.println(atom + " = " + solver.getValue(atom));
+				}
+			}
+			if (result.isSat()) {
+				return true;
+			} else if (result.isUnsat()) {
+				return false;
+			} else {
+				throw new AssertionError("SAT result is " + result + ". formula was " + formula + ", encoded as " + cvc5Formula);
+			}
+		} finally {
+			solver.deletePointer();
 		}
-		return result;
 	}
 
 	public static boolean isSatisfiable(Formula formula) {
 		if (SHOW_FORMULAS) {
 			System.err.println("      " + formula);
 		}
-		Result result = checkSat(formula);
+		boolean result = checkSat(formula);
 		if (PRINT_COLOR_CONFLICT_INFO) {
-			String answer = result.isSat() ? "SAT" : result.isUnsat() ? "UNSAT" : result.toString();
-			System.err.println("      " + answer);
+			System.err.println("      " + (result ? "SAT" : "UNSAT"));
 		}
-		return result.isSat();
+		return result;
 	}
 
 	public static boolean isTautology(Formula formula) {
 		if (SHOW_FORMULAS) {
 			System.err.println("    " + formula);
 		}
-		Result result = checkSat(formula.not());
+		boolean result = !checkSat(formula.not());
 		if (PRINT_COLOR_CUTOFF_INFO) {
-			String answer = result.isUnsat() ? "TAUTOLOGY" : result.isSat() ? "NOT A TAUTOLOGY" : result.toString();
-			System.err.println("    " + answer);
+			System.err.println("    " + (result ? "TAUTOLOGY" : "NOT A TAUTOLOGY"));
 		}
-		return result.isUnsat();
+		return result;
 	}
 }
