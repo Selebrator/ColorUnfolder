@@ -9,8 +9,10 @@ import de.lukaspanneke.masterthesis.net.Transition;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static de.lukaspanneke.masterthesis.logic.QuantifiedFormula.Quantifier.EXISTS;
 
@@ -389,5 +391,70 @@ public class Examples {
 		marking.put(white_pins, 0);
 
 		return new Net(new Marking(marking));
+	}
+
+	public static Net hobbitsAndOrcs(int groupSize, int boatCapacity, int nIslands) {
+		// https://en.wikipedia.org/wiki/Missionaries_and_cannibals_problem
+		int nHobbits = groupSize;
+		int nOrcs = nHobbits;
+		int p = 1;
+		int t = 1;
+
+		Variable token = new Variable("token", FiniteDomain.fullRange(1, 1));
+		Variable landHobbits = new Variable("a", FiniteDomain.fullRange(0, nHobbits));
+		Variable landOrcs = new Variable("b", FiniteDomain.fullRange(0, nOrcs));
+		Variable landHobbitsNew = new Variable("a'", FiniteDomain.fullRange(0, nHobbits));
+		Variable landOrcsNew = new Variable("b'", FiniteDomain.fullRange(0, nOrcs));
+		Variable vBoatHobbits = new Variable("x", FiniteDomain.fullRange(0, nHobbits));
+		Variable vBoatOrcs = new Variable("y", FiniteDomain.fullRange(0, nOrcs));
+
+		Place boatHobbits = new Place(p++, "boatHobbits");
+		Place boatOrcs = new Place(p++, "boatOrcs");
+		Place[] boatEmpty = new Place[nIslands];
+		Place[] hobbits = new Place[nIslands];
+		Place[] orcs = new Place[nIslands];
+		for (int i = 0; i < nIslands; i++) {
+			boatEmpty[i] = new Place(p++, "boat_empty_" + i);
+			hobbits[i] = new Place(p++, "hobbits_" + i);
+			orcs[i] = new Place(p++, "orcs_" + i);
+		}
+
+		for (int b = 0; b < nIslands - 1; b++) {
+			for (int i = 0; i <= 1; i++) {
+				int from = b + i;
+				int to = b + (1 - i);
+				newTransition(t++, "load_" + from + "_" + to,
+						Map.of(boatEmpty[from], token, hobbits[from], landHobbits, orcs[from], landOrcs),
+						Map.of(hobbits[from], landHobbitsNew, orcs[from], landOrcsNew, boatHobbits, vBoatHobbits, boatOrcs, vBoatOrcs),
+						landHobbitsNew.eq(landHobbits.minus(vBoatHobbits))
+								.and(landOrcsNew.eq(landOrcs.minus(vBoatOrcs)))
+								.and(vBoatHobbits.plus(vBoatOrcs).geq(1))
+								.and(vBoatHobbits.plus(vBoatOrcs).leq(boatCapacity))
+								.and(landHobbitsNew.eq(0).or(landHobbitsNew.geq(landOrcsNew)))
+								.and(vBoatHobbits.eq(0).or(vBoatHobbits.geq(vBoatOrcs)))
+				);
+				newTransition(t++, "unload_" + from + "_" + to,
+						Map.of(hobbits[to], landHobbits, orcs[to], landOrcs, boatHobbits, vBoatHobbits, boatOrcs, vBoatOrcs),
+						Map.of(boatEmpty[to], token, hobbits[to], landHobbitsNew, orcs[to], landOrcsNew),
+						landHobbitsNew.eq(landHobbits.plus(vBoatHobbits))
+								.and(landOrcsNew.eq(landOrcs.plus(vBoatOrcs)))
+								.and(landHobbitsNew.eq(0).or(landHobbitsNew.geq(landOrcsNew)))
+				);
+			}
+		}
+
+		newTransition(t++, "goal",
+				Map.of(hobbits[nIslands - 1], landHobbits, orcs[nIslands - 1], landOrcs),
+				Map.of(),
+				landHobbits.eq(nHobbits).and(landOrcs.eq(nOrcs)));
+
+		Map<Place, Integer> initialMarking = IntStream.range(1, nIslands)
+				.boxed()
+				.flatMap(i -> Stream.of(hobbits[i], orcs[i]))
+				.collect(Collectors.toMap(Function.identity(), place -> 0));
+		initialMarking.put(hobbits[0], nHobbits);
+		initialMarking.put(orcs[0], nOrcs);
+		initialMarking.put(boatEmpty[0], 1);
+		return new Net(new Marking(initialMarking));
 	}
 }

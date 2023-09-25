@@ -132,6 +132,12 @@ public class Main implements Callable<Integer> {
 			String params = this.inputFile.substring("fast-growing#".length());
 			String[] split = params.split("#");
 			net = Examples.fastGrowing(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+		} else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
+			String[] split = this.inputFile.split("#");
+			int groupSize = Integer.parseInt(split[1]);
+			int boatCapacity = Integer.parseInt(split[2]);
+			int islands = Integer.parseInt(split[3]);
+			net = Examples.hobbitsAndOrcs(groupSize, boatCapacity, islands);
 		} else {
 			InputStream is;
 			if (this.inputFile.equals("-")) {
