@@ -258,8 +258,8 @@ public class Examples {
 			domain[i] = FiniteDomain.fullRange(0, max[i]);
 			in[i] = new Variable("i" + i, domain[i]);
 			out[i] = new Variable("o" + i, domain[i]);
-			newTransition(t++, "fill_b" + i, Map.of(bucket[i], in[i]), Map.of(bucket[i], out[i]), out[i].eq(max[i]));
-			newTransition(t++, "empty_b" + i, Map.of(bucket[i], in[i]), Map.of(bucket[i], out[i]), out[i].eq(0));
+			newTransition(t++, "tap_b" + i, Map.of(bucket[i], in[i]), Map.of(bucket[i], out[i]), out[i].eq(max[i]));
+			newTransition(t++, "drain_b" + i, Map.of(bucket[i], in[i]), Map.of(bucket[i], out[i]), out[i].eq(0));
 		}
 
 		int[] indices = IntStream.range(0, max.length).toArray();
