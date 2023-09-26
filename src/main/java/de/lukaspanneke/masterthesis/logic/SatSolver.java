@@ -36,6 +36,13 @@ public class SatSolver {
 				throw new AssertionError("SAT result is " + result + ". formula was " + formula + ", encoded as " + cvc5Formula);
 			}
 		} finally {
+			// TODO This is a global variable.
+			//  That means we can not have multiple solvers finishing at different times.
+			//  This would be a problem if we did multithreading.
+			// full path to make obvious what context.
+			io.github.cvc5.Context.deletePointers();
+			// Solver is the only implementation of IPointer that is not an AbstractPointer,
+			// so we need to clear is manually.
 			solver.deletePointer();
 		}
 	}
