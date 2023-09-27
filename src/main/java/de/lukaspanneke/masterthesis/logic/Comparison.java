@@ -26,9 +26,9 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
-		long e1 = this.e1.evaluate(assignment);
-		long e2 = this.e2.evaluate(assignment);
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
+		long e1 = this.e1.evaluate(assignment, quantifierAssignments);
+		long e2 = this.e2.evaluate(assignment, quantifierAssignments);
 		return switch (this.operator) {
 			case LESS_THEN -> e1 < e2;
 			case LESS_EQUALS -> e1 <= e2;

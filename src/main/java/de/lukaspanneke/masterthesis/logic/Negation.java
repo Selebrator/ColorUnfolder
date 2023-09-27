@@ -26,8 +26,8 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
-		return !this.f.evaluate(assignment, assignments);
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
+		return !this.f.evaluate(assignment, quantifierAssignments);
 	}
 
 	@Override

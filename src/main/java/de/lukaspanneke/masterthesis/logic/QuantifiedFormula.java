@@ -30,14 +30,14 @@ public final class QuantifiedFormula extends Formula {
 	@Override
 	public boolean evaluate(
 			Map<Variable, Integer> assignment,
-			Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments
+			Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments
 	) {
 		Predicate<Map<Variable, Integer>> pred = map -> {
 			Map<Variable, Integer> newAssignment = new HashMap<>(assignment);
 			newAssignment.putAll(map);
-			return f.evaluate(newAssignment, assignments);
+			return f.evaluate(newAssignment, quantifierAssignments);
 		};
-		Stream<Map<Variable, Integer>> allAssignments = assignments.apply(variables.stream());
+		Stream<Map<Variable, Integer>> allAssignments = quantifierAssignments.apply(variables.stream());
 		return switch (quantifier) {
 			case EXISTS -> allAssignments.anyMatch(pred);
 			case FORALL -> allAssignments.allMatch(pred);

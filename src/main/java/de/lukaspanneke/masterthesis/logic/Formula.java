@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality, Implication, Negation, QuantifiedFormula, Top {
 
-	public abstract boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments);
+	public abstract boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments);
 
 	public final Set<Variable> support() {
 		Set<Variable> ans = new HashSet<>();
@@ -34,6 +34,10 @@ public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality
 
 	public static Formula bottom() {
 		return Bottom.instance();
+	}
+
+	public ArithmeticExpression asArithmetic() {
+		return ArithmeticBoolean.of(this);
 	}
 
 	public Formula not() {

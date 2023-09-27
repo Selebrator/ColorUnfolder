@@ -30,9 +30,9 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
 		return terms.stream()
-				.map(term -> term.evaluate(assignment))
+				.map(term -> term.evaluate(assignment, quantifierAssignments))
 				.collect(Collectors.toSet()).size() <= 1;
 	}
 

@@ -107,10 +107,10 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> assignments) {
+	public boolean evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
 		return switch (this.operator) {
-			case AND -> this.formulas.stream().allMatch(formula -> formula.evaluate(assignment, assignments));
-			case OR -> this.formulas.stream().anyMatch(formula -> formula.evaluate(assignment, assignments));
+			case AND -> this.formulas.stream().allMatch(formula -> formula.evaluate(assignment, quantifierAssignments));
+			case OR -> this.formulas.stream().anyMatch(formula -> formula.evaluate(assignment, quantifierAssignments));
 		};
 	}
 

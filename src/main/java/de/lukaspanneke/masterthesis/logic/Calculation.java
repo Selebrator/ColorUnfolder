@@ -7,6 +7,7 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /* package-private */ final class Calculation implements ArithmeticExpression {
 
@@ -25,9 +26,9 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public int evaluate(Map<Variable, Integer> assignment) {
-		int e1 = this.e1.evaluate(assignment);
-		int e2 = this.e2.evaluate(assignment);
+	public int evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
+		int e1 = this.e1.evaluate(assignment, quantifierAssignments);
+		int e2 = this.e2.evaluate(assignment, quantifierAssignments);
 		return switch (this.operator) {
 			case PLUS -> e1 + e2;
 			case MINUS -> e1 - e2;
