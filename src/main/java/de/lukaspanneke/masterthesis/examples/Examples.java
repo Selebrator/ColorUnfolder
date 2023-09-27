@@ -284,6 +284,13 @@ public class Examples {
 		return new Net(new Marking(IntStream.range(0, max.length).boxed().collect(Collectors.toMap(i -> bucket[i], i -> 0))));
 	}
 
+	/**
+	 * This version of the mastermind net is takes a code and a guess and computes the judgement (red and white pins).
+	 * This net can handle the same color used in multiple positions.
+	 *
+	 * @param c code
+	 * @param g guess
+	 */
 	public static Net mastermind(int[] c, int[] g) {
 		if (c.length != g.length) {
 			throw new IllegalArgumentException();
@@ -391,6 +398,107 @@ public class Examples {
 		marking.put(white_pins, 0);
 
 		return new Net(new Marking(marking));
+	}
+
+	/**
+	 * This version of the mastermind net chooses all codes
+	 * and then plays many rounds as the guesser, taking all guesses every turn.
+	 * In this net all positions (must) have distinct colors.
+	 *
+	 * @param n number of positions in the code
+	 */
+	public static Net mastermindNoDuplicateColors(int n) {
+		int p = 1;
+		int t = 1;
+
+		Domain colorDomain = FiniteDomain.fullRange(1, 6);
+		Domain judgeDomain = FiniteDomain.fullRange(0, n);
+
+		Place preCode = new Place(p++, "preCode");
+		Place preGuess = new Place(p++, "preGuess");
+
+		Place remainingGuesses = new Place(p++, "remaining_guesses");
+		Variable remaining = new Variable("remaining");
+		Variable remainingNext = new Variable("remaining'");
+
+		Place pointsExact = new Place(p++, "red");
+		Place pointsPartial = new Place(p++, "white");
+		Variable exact = new Variable("red", judgeDomain);
+		Variable partial = new Variable("white", judgeDomain);
+
+		Variable token = new Variable("token", FiniteDomain.fullRange(1, 1));
+
+		Variable[] c = new Variable[n];
+		Variable[] g = new Variable[n];
+		Place[] code = new Place[n];
+		Place[] guess = new Place[n];
+		for (int i = 0; i < n; i++) {
+			c[i] = new Variable("c" + (i + 1), colorDomain);
+			g[i] = new Variable("g" + (i + 1), colorDomain);
+			code[i] = new Place(p++, "code" + (i + 1));
+			guess[i] = new Place(p++, "guess" + (i + 1));
+		}
+
+		newTransition(t++, "pick_code",
+				Map.of(preCode, token),
+				IntStream.range(0, n)
+						.boxed()
+						.collect(Collectors.toMap(i -> code[i], i -> c[i])),
+				IntStream.range(0, n)
+						.boxed()
+						.flatMap(i -> IntStream.range(i + 1, n)
+								.mapToObj(j -> c[i].neq(c[j])))
+						.collect(Formula.and())
+		);
+
+		newTransition(t++, "pick_guess",
+				Map.of(preGuess, token),
+				IntStream.range(0, n)
+						.boxed()
+						.collect(Collectors.toMap(i -> guess[i], i -> g[i])),
+				IntStream.range(0, n)
+						.boxed()
+						.flatMap(i -> IntStream.range(i + 1, n)
+								.mapToObj(j -> g[i].neq(g[j])))
+						.collect(Formula.and())
+		);
+
+		{
+			Map<Place, Variable> post = IntStream.range(0, n)
+					.boxed()
+					.collect(Collectors.toMap(i -> code[i], i -> c[i]));
+			post.put(pointsExact, exact);
+			post.put(pointsPartial, partial);
+			Formula sumExact = IntStream.range(0, n)
+					.mapToObj(i -> c[i].eq(g[i]).asArithmetic())
+					.reduce(ArithmeticExpression::plus)
+					.map(exact::eq)
+					.orElseGet(Formula::top);
+			Formula sumPartial = IntStream.range(0, n)
+					.boxed()
+					.flatMap(i -> IntStream.range(0, n)
+							.filter(j -> i != j)
+							.mapToObj(j -> c[i].eq(g[j]).asArithmetic()))
+					.reduce(ArithmeticExpression::plus)
+					.map(partial::eq)
+					.orElseGet(Formula::top);
+			newTransition(t++, "judge",
+					IntStream.range(0, n)
+							.boxed()
+							.flatMap(i -> Stream.of(Map.entry(code[i], c[i]), Map.entry(guess[i], g[i])))
+							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+					post,
+					sumExact.and(sumPartial)
+			);
+		}
+
+		newTransition(t++, "next",
+				Map.of(pointsExact, exact, pointsPartial, partial, remainingGuesses, remaining),
+				Map.of(remainingGuesses, remainingNext, preGuess, token),
+				exact.neq(n).and(remaining.gt(0).and(remainingNext.eq(remaining.minus(1))))
+		);
+
+		return new Net(new Marking((Map.of(preCode, 1, preGuess, 1, remainingGuesses, 8))));
 	}
 
 	public static Net hobbitsAndOrcs(int groupSize, int boatCapacity, int nIslands) {

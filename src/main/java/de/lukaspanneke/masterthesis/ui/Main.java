@@ -112,13 +112,18 @@ public class Main implements Callable<Integer> {
 			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
 		} else if (this.inputFile.equals("restaurant")) {
 			net = Examples.restaurant();
-		} else if (this.inputFile.startsWith("mastermind")) {
+		} else if (this.inputFile.startsWith("mastermind#")) {
 			//           code guess
 			//           |    |
 			//mastermind#4182#6123
-			int offset = "mastermind#".length();
 			String[] split = this.inputFile.split("#");
-			net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
+			if (split.length == 2) {
+				net = 	Examples.mastermindNoDuplicateColors(Integer.parseInt(split[1]));
+			} else if (split.length == 3) {
+				net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
+			} else {
+				throw new IllegalArgumentException();
+			}
 		} else if (this.inputFile.startsWith("buckets")) {
 			String[] split = this.inputFile.split("#");
 			int goal = Integer.parseInt(split[1]);
