@@ -68,6 +68,6 @@ public record Transition(
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(index);
+		return index;
 	}
 }

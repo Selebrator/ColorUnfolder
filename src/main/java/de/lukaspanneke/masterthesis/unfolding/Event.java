@@ -165,7 +165,7 @@ public final class Event implements Comparable<Event> {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(index);
+		return index;
 	}
 
 	@Override

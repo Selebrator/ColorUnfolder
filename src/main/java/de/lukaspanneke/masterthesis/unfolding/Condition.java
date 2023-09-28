@@ -45,6 +45,6 @@ public record Condition(
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(index);
+		return index;
 	}
 }
