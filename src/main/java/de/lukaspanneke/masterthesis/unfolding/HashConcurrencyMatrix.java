@@ -3,6 +3,7 @@ package de.lukaspanneke.masterthesis.unfolding;
 import de.lukaspanneke.masterthesis.TableRenderer;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.lukaspanneke.masterthesis.Options.PRINT_CONCURRENCY_INFO;
 
@@ -12,21 +13,26 @@ public class HashConcurrencyMatrix implements ConcurrencyMatrix {
 	@Override
 	public Set<Condition> get(Condition key) {
 		Set<Condition> ans = this.storage.get(key);
-		if (ans == null) {
-			throw new AssertionError();
-		}
+		assert ans != null : "cannot get " + key + " in " + this.storage;
 		return ans;
 	}
 
 	@Override
 	public void add(Condition newCondition) {
-		Set<Condition> result = new HashSet<>(this.storage.keySet());
-		for (Condition condition : newCondition.prepre()) {
-			result.retainAll(this.get(condition));
-		}
-		newCondition.preset().postset().stream()
+		Set<Condition> result;
+		Iterator<Condition> iterator = newCondition.prepre().iterator();
+		Set<Condition> post = newCondition.preset().postset().stream()
 				.filter(this.storage::containsKey)
-				.forEach(result::add);
+				.collect(Collectors.toSet());
+		if (iterator.hasNext()) {
+			result = new HashSet<>(get(iterator.next()));
+			while (iterator.hasNext()) {
+				result.retainAll(get(iterator.next()));
+			}
+			result.addAll(post);
+		} else {
+			result = post;
+		}
 		this.storage.put(newCondition, result);
 		for (Condition condition : result) {
 			this.get(condition).add(newCondition);
