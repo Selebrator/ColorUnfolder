@@ -112,18 +112,21 @@ public class Main implements Callable<Integer> {
 			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
 		} else if (this.inputFile.equals("restaurant")) {
 			net = Examples.restaurant();
-		} else if (this.inputFile.startsWith("mastermind#")) {
-			//           code guess
-			//           |    |
-			//mastermind#4182#6123
+		} else if (this.inputFile.startsWith("mastermind-judge#")) {
+			//                 code guess
+			//                 |    |
+			//mastermind-judge#4182#6123
 			String[] split = this.inputFile.split("#");
-			if (split.length == 2) {
-				net = 	Examples.mastermindNoDuplicateColors(Integer.parseInt(split[1]));
-			} else if (split.length == 3) {
-				net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
-			} else {
-				throw new IllegalArgumentException();
-			}
+			net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
+
+		} else if (this.inputFile.startsWith("mastermind-game#")) {
+			//                code length
+			//                | available colors
+			//                | | number of guesses
+			//                | | |
+			//mastermind-game#4#8#12
+			String[] split = this.inputFile.split("#");
+			net = Examples.mastermindNoDuplicateColors(Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3]));
 		} else if (this.inputFile.startsWith("buckets")) {
 			String[] split = this.inputFile.split("#");
 			int goal = Integer.parseInt(split[1]);

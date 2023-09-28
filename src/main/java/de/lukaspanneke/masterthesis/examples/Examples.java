@@ -404,15 +404,13 @@ public class Examples {
 	 * This version of the mastermind net chooses all codes
 	 * and then plays many rounds as the guesser, taking all guesses every turn.
 	 * In this net all positions (must) have distinct colors.
-	 *
-	 * @param n number of positions in the code
 	 */
-	public static Net mastermindNoDuplicateColors(int n) {
+	public static Net mastermindNoDuplicateColors(int codeLength, int colors, int guesses) {
 		int p = 1;
 		int t = 1;
 
-		Domain colorDomain = FiniteDomain.fullRange(1, 6);
-		Domain judgeDomain = FiniteDomain.fullRange(0, n);
+		Domain colorDomain = FiniteDomain.fullRange(1, colors);
+		Domain judgeDomain = FiniteDomain.fullRange(0, codeLength);
 
 		Place preCode = new Place(p++, "preCode");
 		Place preGuess = new Place(p++, "preGuess");
@@ -428,11 +426,11 @@ public class Examples {
 
 		Variable token = new Variable("token", FiniteDomain.fullRange(1, 1));
 
-		Variable[] c = new Variable[n];
-		Variable[] g = new Variable[n];
-		Place[] code = new Place[n];
-		Place[] guess = new Place[n];
-		for (int i = 0; i < n; i++) {
+		Variable[] c = new Variable[codeLength];
+		Variable[] g = new Variable[codeLength];
+		Place[] code = new Place[codeLength];
+		Place[] guess = new Place[codeLength];
+		for (int i = 0; i < codeLength; i++) {
 			c[i] = new Variable("c" + (i + 1), colorDomain);
 			g[i] = new Variable("g" + (i + 1), colorDomain);
 			code[i] = new Place(p++, "code" + (i + 1));
@@ -441,49 +439,49 @@ public class Examples {
 
 		newTransition(t++, "pick_code",
 				Map.of(preCode, token),
-				IntStream.range(0, n)
+				IntStream.range(0, codeLength)
 						.boxed()
 						.collect(Collectors.toMap(i -> code[i], i -> c[i])),
-				IntStream.range(0, n)
+				IntStream.range(0, codeLength)
 						.boxed()
-						.flatMap(i -> IntStream.range(i + 1, n)
+						.flatMap(i -> IntStream.range(i + 1, codeLength)
 								.mapToObj(j -> c[i].neq(c[j])))
 						.collect(Formula.and())
 		);
 
 		newTransition(t++, "pick_guess",
 				Map.of(preGuess, token),
-				IntStream.range(0, n)
+				IntStream.range(0, codeLength)
 						.boxed()
 						.collect(Collectors.toMap(i -> guess[i], i -> g[i])),
-				IntStream.range(0, n)
+				IntStream.range(0, codeLength)
 						.boxed()
-						.flatMap(i -> IntStream.range(i + 1, n)
+						.flatMap(i -> IntStream.range(i + 1, codeLength)
 								.mapToObj(j -> g[i].neq(g[j])))
 						.collect(Formula.and())
 		);
 
 		{
-			Map<Place, Variable> post = IntStream.range(0, n)
+			Map<Place, Variable> post = IntStream.range(0, codeLength)
 					.boxed()
 					.collect(Collectors.toMap(i -> code[i], i -> c[i]));
 			post.put(pointsExact, exact);
 			post.put(pointsPartial, partial);
-			Formula sumExact = IntStream.range(0, n)
+			Formula sumExact = IntStream.range(0, codeLength)
 					.mapToObj(i -> c[i].eq(g[i]).asArithmetic())
 					.reduce(ArithmeticExpression::plus)
 					.map(exact::eq)
 					.orElseGet(Formula::top);
-			Formula sumPartial = IntStream.range(0, n)
+			Formula sumPartial = IntStream.range(0, codeLength)
 					.boxed()
-					.flatMap(i -> IntStream.range(0, n)
+					.flatMap(i -> IntStream.range(0, codeLength)
 							.filter(j -> i != j)
 							.mapToObj(j -> c[i].eq(g[j]).asArithmetic()))
 					.reduce(ArithmeticExpression::plus)
 					.map(partial::eq)
 					.orElseGet(Formula::top);
 			newTransition(t++, "judge",
-					IntStream.range(0, n)
+					IntStream.range(0, codeLength)
 							.boxed()
 							.flatMap(i -> Stream.of(Map.entry(code[i], c[i]), Map.entry(guess[i], g[i])))
 							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
@@ -495,10 +493,10 @@ public class Examples {
 		newTransition(t++, "next",
 				Map.of(pointsExact, exact, pointsPartial, partial, remainingGuesses, remaining),
 				Map.of(remainingGuesses, remainingNext, preGuess, token),
-				exact.neq(n).and(remaining.gt(0).and(remainingNext.eq(remaining.minus(1))))
+				exact.neq(codeLength).and(remaining.gt(0).and(remainingNext.eq(remaining.minus(1))))
 		);
 
-		return new Net(new Marking((Map.of(preCode, 1, preGuess, 1, remainingGuesses, 8))));
+		return new Net(new Marking((Map.of(preCode, 1, preGuess, 1, remainingGuesses, guesses))));
 	}
 
 	public static Net hobbitsAndOrcs(int groupSize, int boatCapacity, int nIslands) {
