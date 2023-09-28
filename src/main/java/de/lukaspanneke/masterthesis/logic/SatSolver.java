@@ -42,7 +42,7 @@ public class SatSolver {
 			// full path to make obvious what context.
 			io.github.cvc5.Context.deletePointers();
 			// Solver is the only implementation of IPointer that is not an AbstractPointer,
-			// so we need to clear is manually.
+			// so we need to clear it manually.
 			solver.deletePointer();
 		}
 	}
