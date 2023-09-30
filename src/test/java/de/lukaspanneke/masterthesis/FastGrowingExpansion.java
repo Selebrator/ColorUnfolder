@@ -133,7 +133,7 @@ public class FastGrowingExpansion {
 		int n = 3;
 		int m = 6;
 		Net.Nodes manual = expansion(n, m).collectNodes();
-		Net.Nodes algorithm = Expansion.expand(net(n, m), 1, m).collectNodes();
+		Net.Nodes algorithm = Expansion.expand(net(n, m)).collectNodes();
 		assertEquals(manual.places().size(), algorithm.places().size());
 		assertEquals(manual.transitions().size(), algorithm.transitions().size());
 	}

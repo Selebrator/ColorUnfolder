@@ -6,7 +6,6 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public final class Constant implements ArithmeticExpression {
 
@@ -25,7 +24,7 @@ public final class Constant implements ArithmeticExpression {
 	}
 
 	@Override
-	public int evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
+	public int evaluate(Map<Variable, Integer> assignment) {
 		return this.constant;
 	}
 

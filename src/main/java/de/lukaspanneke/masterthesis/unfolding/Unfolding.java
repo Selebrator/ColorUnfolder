@@ -2,7 +2,6 @@ package de.lukaspanneke.masterthesis.unfolding;
 
 import de.lukaspanneke.masterthesis.CartesianProduct;
 import de.lukaspanneke.masterthesis.VariableAssignment;
-import de.lukaspanneke.masterthesis.expansion.ExpansionRange;
 import de.lukaspanneke.masterthesis.logic.Formula;
 import de.lukaspanneke.masterthesis.logic.QuantifiedFormula;
 import de.lukaspanneke.masterthesis.logic.SatSolver;
@@ -74,12 +73,6 @@ public class Unfolding {
 	 */
 	private final Map<Set<Place>, Set<Event>> marks = new HashMap<>();
 
-	/**
-	 * If set, use this range for the just in time expansion to construct the low-level unfolding.
-	 * Leave this null to construct the symbolic unfolding.
-	 */
-	private final ExpansionRange expansionRange;
-
 	public static Unfolding unfold(Net net) {
 		return unfold(net, Integer.MAX_VALUE, Set.of());
 	}
@@ -93,19 +86,14 @@ public class Unfolding {
 	}
 
 	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions) {
-		return unfold(net, depth, targetTransitions, null);
-	}
-
-	public static Unfolding unfold(Net net, int depth, Set<Transition> targetTransitions, ExpansionRange expansionRange) {
-		Unfolding ans = new Unfolding(net, depth, targetTransitions, expansionRange);
+		Unfolding ans = new Unfolding(net, depth, targetTransitions);
 		ans.construct();
 		return ans;
 	}
 
-	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions, ExpansionRange expansionRange) {
+	private Unfolding(Net original, int depthBound, Set<Transition> targetTransitions) {
 		this.depthBound = depthBound;
 		this.targetTransitions = new HashSet<>(targetTransitions);
-		this.expansionRange = expansionRange;
 		Marking initialMarking = original.initialMarking();
 		Transition initialTransition = new Transition(
 				Integer.MIN_VALUE,
@@ -171,7 +159,7 @@ public class Unfolding {
 	int llTransId = -1;
 
 	private Place newHlToLlPlace(Place hlPlace, int value) {
-		if (expansionRange == null) {
+		if (!EXPAND) {
 			return hlPlace;
 		}
 		Place llPlace = hlToLlPlace.computeIfAbsent(hlPlace, hl -> new HashMap<>()).computeIfAbsent(value, i -> new Place(llPlaceId--, hlPlace.name() + "#" + value, value));
@@ -180,14 +168,14 @@ public class Unfolding {
 	}
 
 	private Set<Place> hlToLlPlaces(Place hlPlace) {
-		if (expansionRange == null) {
+		if (!EXPAND) {
 			return Set.of(hlPlace);
 		}
 		return new HashSet<>(hlToLlPlace.getOrDefault(hlPlace, Collections.emptyMap()).values());
 	}
 
 	private Place llToHlPlace(Place llPlace) {
-		if (expansionRange == null) {
+		if (!EXPAND) {
 			return llPlace;
 		}
 		return llToHlPlace.get(llPlace);
@@ -274,7 +262,7 @@ public class Unfolding {
 					continue;
 				}
 				Set<Condition> preset = Set.of(candidate);
-				if (this.expansionRange != null) {
+				if (EXPAND) {
 					for (Transition llTransition : jitExpand(transition, preset)) {
 						addPe(llTransition, preset);
 					}
@@ -314,11 +302,10 @@ public class Unfolding {
 				.collect(Collectors.toSet());
 		Stream<Map<Variable, Integer>> assignments = postOnlyVariables.isEmpty()
 				? Stream.of(preAssignment)
-				: VariableAssignment.itr(postOnlyVariables.stream(), this.expansionRange.lowerIncl(), this.expansionRange.upperIncl())
+				: VariableAssignment.itr(postOnlyVariables.stream())
 				.peek(postAssignment -> postAssignment.putAll(preAssignment));
 		return assignments
-				.filter(assignment -> guard.evaluate(assignment, varStream -> VariableAssignment.itr(varStream,
-						this.expansionRange.lowerIncl(), this.expansionRange.upperIncl())))
+				.filter(guard::evaluate)
 				.map(assignment -> {
 					Map<Place, Variable> newTransitionPreset = preset.stream()
 							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));

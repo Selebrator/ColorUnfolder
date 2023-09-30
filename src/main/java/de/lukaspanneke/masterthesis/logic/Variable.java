@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public record Variable(String name, Domain domain) implements ArithmeticExpression, Comparable<Variable> {
 
@@ -24,7 +23,7 @@ public record Variable(String name, Domain domain) implements ArithmeticExpressi
 	}
 
 	@Override
-	public int evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
+	public int evaluate(Map<Variable, Integer> assignment) {
 		try {
 			return assignment.get(this);
 		} catch (NullPointerException e) {

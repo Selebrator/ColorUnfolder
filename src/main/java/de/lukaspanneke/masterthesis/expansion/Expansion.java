@@ -7,14 +7,12 @@ import de.lukaspanneke.masterthesis.net.Marking;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.net.Place;
 import de.lukaspanneke.masterthesis.net.Transition;
-import me.tongfei.progressbar.ProgressBar;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Expansion {
@@ -24,14 +22,14 @@ public class Expansion {
 	/**
 	 * Given a high-level net, this produces the low-level net with the same behaviour
 	 */
-	public static Net expand(Net hlNet, int lowerIncl, int upperIncl) {
+	public static Net expand(Net hlNet) {
 		int[] llPlaceId = {1};
 		int[] llTransId = {1};
 		Net.Nodes nodes = hlNet.collectNodes();
 		Map<Place, Map<Integer, Place>> hlToLlPlaces = nodes.places().stream()
 				.collect(Collectors.toMap(
 						place -> place,
-						place -> IntStream.rangeClosed(lowerIncl, upperIncl)
+						place -> VariableAssignment.domainStream(VAR)
 								.boxed()
 								.collect(Collectors.toMap(
 										i -> i,
@@ -43,47 +41,36 @@ public class Expansion {
 						placeIntegerEntry -> hlToLlPlaces.get(placeIntegerEntry.getKey()).get(placeIntegerEntry.getValue()),
 						placeIntegerEntry -> 1
 				));
-		long size = 0;
-		for (Transition hlTrans : nodes.transitions()) {
-			Set<Variable> vars = new HashSet<>();
-			vars.addAll(hlTrans.preSet().values());
-			vars.addAll(hlTrans.postSet().values());
-			size += Math.pow(upperIncl - lowerIncl + 1, vars.size());
-		}
-		try (var pb = new ProgressBar("Expanding", size)) {
-			nodes.transitions().forEach(hlTrans -> VariableAssignment.itr(
-							Stream.concat(
-									hlTrans.preSet().values().stream(),
-									hlTrans.postSet().values().stream()),
-							lowerIncl, upperIncl)
-					.peek(assignment -> pb.step())
-					.filter(assignment -> {
-						Set<Variable> variables = new HashSet<>(hlTrans.guard().support());
-						variables.addAll(hlTrans.preSet().values());
-						variables.addAll(hlTrans.postSet().values());
-						Formula variableDomainConstraints = variables.stream()
-								.map(Variable::domainConstraint)
-								.collect(Formula.and());
-						return hlTrans.guard().and(variableDomainConstraints).evaluate(assignment, varStream -> VariableAssignment.itr(varStream, lowerIncl, upperIncl));
-					})
-					.forEach(assignment -> {
-						Function<Map<Place, Variable>, Map<Place, Variable>> hlToLlFlow = set -> set.entrySet().stream()
-								.collect(Collectors.toMap(
-										llPlaceVariableEntry -> hlToLlPlaces
-												.get(llPlaceVariableEntry.getKey())
-												.get(assignment.get(llPlaceVariableEntry.getValue())),
-										llPlaceVariableEntry -> VAR));
-						Transition llTrans = new Transition(
-								llTransId[0],
-								"t" + llTransId[0]++ + "_" + hlTrans.name(),
-								hlToLlFlow.apply(hlTrans.preSet()),
-								hlToLlFlow.apply(hlTrans.postSet()),
-								Formula.top()
-						);
-						llTrans.preSet().keySet().forEach(place -> place.postSet().add(llTrans));
-						llTrans.postSet().keySet().forEach(place -> place.preSet().add(llTrans));
-					}));
-		}
+		nodes.transitions().forEach(hlTrans -> VariableAssignment.itr(
+						Stream.concat(
+								hlTrans.preSet().values().stream(),
+								hlTrans.postSet().values().stream()))
+				.filter(assignment -> {
+					Set<Variable> variables = new HashSet<>(hlTrans.guard().support());
+					variables.addAll(hlTrans.preSet().values());
+					variables.addAll(hlTrans.postSet().values());
+					Formula variableDomainConstraints = variables.stream()
+							.map(Variable::domainConstraint)
+							.collect(Formula.and());
+					return hlTrans.guard().and(variableDomainConstraints).evaluate(assignment);
+				})
+				.forEach(assignment -> {
+					Function<Map<Place, Variable>, Map<Place, Variable>> hlToLlFlow = set -> set.entrySet().stream()
+							.collect(Collectors.toMap(
+									llPlaceVariableEntry -> hlToLlPlaces
+											.get(llPlaceVariableEntry.getKey())
+											.get(assignment.get(llPlaceVariableEntry.getValue())),
+									llPlaceVariableEntry -> VAR));
+					Transition llTrans = new Transition(
+							llTransId[0],
+							"t" + llTransId[0]++ + "_" + hlTrans.name(),
+							hlToLlFlow.apply(hlTrans.preSet()),
+							hlToLlFlow.apply(hlTrans.postSet()),
+							Formula.top()
+					);
+					llTrans.preSet().keySet().forEach(place -> place.postSet().add(llTrans));
+					llTrans.postSet().keySet().forEach(place -> place.preSet().add(llTrans));
+				}));
 		return new Net(new Marking(initial));
 	}
 }

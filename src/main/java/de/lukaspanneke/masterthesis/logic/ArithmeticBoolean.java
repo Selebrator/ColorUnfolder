@@ -7,7 +7,6 @@ import io.github.cvc5.Term;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Wrap a Formula as an ArithmeticExpression,
@@ -31,8 +30,8 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public int evaluate(Map<Variable, Integer> assignment, Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments) {
-		return formula.evaluate(assignment, quantifierAssignments) ? 1 : 0;
+	public int evaluate(Map<Variable, Integer> assignment) {
+		return formula.evaluate(assignment) ? 1 : 0;
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package de.lukaspanneke.masterthesis.logic;
 
+import de.lukaspanneke.masterthesis.VariableAssignment;
 import io.github.cvc5.Kind;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Term;
@@ -29,15 +30,14 @@ public final class QuantifiedFormula extends Formula {
 
 	@Override
 	public boolean evaluate(
-			Map<Variable, Integer> assignment,
-			Function<Stream<Variable>, Stream<Map<Variable, Integer>>> quantifierAssignments
+			Map<Variable, Integer> assignment
 	) {
 		Predicate<Map<Variable, Integer>> pred = map -> {
 			Map<Variable, Integer> newAssignment = new HashMap<>(assignment);
 			newAssignment.putAll(map);
-			return f.evaluate(newAssignment, quantifierAssignments);
+			return f.evaluate(newAssignment);
 		};
-		Stream<Map<Variable, Integer>> allAssignments = quantifierAssignments.apply(variables.stream());
+		Stream<Map<Variable, Integer>> allAssignments = VariableAssignment.itr(variables.stream());
 		return switch (quantifier) {
 			case EXISTS -> allAssignments.anyMatch(pred);
 			case FORALL -> allAssignments.allMatch(pred);

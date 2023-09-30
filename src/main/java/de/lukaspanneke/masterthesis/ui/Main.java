@@ -48,13 +48,17 @@ public class Main implements Callable<Integer> {
 			description = "Name of the output format. high-level: DOT, none; low-level: PEP, DOT, none.")
 	private String outputFormat;
 
-	@Option(names = {"-E", "--expand"}, paramLabel = "range",
-			description = "Expand the high-level net to it's low-level representation. For the domain {-2, 0, 2} you would pass range=\"-2..2\".")
+	@Option(names = {"-E", "--expand"}, defaultValue = "false",
+			description = "Expand the high-level net to it's low-level representation. Implies --no-color.")
+	private boolean expand;
+
+	@Option(names = {"-R", "--expand-with"}, paramLabel = "range",
+			description = "The default range to use for expansion in cases where the net has no builtin bounds. For the domain {-2, 0, 2} you would pass range=\"-2..2\". Implies --expand.")
 	private String expansionRange;
 
-	@Option(names = {"--jit-expand"}, defaultValue = "true",
-			description = "Build the unfolding of the expansion without building the expansion.")
-	private boolean jitExpand;
+	@Option(names = {"--no-jit-expand"}, defaultValue = "false",
+			description = "Build the entire expansion.")
+	private boolean noJitExpand;
 
 	@Option(names = {"--no-unfold"}, defaultValue = "false",
 			description = "Don't unfold. Output the net or expansion.")
@@ -166,12 +170,16 @@ public class Main implements Callable<Integer> {
 			}
 		}
 		if (expansionRange != null) {
-			Options.COLORED = false;
+			expand = true;
+			Options.EXPANSION_RANGE = ExpansionRange.parse(this.expansionRange);
 		}
-		if (expansionRange != null && !jitExpand) {
-			ExpansionRange range = ExpansionRange.parse(this.expansionRange);
+		if (expand) {
+			Options.COLORED = false;
+			Options.EXPAND = true;
+		}
+		if (expand && noJitExpand) {
 			long before = System.currentTimeMillis();
-			net = Expansion.expand(net, range.lowerIncl(), range.upperIncl());
+			net = Expansion.expand(net);
 			long after = System.currentTimeMillis();
 			if (time) {
 				System.err.println("Expanding took " + (after - before) + " ms");
@@ -185,7 +193,7 @@ public class Main implements Callable<Integer> {
 		if (targetTransition != null) {
 			List<Pattern> targetTransitionPatterns = Arrays.stream(targetTransition)
 					.map(pattern -> {
-						if (expansionRange != null && !jitExpand) {
+						if (expand && noJitExpand) {
 							return "t\\d+_" + pattern;
 						} else {
 							return pattern;
@@ -205,8 +213,7 @@ public class Main implements Callable<Integer> {
 		}
 
 		long before = System.currentTimeMillis();
-		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions,
-				this.expansionRange != null && this.jitExpand ? ExpansionRange.parse(this.expansionRange) : null);
+		Unfolding unfolding = Unfolding.unfold(net, depth, targetTransitions);
 		long after = System.currentTimeMillis();
 		if (time) {
 			System.err.println("Unfolding took " + (after - before) + " ms");
