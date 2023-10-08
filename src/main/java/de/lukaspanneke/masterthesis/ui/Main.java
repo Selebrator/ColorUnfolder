@@ -144,7 +144,12 @@ public class Main implements Callable<Integer> {
 			String params = this.inputFile.substring("fast-growing#".length());
 			String[] split = params.split("#");
 			net = Examples.fastGrowing(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-		} else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
+		} else if (this.inputFile.startsWith("hobbitsAndOrcsAlternative")) {
+			String[] split = this.inputFile.split("#");
+			int groupSize = Integer.parseInt(split[1]);
+			int boatCapacity = Integer.parseInt(split[2]);
+			net = Examples.hobbitsAndOrcsAlternative(groupSize, boatCapacity, 2);
+		}  else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
 			String[] split = this.inputFile.split("#");
 			int groupSize = Integer.parseInt(split[1]);
 			int boatCapacity = Integer.parseInt(split[2]);
@@ -180,6 +185,7 @@ public class Main implements Callable<Integer> {
 		if (expand && noJitExpand) {
 			long before = System.currentTimeMillis();
 			net = Expansion.expand(net);
+			Options.EXPAND = false;
 			long after = System.currentTimeMillis();
 			if (time) {
 				System.err.println("Expanding took " + (after - before) + " ms");

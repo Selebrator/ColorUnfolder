@@ -563,4 +563,69 @@ public class Examples {
 		initialMarking.put(boatEmpty[0], 1);
 		return new Net(new Marking(initialMarking));
 	}
+
+	public static Net hobbitsAndOrcsAlternative(int groupSize, int boatCapacity, int nIslands) {
+		// https://en.wikipedia.org/wiki/Missionaries_and_cannibals_problem
+		// in this version not everyone has to leave the boat.
+		// for example, there can be 2 orcs and 1 hobbit at a shore,
+		// as long as the orc does not leave the boat.
+		// that does not make much sense, because the orc could just leave the boat to win,
+		// but the wikipedia article mentions this as one of the variations.
+		int p = 1;
+		int t = 1;
+
+		Variable h = new Variable("h", FiniteDomain.fullRange(0, groupSize));
+		Variable H = new Variable("h'", FiniteDomain.fullRange(0, groupSize));
+		Variable o = new Variable("o", FiniteDomain.fullRange(0, groupSize));
+		Variable O = new Variable("o'", FiniteDomain.fullRange(0, groupSize));
+		Variable x = new Variable("x", FiniteDomain.fullRange(0, boatCapacity));
+		Variable X = new Variable("x'", FiniteDomain.fullRange(0, boatCapacity));
+		Variable y = new Variable("y", FiniteDomain.fullRange(0, boatCapacity));
+		Variable Y = new Variable("y'", FiniteDomain.fullRange(0, boatCapacity));
+
+		Place lhShore = new Place(p++, "shore_hobbits_l");
+		Place lhBoat = new Place(p++, "boat_hobbits_l");
+		Place loShore = new Place(p++, "shore_orcs_l");
+		Place loBoat = new Place(p++, "boat_orcs_l");
+		Place rhShore = new Place(p++, "shore_hobbits_r");
+		Place rhBoat = new Place(p++, "boat_hobbits_r");
+		Place roShore = new Place(p++, "shore_orcs_r");
+		Place roBoat = new Place(p++, "boat_orcs_r");
+
+		newTransition(t++, "embark_l",
+				Map.of(lhShore, h, loShore, o, lhBoat, x, loBoat, y),
+				Map.of(lhShore, H, loShore, O, lhBoat, X, loBoat, Y),
+				Formula.top()
+						.and(h.plus(x).eq(H.plus(X)))
+						.and(o.plus(y).eq(O.plus(Y)))
+						.and(H.gt(0).implies(H.geq(O)))
+						.and(X.gt(0).implies(X.geq(Y)))
+						.and(X.plus(Y).leq(boatCapacity))
+		);
+		newTransition(t++, "embark_r",
+				Map.of(rhShore, h, roShore, o, rhBoat, x, roBoat, y),
+				Map.of(rhShore, H, roShore, O, rhBoat, X, roBoat, Y),
+				Formula.top()
+						.and(h.plus(x).eq(H.plus(X)))
+						.and(o.plus(y).eq(O.plus(Y)))
+						.and(H.gt(0).implies(H.geq(O)))
+						.and(X.gt(0).implies(X.geq(Y)))
+						.and(X.plus(Y).leq(boatCapacity))
+		);
+
+		newTransition(t++, "cross_l",
+				Map.of(lhBoat, x, loBoat, y),
+				Map.of(rhBoat, x, roBoat, y),
+				x.plus(y).gt(0));
+		newTransition(t++, "cross_r",
+				Map.of(rhBoat, x, roBoat, y),
+				Map.of(lhBoat, x, loBoat, y),
+				x.plus(y).gt(0));
+
+		newTransition(t++, "goal",
+				Map.of(rhShore, h, roShore, o),
+				Map.of(),
+				h.geq(groupSize).and(o.geq(groupSize)));
+		return new Net(new Marking(Map.of(lhShore, groupSize, loShore, groupSize, rhShore, 0, roShore, 0, lhBoat, 0, loBoat, 0)));
+	}
 }
