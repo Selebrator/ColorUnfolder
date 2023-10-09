@@ -18,7 +18,7 @@ import static de.lukaspanneke.masterthesis.logic.QuantifiedFormula.Quantifier.EX
 
 public class Examples {
 
-	private static Transition newTransition(
+	public static Transition newTransition(
 			int index,
 			String name,
 			Map<Place, Variable> preSet,
