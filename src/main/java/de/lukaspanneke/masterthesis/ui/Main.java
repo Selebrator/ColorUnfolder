@@ -114,6 +114,9 @@ public class Main implements Callable<Integer> {
 
 		if (this.inputFile.startsWith("isqrt#")) {
 			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
+		} else if (this.inputFile.startsWith("gcd#")) {
+			String[] split = this.inputFile.split("#");
+			net = Examples.gcd(Integer.parseInt(split[1]), Integer.parseInt(split[2]));
 		} else if (this.inputFile.equals("restaurant")) {
 			net = Examples.restaurant();
 		} else if (this.inputFile.startsWith("mastermind-judge#")) {
@@ -149,7 +152,7 @@ public class Main implements Callable<Integer> {
 			int groupSize = Integer.parseInt(split[1]);
 			int boatCapacity = Integer.parseInt(split[2]);
 			net = Examples.hobbitsAndOrcsAlternative(groupSize, boatCapacity, 2);
-		}  else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
+		} else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
 			String[] split = this.inputFile.split("#");
 			int groupSize = Integer.parseInt(split[1]);
 			int boatCapacity = Integer.parseInt(split[2]);

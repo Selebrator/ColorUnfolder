@@ -127,6 +127,28 @@ public class Examples {
 		return new Net(new Marking(Map.of(p1, 1, p_s, i)));
 	}
 
+	public static Net gcd(int a0, int b0) {
+		Place p1 = new Place(1);
+		Place p2 = new Place(2);
+		Place p3 = new Place(3);
+		Variable a = new Variable("a'"); //, FiniteDomain.fullRange(0, a0));
+		Variable A = new Variable("a"); //, FiniteDomain.fullRange(0, a0));
+		Variable b = new Variable("b'"); //, FiniteDomain.fullRange(0, b0));
+		Variable B = new Variable("b"); //, FiniteDomain.fullRange(0, b0));
+		Variable q = new Variable("q"); //, FiniteDomain.fullRange(0, a0));
+		newTransition(1, "step",
+				Map.of(p1, a, p2, b),
+				Map.of(p1, A, p2, B),
+				a.neq(0).and(A.eq(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), B.geq(0).and(B.lt(b)).and(b.times(q).plus(B).eq(a))))
+		);
+		newTransition(2, "end",
+				Map.of(p1, a, p2, b),
+				Map.of(p3, b),
+				a.eq(0)
+		);
+		return new Net(new Marking(Map.of(p1, a0, p2, b0)));
+	}
+
 	public static Net restaurant() {
 		int p = 1;
 		Place
