@@ -43,6 +43,8 @@ public class SatSolver {
 			io.github.cvc5.Context.deletePointers();
 			// Solver is the only implementation of IPointer that is not an AbstractPointer,
 			// so we need to clear it manually.
+			// TODO this is fixed in https://github.com/cvc5/cvc5/commit/7ff15aa749dca001835effe423610b6f08b2c109
+			//  remove this line after updating to a version newer than cvc5-1.0.8
 			solver.deletePointer();
 		}
 	}
