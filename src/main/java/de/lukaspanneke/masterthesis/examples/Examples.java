@@ -566,11 +566,6 @@ public class Examples {
 
 	public static Net hobbitsAndOrcsAlternative(int groupSize, int boatCapacity, int nIslands) {
 		// https://en.wikipedia.org/wiki/Missionaries_and_cannibals_problem
-		// in this version not everyone has to leave the boat.
-		// for example, there can be 2 orcs and 1 hobbit at a shore,
-		// as long as the orc does not leave the boat.
-		// that does not make much sense, because the orc could just leave the boat to win,
-		// but the wikipedia article mentions this as one of the variations.
 		int p = 1;
 		int t = 1;
 
@@ -601,6 +596,7 @@ public class Examples {
 						.and(H.gt(0).implies(H.geq(O)))
 						.and(X.gt(0).implies(X.geq(Y)))
 						.and(X.plus(Y).leq(boatCapacity))
+						.and(H.plus(X).gt(0).implies(H.plus(X).geq(O.plus(Y))))
 		);
 		newTransition(t++, "embark_r",
 				Map.of(rhShore, h, roShore, o, rhBoat, x, roBoat, y),
@@ -611,6 +607,7 @@ public class Examples {
 						.and(H.gt(0).implies(H.geq(O)))
 						.and(X.gt(0).implies(X.geq(Y)))
 						.and(X.plus(Y).leq(boatCapacity))
+						.and(H.plus(X).gt(0).implies(H.plus(X).geq(O.plus(Y))))
 		);
 
 		newTransition(t++, "cross_l",
