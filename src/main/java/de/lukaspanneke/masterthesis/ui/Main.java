@@ -141,8 +141,10 @@ public class Main implements Callable<Integer> {
 					.map(i -> Integer.parseInt(split[i]))
 					.toArray();
 			net = Examples.buckets(buckets, goal);
-		} else if (this.inputFile.startsWith("parallelAmnesia#")) {
-			net = Examples.parallelAmnesia(Integer.parseInt(this.inputFile.substring("parallelAmnesia#".length())));
+		} else if (this.inputFile.startsWith("parallel-amnesia#")) {
+			net = Examples.parallelAmnesia(Integer.parseInt(this.inputFile.substring("parallel-amnesia#".length())));
+		} else if (this.inputFile.startsWith("independent-diamond#")) {
+			net = Examples.independentDiamond(Integer.parseInt(this.inputFile.substring("independent-diamond#".length())));
 		} else if (this.inputFile.startsWith("fast-growing#")) {
 			String params = this.inputFile.substring("fast-growing#".length());
 			String[] split = params.split("#");

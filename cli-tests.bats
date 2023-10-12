@@ -43,19 +43,19 @@
 
 # bats test_tags=symbolic
 @test "full symbolic parallel amnesia" {
-  result="$(./color-unfolder parallelAmnesia#3 | wc -l)"
+  result="$(./color-unfolder parallel-amnesia#3 | wc -l)"
   [ "$result" -eq 25 ]
 }
 
 # bats test_tags=expand
 @test "full expanded parallel amnesia" {
-  result="$(./color-unfolder parallelAmnesia#3 --expand-with=0..5 | wc -l)"
+  result="$(./color-unfolder parallel-amnesia#3 --expand-with=0..5 | wc -l)"
   [ "$result" -eq 17285 ]
 }
 
 # bats test_tags=expand
 @test "full expanded parallel amnesia no jit expand" {
-  result="$(./color-unfolder parallelAmnesia#3 --expand-with=0..5 --no-jit-expand | wc -l)"
+  result="$(./color-unfolder parallel-amnesia#3 --expand-with=0..5 --no-jit-expand | wc -l)"
   [ "$result" -eq 17285 ]
 }
 

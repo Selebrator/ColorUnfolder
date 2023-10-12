@@ -260,6 +260,23 @@ public class Examples {
 		return new Net(new Marking(Map.of(s, 1)));
 	}
 
+	public static Net independentDiamond(int n) {
+		int p = 1;
+		int t = 1;
+		Variable v = new Variable("v");
+		Place s = new Place(p++);
+		Transition init = new Transition(t++);
+		Transition after = new Transition(t++);
+		link(s, v, init);
+		for (int i = 1; i <= n; i++) {
+			Place pi = new Place(p++);
+			Variable vi = new Variable("v" + i);
+			link(init, vi, pi);
+			link(pi, vi, after);
+		}
+		return new Net(new Marking(Map.of(s, 1)));
+	}
+
 	/*
 	 * A riddle: you have two buckets. They can hold 3 units and 5 units.
 	 * Fill one bucket with 4 Units.
