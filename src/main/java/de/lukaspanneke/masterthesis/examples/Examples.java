@@ -536,12 +536,14 @@ public class Examples {
 		Variable vBoatHobbits = new Variable("x", FiniteDomain.fullRange(0, nHobbits));
 		Variable vBoatOrcs = new Variable("y", FiniteDomain.fullRange(0, nOrcs));
 
-		Place boatHobbits = new Place(p++, "boatHobbits");
-		Place boatOrcs = new Place(p++, "boatOrcs");
+		Place[] boatHobbits = new Place[nIslands];
+		Place[] boatOrcs = new Place[nIslands];
 		Place[] boatEmpty = new Place[nIslands];
 		Place[] hobbits = new Place[nIslands];
 		Place[] orcs = new Place[nIslands];
 		for (int i = 0; i < nIslands; i++) {
+			boatHobbits[i] = new Place(p++, "boatHobbits_" + i);
+			boatOrcs[i] = new Place(p++, "boatOrcs_" + i);
 			boatEmpty[i] = new Place(p++, "boat_empty_" + i);
 			hobbits[i] = new Place(p++, "hobbits_" + i);
 			orcs[i] = new Place(p++, "orcs_" + i);
@@ -553,7 +555,7 @@ public class Examples {
 				int to = b + (1 - i);
 				newTransition(t++, "load_" + from + "_" + to,
 						Map.of(boatEmpty[from], token, hobbits[from], landHobbits, orcs[from], landOrcs),
-						Map.of(hobbits[from], landHobbitsNew, orcs[from], landOrcsNew, boatHobbits, vBoatHobbits, boatOrcs, vBoatOrcs),
+						Map.of(hobbits[from], landHobbitsNew, orcs[from], landOrcsNew, boatHobbits[from], vBoatHobbits, boatOrcs[from], vBoatOrcs),
 						landHobbitsNew.eq(landHobbits.minus(vBoatHobbits))
 								.and(landOrcsNew.eq(landOrcs.minus(vBoatOrcs)))
 								.and(vBoatHobbits.plus(vBoatOrcs).geq(1))
@@ -562,7 +564,7 @@ public class Examples {
 								.and(vBoatHobbits.eq(0).or(vBoatHobbits.geq(vBoatOrcs)))
 				);
 				newTransition(t++, "unload_" + from + "_" + to,
-						Map.of(hobbits[to], landHobbits, orcs[to], landOrcs, boatHobbits, vBoatHobbits, boatOrcs, vBoatOrcs),
+						Map.of(hobbits[to], landHobbits, orcs[to], landOrcs, boatHobbits[from], vBoatHobbits, boatOrcs[from], vBoatOrcs),
 						Map.of(boatEmpty[to], token, hobbits[to], landHobbitsNew, orcs[to], landOrcsNew),
 						landHobbitsNew.eq(landHobbits.plus(vBoatHobbits))
 								.and(landOrcsNew.eq(landOrcs.plus(vBoatOrcs)))
