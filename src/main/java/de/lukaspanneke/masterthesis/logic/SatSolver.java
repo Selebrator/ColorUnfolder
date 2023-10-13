@@ -1,7 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
+import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
 import com.microsoft.z3.IntExpr;
 import com.microsoft.z3.Status;
 import io.github.cvc5.Result;
@@ -92,7 +92,7 @@ public class SatSolver {
 	private static boolean checkSat_Z3(Formula formula) {
 		try (Context ctx = new Context()) {
 			Map<Variable, IntExpr> atoms = new HashMap<>();
-			Expr z3Formula = new ToZ3Visitor(ctx,
+			BoolExpr z3Formula = new ToZ3Visitor(ctx,
 					v -> atoms.computeIfAbsent(v, variable -> (IntExpr) ctx.mkConst(variable.name(), ctx.getIntSort()))
 			).visit(formula);
 			com.microsoft.z3.Solver solver = ctx.mkSolver();

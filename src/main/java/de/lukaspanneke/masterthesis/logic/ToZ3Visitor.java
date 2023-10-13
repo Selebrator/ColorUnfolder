@@ -10,7 +10,7 @@ import java.util.function.Function;
 public record ToZ3Visitor(
 		Context solver,
 		Function<Variable, IntExpr> atoms
-) implements FormulaVisitor<BoolExpr, ArithExpr> {
+) implements FormulaVisitor<BoolExpr, ArithExpr<IntSort>> {
 
 	@Override
 	public BoolExpr visit(AndOr it) {
@@ -25,7 +25,7 @@ public record ToZ3Visitor(
 	}
 
 	@Override
-	public ArithExpr visit(ArithmeticBoolean it) {
+	public ArithExpr<IntSort> visit(ArithmeticBoolean it) {
 		// cast should be fine since both output expressions are ints.
 		return (IntExpr) solver.mkITE(this.visit(it.formula()), solver.mkInt(1), solver.mkInt(0));
 	}
@@ -36,9 +36,9 @@ public record ToZ3Visitor(
 	}
 
 	@Override
-	public ArithExpr visit(Calculation it) {
-		ArithExpr lhs = this.visit(it.lhs());
-		ArithExpr rhs = this.visit(it.rhs());
+	public ArithExpr<IntSort> visit(Calculation it) {
+		ArithExpr<IntSort> lhs = this.visit(it.lhs());
+		ArithExpr<IntSort> rhs = this.visit(it.rhs());
 		return switch (it.operator()) {
 			case PLUS -> solver.mkAdd(lhs, rhs);
 			case MINUS -> solver.mkSub(lhs, rhs);
@@ -48,8 +48,8 @@ public record ToZ3Visitor(
 
 	@Override
 	public BoolExpr visit(Comparison it) {
-		ArithExpr lhs = this.visit(it.lhs());
-		ArithExpr rhs = this.visit(it.rhs());
+		ArithExpr<IntSort> lhs = this.visit(it.lhs());
+		ArithExpr<IntSort> rhs = this.visit(it.rhs());
 		return switch (it.operator()) {
 			case LESS_THEN -> solver.mkLt(lhs, rhs);
 			case LESS_EQUALS -> solver.mkLe(lhs, rhs);
@@ -60,7 +60,7 @@ public record ToZ3Visitor(
 	}
 
 	@Override
-	public ArithExpr visit(Constant it) {
+	public IntExpr visit(Constant it) {
 		return solver.mkInt(it.value());
 	}
 
@@ -92,10 +92,10 @@ public record ToZ3Visitor(
 					? freeAtoms.computeIfAbsent(atom, a -> /* cast seems fine */ (IntExpr) solver.mkConst(a.toString(), solver.getIntSort()))
 					: atoms.apply(atom);
 			ToZ3Visitor newVisitor = new ToZ3Visitor(solver, newAtoms);
-			Expr body = newVisitor.visit(it.body());
-			Expr[] quantifiedVariables = it.variables().stream()
+			BoolExpr body = newVisitor.visit(it.body());
+			IntExpr[] quantifiedVariables = it.variables().stream()
 					.map(newVisitor::visit)
-					.toArray(Expr[]::new);
+					.toArray(IntExpr[]::new);
 			return switch (it.quantifier()) {
 				case EXISTS -> solver.mkExists(quantifiedVariables, body, 0, null, null, null, null);
 				case FORALL -> solver.mkForall(quantifiedVariables, body, 0, null, null, null, null);
@@ -112,7 +112,7 @@ public record ToZ3Visitor(
 	}
 
 	@Override
-	public ArithExpr visit(Variable it) {
+	public IntExpr visit(Variable it) {
 		return atoms.apply(it);
 	}
 }
