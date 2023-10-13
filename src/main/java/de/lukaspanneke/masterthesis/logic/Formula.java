@@ -1,13 +1,9 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -24,8 +20,6 @@ public sealed abstract class Formula permits AndOr, Bottom, Comparison, Equality
 	protected abstract void collectSupport(Set<Variable> accumulator);
 
 	public abstract Formula substitute(Map<Variable, Variable> map);
-
-	public abstract Term toCvc5(Solver solver, Function<Variable, Term> atoms);
 
 	public static Formula top() {
 		return Top.instance();

@@ -1,14 +1,9 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Kind;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,6 +101,14 @@ import java.util.stream.Stream;
 		return new AndOr(operator, terms);
 	}
 
+	public List<Formula> formulas() {
+		return this.formulas;
+	}
+
+	public Operator operator() {
+		return this.operator;
+	}
+
 	@Override
 	public boolean evaluate(Map<Variable, Integer> assignment) {
 		return switch (this.operator) {
@@ -133,13 +136,6 @@ import java.util.stream.Stream;
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTerm(operator.toCvc5(), formulas.stream()
-				.map(formula -> formula.toCvc5(solver, atoms))
-				.toArray(Term[]::new));
-	}
-
-	@Override
 	public String toString() {
 		return this.formulas.stream()
 				.map(Formula::toString)
@@ -148,23 +144,17 @@ import java.util.stream.Stream;
 
 	public enum Operator {
 
-		AND("∧", Kind.AND),
-		OR("∨", Kind.OR);
+		AND("∧"),
+		OR("∨");
 
 		private final String symbol;
-		private final Kind cvc5;
 
-		Operator(String symbol, Kind cvc5) {
+		Operator(String symbol) {
 			this.symbol = symbol;
-			this.cvc5 = cvc5;
 		}
 
 		public String symbol() {
 			return this.symbol;
-		}
-
-		public Kind toCvc5() {
-			return cvc5;
 		}
 	}
 }

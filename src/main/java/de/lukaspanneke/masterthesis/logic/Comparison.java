@@ -1,12 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Kind;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /* package-private */ final class Comparison extends Formula {
 
@@ -22,6 +17,18 @@ import java.util.function.Function;
 
 	public static Comparison of(ArithmeticExpression e1, Operator operator, ArithmeticExpression e2) {
 		return new Comparison(e1, operator, e2);
+	}
+
+	public ArithmeticExpression lhs() {
+		return this.e1;
+	}
+
+	public ArithmeticExpression rhs() {
+		return this.e2;
+	}
+
+	public Operator operator() {
+		return this.operator;
 	}
 
 	@Override
@@ -49,37 +56,26 @@ import java.util.function.Function;
 	}
 
 	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTerm(operator.toCvc5(), e1.toCvc5(solver, atoms), e2.toCvc5(solver, atoms));
-	}
-
-	@Override
 	public String toString() {
 		return this.e1.toString() + " " + this.operator.symbol() + " " + this.e2.toString();
 	}
 
 	public enum Operator {
 
-		LESS_THEN("<", Kind.LT),
-		LESS_EQUALS("≤", Kind.LEQ),
-		NOT_EQUALS("≠", Kind.DISTINCT),
-		GREATER_EQUALS("≥", Kind.GEQ),
-		GREATER_THEN(">", Kind.GT);
+		LESS_THEN("<"),
+		LESS_EQUALS("≤"),
+		NOT_EQUALS("≠"),
+		GREATER_EQUALS("≥"),
+		GREATER_THEN(">");
 
 		private final String symbol;
-		private final Kind cvc5;
 
-		Operator(String symbol, Kind cvc5) {
+		Operator(String symbol) {
 			this.symbol = symbol;
-			this.cvc5 = cvc5;
 		}
 
 		public String symbol() {
 			return this.symbol;
-		}
-
-		public Kind toCvc5() {
-			return this.cvc5;
 		}
 	}
 }

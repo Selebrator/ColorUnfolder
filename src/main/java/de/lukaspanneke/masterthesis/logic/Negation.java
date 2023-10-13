@@ -1,12 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Kind;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /* package-private */ final class Negation extends Formula {
 
@@ -24,6 +19,10 @@ import java.util.function.Function;
 		}
 	}
 
+	public Formula term() {
+		return this.f;
+	}
+
 	@Override
 	public boolean evaluate(Map<Variable, Integer> assignment) {
 		return !this.f.evaluate(assignment);
@@ -37,11 +36,6 @@ import java.util.function.Function;
 	@Override
 	public Formula substitute(Map<Variable, Variable> map) {
 		return f.substitute(map).not();
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTerm(Kind.NOT, f.toCvc5(solver, atoms));
 	}
 
 	@Override

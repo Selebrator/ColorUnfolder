@@ -1,11 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /* package-private */ final class Top extends Formula {
 
@@ -31,11 +27,6 @@ import java.util.function.Function;
 	@Override
 	public Formula substitute(Map<Variable, Variable> map) {
 		return this;
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTrue();
 	}
 
 	@Override

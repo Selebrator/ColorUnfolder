@@ -13,14 +13,42 @@ import static de.lukaspanneke.masterthesis.Options.*;
 public class SatSolver {
 
 	private static boolean checkSat(Formula formula) {
-		Solver solver = new Solver();
+		return checkSat_cvc5(formula);
+	}
+
+	public static boolean isSatisfiable(Formula formula) {
+		if (SHOW_FORMULAS) {
+			System.err.println("      " + formula);
+		}
+		boolean result = checkSat(formula);
+		if (PRINT_COLOR_CONFLICT_INFO) {
+			System.err.println("      " + (result ? "SAT" : "UNSAT"));
+		}
+		return result;
+	}
+
+	public static boolean isTautology(Formula formula) {
+		if (SHOW_FORMULAS) {
+			System.err.println("    " + formula);
+		}
+		boolean result = !checkSat(formula.not());
+		if (PRINT_COLOR_CUTOFF_INFO) {
+			System.err.println("    " + (result ? "TAUTOLOGY" : "NOT A TAUTOLOGY"));
+		}
+		return result;
+	}
+
+	private static boolean checkSat_cvc5(Formula formula) {
+		io.github.cvc5.Solver solver = new Solver();
 		try {
 			if (SHOW_MODEL) {
 				solver.setOption("produce-models", "true");
 			}
 			Sort integer = solver.getIntegerSort();
 			Map<Variable, Term> atoms = new HashMap<>();
-			Term cvc5Formula = formula.toCvc5(solver, v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name())));
+			Term cvc5Formula = new ToCvc5Visitor(solver,
+					v -> atoms.computeIfAbsent(v, variable -> solver.mkConst(integer, variable.name()))
+			).visit(formula);
 			solver.assertFormula(cvc5Formula);
 			Result result = solver.checkSat();
 			if (SHOW_MODEL && result.isSat()) {
@@ -47,27 +75,5 @@ public class SatSolver {
 			//  remove this line after updating to a version newer than cvc5-1.0.8
 			solver.deletePointer();
 		}
-	}
-
-	public static boolean isSatisfiable(Formula formula) {
-		if (SHOW_FORMULAS) {
-			System.err.println("      " + formula);
-		}
-		boolean result = checkSat(formula);
-		if (PRINT_COLOR_CONFLICT_INFO) {
-			System.err.println("      " + (result ? "SAT" : "UNSAT"));
-		}
-		return result;
-	}
-
-	public static boolean isTautology(Formula formula) {
-		if (SHOW_FORMULAS) {
-			System.err.println("    " + formula);
-		}
-		boolean result = !checkSat(formula.not());
-		if (PRINT_COLOR_CUTOFF_INFO) {
-			System.err.println("    " + (result ? "TAUTOLOGY" : "NOT A TAUTOLOGY"));
-		}
-		return result;
 	}
 }

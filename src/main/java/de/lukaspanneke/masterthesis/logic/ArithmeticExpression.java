@@ -1,11 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public sealed interface ArithmeticExpression permits ArithmeticBoolean, Calculation, Constant, Variable {
 
@@ -14,8 +10,6 @@ public sealed interface ArithmeticExpression permits ArithmeticBoolean, Calculat
 	void collectSupport(Set<Variable> accumulator);
 
 	ArithmeticExpression substitute(Map<Variable, Variable> map);
-
-	Term toCvc5(Solver solver, Function<Variable, Term> atoms);
 
 	default Formula eq(ArithmeticExpression other) {
 		return Equality.of(this, other);

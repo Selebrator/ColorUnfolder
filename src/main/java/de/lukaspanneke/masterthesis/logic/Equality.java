@@ -1,11 +1,6 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Kind;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /* package-private */ final class Equality extends Formula {
@@ -28,6 +23,10 @@ import java.util.stream.Collectors;
 		return new Equality(Collections.unmodifiableSet(terms));
 	}
 
+	public Set<ArithmeticExpression> terms() {
+		return this.terms;
+	}
+
 	@Override
 	public boolean evaluate(Map<Variable, Integer> assignment) {
 		return terms.stream()
@@ -47,13 +46,6 @@ import java.util.stream.Collectors;
 		return terms.stream()
 				.map(expr -> expr.substitute(map))
 				.collect(Formula.eq());
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTerm(Kind.EQUAL, terms.stream()
-				.map(expr -> expr.toCvc5(solver, atoms))
-				.toArray(Term[]::new));
 	}
 
 	@Override

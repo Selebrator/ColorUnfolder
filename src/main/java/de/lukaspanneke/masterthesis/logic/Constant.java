@@ -1,11 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public final class Constant implements ArithmeticExpression {
 
@@ -36,11 +32,6 @@ public final class Constant implements ArithmeticExpression {
 	@Override
 	public ArithmeticExpression substitute(Map<Variable, Variable> map) {
 		return this;
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkInteger(constant);
 	}
 
 	@Override

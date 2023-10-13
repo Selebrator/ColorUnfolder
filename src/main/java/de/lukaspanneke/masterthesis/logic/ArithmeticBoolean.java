@@ -1,12 +1,7 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Kind;
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Wrap a Formula as an ArithmeticExpression,
@@ -26,7 +21,7 @@ import java.util.function.Function;
 	}
 
 	public Formula formula() {
-		return formula;
+		return this.formula;
 	}
 
 	@Override
@@ -42,11 +37,6 @@ import java.util.function.Function;
 	@Override
 	public ArithmeticExpression substitute(Map<Variable, Variable> map) {
 		return new ArithmeticBoolean(formula.substitute(map));
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return solver.mkTerm(Kind.ITE, formula.toCvc5(solver, atoms), solver.mkInteger(1), solver.mkInteger(0));
 	}
 
 	@Override

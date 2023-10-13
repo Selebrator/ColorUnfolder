@@ -1,12 +1,8 @@
 package de.lukaspanneke.masterthesis.logic;
 
-import io.github.cvc5.Solver;
-import io.github.cvc5.Term;
-
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.Function;
 
 public record Variable(String name, Domain domain) implements ArithmeticExpression, Comparable<Variable> {
 
@@ -40,11 +36,6 @@ public record Variable(String name, Domain domain) implements ArithmeticExpressi
 	public ArithmeticExpression substitute(Map<Variable, Variable> map) {
 		Variable ans = map.get(this);
 		return ans != null ? ans : this;
-	}
-
-	@Override
-	public Term toCvc5(Solver solver, Function<Variable, Term> atoms) {
-		return atoms.apply(this);
 	}
 
 	@Override
