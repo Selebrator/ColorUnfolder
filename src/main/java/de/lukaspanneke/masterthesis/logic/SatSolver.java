@@ -92,7 +92,7 @@ public class SatSolver {
 	private static boolean checkSat_Z3(Formula formula) {
 		try (Context ctx = new Context()) {
 			Map<Variable, IntExpr> atoms = new HashMap<>();
-			Expr z3Formula = new ToCZ3Visitor(ctx,
+			Expr z3Formula = new ToZ3Visitor(ctx,
 					v -> atoms.computeIfAbsent(v, variable -> (IntExpr) ctx.mkConst(variable.name(), ctx.getIntSort()))
 			).visit(formula);
 			com.microsoft.z3.Solver solver = ctx.mkSolver();

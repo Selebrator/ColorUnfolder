@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public record ToCZ3Visitor(
+public record ToZ3Visitor(
 		Context solver,
 		Function<Variable, IntExpr> atoms
 ) implements FormulaVisitor<BoolExpr, ArithExpr> {
@@ -91,7 +91,7 @@ public record ToCZ3Visitor(
 			Function<Variable, IntExpr> newAtoms = atom -> it.variables().contains(atom)
 					? freeAtoms.computeIfAbsent(atom, a -> /* cast seems fine */ (IntExpr) solver.mkConst(a.toString(), solver.getIntSort()))
 					: atoms.apply(atom);
-			ToCZ3Visitor newVisitor = new ToCZ3Visitor(solver, newAtoms);
+			ToZ3Visitor newVisitor = new ToZ3Visitor(solver, newAtoms);
 			Expr body = newVisitor.visit(it.body());
 			Expr[] quantifiedVariables = it.variables().stream()
 					.map(newVisitor::visit)
