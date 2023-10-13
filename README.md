@@ -80,14 +80,7 @@ Building
 
 ```sh
 ./get-cvc5.sh                 # build cvc5 with java bindings. Takes a long time ~10 minutes
+./get-z3.sh                   # build z3 with java bindings. Takes a long time ~10 minutes
 ./gradlew buildExecutableApp  # build color-unfolder
 ./color-unfolder --help       # start using it
 ```
-
-If you want to compute symbolic unfoldings you need cvc5.
-Low-level nets and expansions of high-level nets work without cvc5.
-In either case, you need Java (jdk) 17 or later.
-
-To build cvc5 you need cmake, a C++ compiler, python and maybe some additional libraries.
-The error messages should be good enough to tell you what dependencies you might be missing.
-You can find instruction on cvc5's build dependencies [here](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst).
