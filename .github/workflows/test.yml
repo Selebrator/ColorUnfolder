@@ -40,6 +40,20 @@ jobs:
         name: Install cvc5
         run: ./get-cvc5.sh
 
+      - name: Load z3 from cache
+        id: z3-lib-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            lib/com.microsoft.z3.jar
+            lib/libz3java.so
+            lib/libz3.so
+          key: z3-libs-${{ hashFiles('get-z3.sh') }}
+
+      - if: ${{ steps.z3-lib-cache.outputs.cache-hit != 'true' }}
+        name: Install z3
+        run: ./get-z3.sh
+
       - name: gradle test
         uses: gradle/gradle-build-action@v2
         with:
