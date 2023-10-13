@@ -4,6 +4,7 @@ import de.lukaspanneke.masterthesis.Options;
 import de.lukaspanneke.masterthesis.examples.Examples;
 import de.lukaspanneke.masterthesis.expansion.Expansion;
 import de.lukaspanneke.masterthesis.expansion.ExpansionRange;
+import de.lukaspanneke.masterthesis.logic.SatSolver;
 import de.lukaspanneke.masterthesis.net.Net;
 import de.lukaspanneke.masterthesis.net.Transition;
 import de.lukaspanneke.masterthesis.parser.HlLolaParser;
@@ -84,6 +85,10 @@ public class Main implements Callable<Integer> {
 			description = "Name of the adequate order to use for unfolding. ESPARZA or MC_MILLAN.")
 	private Configuration.AdequateOrder order;
 
+	@Option(names = {"--smt"}, paramLabel = "solver", defaultValue = "CVC5",
+			description = "The SMT Solver to use. CVC5 or Z3.")
+	private SatSolver.Backend smtSolver;
+
 	@Option(names = {"-D", "--show-internal"}, defaultValue = "false",
 			description = "Render the internal structure of the unfolding.")
 	private boolean internal;
@@ -101,6 +106,7 @@ public class Main implements Callable<Integer> {
 	public Integer call() throws IOException {
 		Options.RENDER_DEBUG = internal;
 		Options.ORDER = order.comparator();
+		Options.SMT_SOLVER = smtSolver;
 		Options.CUTOFF = !noCutoff;
 		Options.COLORED = !noColor;
 		if (verbose.length >= 2) {

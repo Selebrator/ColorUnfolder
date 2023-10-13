@@ -1,5 +1,9 @@
 package de.lukaspanneke.masterthesis.logic;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.IntExpr;
+import com.microsoft.z3.Status;
 import io.github.cvc5.Result;
 import io.github.cvc5.Solver;
 import io.github.cvc5.Sort;
@@ -12,8 +16,16 @@ import static de.lukaspanneke.masterthesis.Options.*;
 
 public class SatSolver {
 
+	public enum Backend {
+		Z3,
+		CVC5
+	}
+
 	private static boolean checkSat(Formula formula) {
-		return checkSat_cvc5(formula);
+		return switch (SMT_SOLVER) {
+			case Z3 -> checkSat_Z3(formula);
+			case CVC5 -> checkSat_cvc5(formula);
+		};
 	}
 
 	public static boolean isSatisfiable(Formula formula) {
@@ -74,6 +86,23 @@ public class SatSolver {
 			// TODO this is fixed in https://github.com/cvc5/cvc5/commit/7ff15aa749dca001835effe423610b6f08b2c109
 			//  remove this line after updating to a version newer than cvc5-1.0.8
 			solver.deletePointer();
+		}
+	}
+
+	private static boolean checkSat_Z3(Formula formula) {
+		try (Context ctx = new Context()) {
+			Map<Variable, IntExpr> atoms = new HashMap<>();
+			Expr z3Formula = new ToCZ3Visitor(ctx,
+					v -> atoms.computeIfAbsent(v, variable -> (IntExpr) ctx.mkConst(variable.name(), ctx.getIntSort()))
+			).visit(formula);
+			com.microsoft.z3.Solver solver = ctx.mkSolver();
+			Status result = solver.check(z3Formula);
+			return switch (result) {
+				case UNSATISFIABLE -> false;
+				case UNKNOWN ->
+						throw new AssertionError("SAT result is " + result + ". formula was " + formula + ", encoded as " + z3Formula);
+				case SATISFIABLE -> true;
+			};
 		}
 	}
 }

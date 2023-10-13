@@ -24,6 +24,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testRuntimeOnly('org.junit.platform:junit-platform-launcher:1.10.0')
     implementation(files("lib/cvc5.jar"))
+    implementation(files("lib/com.microsoft.z3.jar"))
 }
 
 tasks.register('buildExecutableApp', Jar) {
