@@ -3,6 +3,9 @@ name: Run tests on push
 on:
   push:
     branches: [ "main" ]
+  schedule:
+    # first day of every month at 10:00 UTC
+    - cron: 0 10 1 * *
 
 permissions:
   contents: read
