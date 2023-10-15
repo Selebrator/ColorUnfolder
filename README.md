@@ -3,7 +3,7 @@ ColorUnfolder
 ⚠️ **Under construction** ⚠️
 
 This program implements the generalized Esparza/Römer/Vogler unfolding algorithm for high-level (colored) Petri nets.
-That is, an algorithm to find a complete finite prefix of the maximal branching process.
+That is, an algorithm to find a complete finite prefix of the symbolic unfolding.
 
 Other authors also use the term "unfolding" differently,
 to refer to the low-level net expressed through the high-level net.
@@ -33,8 +33,12 @@ Features
 Non-goals
 ---------
 
-- Non-safe nets. We require the input net to be safe.
-  That is, in every reachable marking there is at most one token on every place.
+- Non-safe nets. We require the input net to be safe (1-bounded).
+  That is, in every reachable marking there is at most one token on a place.
+  Some authors call a high-level net 1-bounded if its expansion is 1-bounded.
+  In the high-level net that is equivalent to
+  every reachable marking having at most one token of every color on a place.
+  Our requirement is stricter.
 
 Related Tools
 -------------
@@ -42,7 +46,7 @@ Related Tools
 - [Mole](http://www.lsv.fr/~schwoon/tools/mole/)
   is a well known implementation of the Esparza/Römer/Vogler unfolding algorithm for low-level Petri nets.
 
-- We use [cvc5](https://github.com/cvc5/cvc5) to decide the predicates.
+- We use [cvc5](https://github.com/cvc5/cvc5) or [Z3](https://github.com/Z3Prover/z3) to decide the predicates.
 
 Related Publications
 --------------------
