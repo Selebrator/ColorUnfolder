@@ -131,20 +131,20 @@ public class Examples {
 		Place p1 = new Place(1);
 		Place p2 = new Place(2);
 		Place p3 = new Place(3);
-		Variable a = new Variable("a'"); //, FiniteDomain.fullRange(0, a0));
-		Variable A = new Variable("a"); //, FiniteDomain.fullRange(0, a0));
-		Variable b = new Variable("b'"); //, FiniteDomain.fullRange(0, b0));
-		Variable B = new Variable("b"); //, FiniteDomain.fullRange(0, b0));
-		Variable q = new Variable("q"); //, FiniteDomain.fullRange(0, a0));
+		Variable a = new Variable("a", FiniteDomain.fullRange(0, a0));
+		Variable A = new Variable("a'", FiniteDomain.fullRange(0, a0));
+		Variable b = new Variable("b", FiniteDomain.fullRange(0, b0));
+		Variable B = new Variable("b'", FiniteDomain.fullRange(0, b0));
+		Variable q = new Variable("q", FiniteDomain.fullRange(0, a0));
 		newTransition(1, "step",
 				Map.of(p1, a, p2, b),
 				Map.of(p1, A, p2, B),
-				a.neq(0).and(A.eq(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), B.geq(0).and(B.lt(b)).and(b.times(q).plus(B).eq(a))))
+				a.neq(0).and(A.eq(b)).and(B.geq(0)).and(B.lt(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), b.times(q).plus(B).eq(a)))
 		);
 		newTransition(2, "end",
 				Map.of(p1, a, p2, b),
-				Map.of(p3, b),
-				a.eq(0)
+				Map.of(p3, a),
+				b.eq(0)
 		);
 		return new Net(new Marking(Map.of(p1, a0, p2, b0)));
 	}
