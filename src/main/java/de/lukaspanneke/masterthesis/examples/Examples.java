@@ -454,9 +454,9 @@ public class Examples {
 		Place preCode = new Place(p++, "preCode");
 		Place preGuess = new Place(p++, "preGuess");
 
-		Place remainingGuesses = new Place(p++, "remaining_guesses");
-		Variable remaining = new Variable("remaining");
-		Variable remainingNext = new Variable("remaining'");
+		Place attempts = new Place(p++, "attempts");
+		Variable attempt = new Variable("attempt", FiniteDomain.fullRange(0, guesses));
+		Variable attemptNext = new Variable("attempt'", FiniteDomain.fullRange(0, guesses));
 
 		Place pointsExact = new Place(p++, "red");
 		Place pointsPartial = new Place(p++, "white");
@@ -530,12 +530,12 @@ public class Examples {
 		}
 
 		newTransition(t++, "next",
-				Map.of(pointsExact, exact, pointsPartial, partial, remainingGuesses, remaining),
-				Map.of(remainingGuesses, remainingNext, preGuess, token),
-				exact.neq(codeLength).and(remaining.gt(0).and(remainingNext.eq(remaining.minus(1))))
+				Map.of(pointsExact, exact, pointsPartial, partial, attempts, attempt),
+				Map.of(attempts, attemptNext, preGuess, token),
+				exact.neq(codeLength).and(attempt.lt(guesses).and(attemptNext.eq(attempt.plus(1))))
 		);
 
-		return new Net(new Marking((Map.of(preCode, 1, preGuess, 1, remainingGuesses, guesses))));
+		return new Net(new Marking((Map.of(preCode, 1, preGuess, 1, attempts, 1))));
 	}
 
 	public static Net hobbitsAndOrcs(int groupSize, int boatCapacity, int nIslands) {
