@@ -4,4 +4,4 @@
 # ln -s /path/to/repo/color-unfolder ~/.local/bin/color-unfolder
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-LD_LIBRARY_PATH="$SCRIPT_DIR/lib" java -jar "$SCRIPT_DIR/build/libs/color-unfolder-with-dependencies-0.1-dev.jar" "$@"
+LD_LIBRARY_PATH="$SCRIPT_DIR/lib" java -XX:MaxRAMPercentage=90 -jar "$SCRIPT_DIR/build/libs/color-unfolder-with-dependencies-0.1-dev.jar" "$@"
