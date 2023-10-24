@@ -81,6 +81,10 @@ public class Main implements Callable<Integer> {
 			description = "Unfold until firing a transition with matching name (reachability analysis).")
 	private String[] targetTransition;
 
+	@Option(names = {"--target-unreachable-exit-code"}, defaultValue = "3",
+			description = "The exit code to use when no target transition is firable.")
+	private int targetUnreachableExitCode;
+
 	@Option(names = {"-o", "--order"}, paramLabel = "order", defaultValue = "ESPARZA",
 			description = "Name of the adequate order to use for unfolding. ESPARZA or MC_MILLAN.")
 	private Configuration.AdequateOrder order;
@@ -248,7 +252,7 @@ public class Main implements Callable<Integer> {
 				if (verbose.length >= 1) {
 					System.err.println("No target transition can fire");
 				}
-				return 3;
+				return targetUnreachableExitCode;
 			}
 		}
 		return 0;
