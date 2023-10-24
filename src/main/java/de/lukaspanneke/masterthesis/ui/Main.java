@@ -105,6 +105,10 @@ public class Main implements Callable<Integer> {
 			description = "Measure time spent expanding and unfolding.")
 	private boolean time;
 
+	@Option(names = {"--count-nodes"}, defaultValue = "false",
+			description = "Output the number of conditions and events in the prefix that would be rendered.")
+	private boolean countNodes;
+
 
 	@Override
 	public Integer call() throws IOException {
@@ -238,6 +242,9 @@ public class Main implements Callable<Integer> {
 		long after = System.currentTimeMillis();
 		if (time) {
 			System.err.println("Unfolding took " + (after - before) + " ms");
+		}
+		if (countNodes) {
+			System.err.println("Prefix has " + unfolding.getNumberConditions() + " conditions and " + unfolding.getNumberEvents() + " events");
 		}
 		renderOutput(unfolding);
 		if (targetTransition != null) {
