@@ -3,7 +3,7 @@ ColorUnfolder
 ⚠️ **Under construction** ⚠️
 
 This program implements the generalized Esparza/Römer/Vogler unfolding algorithm for high-level (colored) Petri nets.
-That is, an algorithm to find a complete finite prefix of the symbolic unfolding.
+That is, an algorithm to find a finite complete prefix of the symbolic unfolding.
 
 Other authors also use the term "unfolding" differently,
 to refer to the low-level net expressed through the high-level net.
@@ -21,7 +21,7 @@ Features
 - [x] High-level net to low-level unfolding
 - [x] High-level net to low-level expansion net
 - [x] Low-level net to low-level unfolding
-- [x] Complete finite prefix of unfolding using cut-offs
+- [x] Finite complete prefix of unfolding using cut-offs
 - [x] Unfolding up to bounded depth
 - [x] Reachability of target transitions
 - [x] Command-line user interface
