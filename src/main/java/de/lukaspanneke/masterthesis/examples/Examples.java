@@ -132,14 +132,13 @@ public class Examples {
 		Place p2 = new Place(2);
 		Place p3 = new Place(3);
 		Variable a = new Variable("a", FiniteDomain.fullRange(0, a0));
-		Variable A = new Variable("a'", FiniteDomain.fullRange(0, a0));
 		Variable b = new Variable("b", FiniteDomain.fullRange(0, b0));
-		Variable B = new Variable("b'", FiniteDomain.fullRange(0, b0));
+		Variable r = new Variable("r", FiniteDomain.fullRange(0, b0));
 		Variable q = new Variable("q", FiniteDomain.fullRange(0, a0));
 		newTransition(1, "step",
 				Map.of(p1, a, p2, b),
-				Map.of(p1, A, p2, B),
-				a.neq(0).and(A.eq(b)).and(B.geq(0)).and(B.lt(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), b.times(q).plus(B).eq(a)))
+				Map.of(p1, b, p2, r),
+				r.geq(0).and(r.lt(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), b.times(q).plus(r).eq(a)))
 		);
 		newTransition(2, "end",
 				Map.of(p1, a, p2, b),
