@@ -67,7 +67,7 @@ public class Options {
 	/**
 	 * The order to use to compare configurations.
 	 */
-	public static Comparator<Configuration> ORDER = Configuration.AdequateOrder.ESPARZA.comparator();
+	public static Comparator<Configuration> ORDER = Configuration.AdequateOrder.FOATA.comparator();
 
 	/**
 	 * The SMT solver to use.

@@ -8,14 +8,14 @@ import java.util.stream.Collectors;
 public final class Configuration implements Comparable<Configuration> {
 
 	public enum AdequateOrder {
-		MC_MILLAN {
+		PARIKH {
 			@Override
 			public Comparator<Configuration> comparator() {
 				return Comparator.comparingInt(Configuration::size)
 						.thenComparing(Configuration::parikh);
 			}
 		},
-		ESPARZA {
+		FOATA {
 			@Override
 			public Comparator<Configuration> comparator() {
 				return Comparator.comparingInt(Configuration::size)

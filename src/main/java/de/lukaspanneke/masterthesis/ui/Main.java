@@ -85,8 +85,8 @@ public class Main implements Callable<Integer> {
 			description = "The exit code to use when no target transition is firable.")
 	private int targetUnreachableExitCode;
 
-	@Option(names = {"-o", "--order"}, paramLabel = "order", defaultValue = "ESPARZA",
-			description = "Name of the adequate order to use for unfolding. ESPARZA or MC_MILLAN.")
+	@Option(names = {"-o", "--order"}, paramLabel = "order", defaultValue = "FOATA",
+			description = "Name of the adequate order to use for unfolding. PARIKH or FOATA.")
 	private Configuration.AdequateOrder order;
 
 	@Option(names = {"--smt"}, paramLabel = "solver", defaultValue = "CVC5",
