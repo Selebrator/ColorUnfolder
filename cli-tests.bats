@@ -59,6 +59,53 @@
   [ "$result" -eq 17285 ]
 }
 
+# bats test_tags=symbolic,diamond
+@test "full symbolic independent diamond 3 places" {
+  result="$(./color-unfolder independent-diamond#3 | wc -l)"
+  [ "$result" -eq 17 ]
+}
+
+# bats test_tags=symbolic,diamond
+@test "full symbolic independent diamond 4 places" {
+  result="$(./color-unfolder independent-diamond#4 | wc -l)"
+  [ "$result" -eq 20 ]
+}
+
+# bats test_tags=symbolic,diamond
+@test "full symbolic independent diamond 100 places" {
+  result="$(./color-unfolder independent-diamond#100 | wc -l)"
+  [ "$result" -eq 308 ]
+}
+
+# bats test_tags=expand,diamond
+@test "full expanded independent diamond 3 places 3 colors" {
+  result="$(./color-unfolder independent-diamond#3 --expand-with=1..3 | wc -l)"
+  [ "$result" -eq 329 ]
+}
+
+# bats test_tags=expand,diamond
+@test "full expanded independent diamond 3 places 4 colors" {
+  result="$(./color-unfolder independent-diamond#3 --expand-with=1..4 | wc -l)"
+  [ "$result" -eq 773 ]
+}
+
+# bats test_tags=expand,diamond
+@test "full expanded independent diamond 4 places 3 colors" {
+  result="$(./color-unfolder independent-diamond#4 --expand-with=1..3 | wc -l)"
+  [ "$result" -eq 1220 ]
+}
+
+# bats test_tags=expand,gcd
+@test "full expanded gcd(12, 9) output 3" {
+  ./color-unfolder gcd#12#9 --expand | grep p3#3
+}
+
+# bats test_tags=expand,gcd
+@test "full expanded gcd(12, 9) outputs nothing except 3" {
+  run bash -c './color-unfolder gcd#12#9 --expand | grep "(p3#[^3])"'
+  [ "$status" -ne 0 ]
+}
+
 # bats test_tags=symbolic,target,hobbits
 @test "reachable symbolic hobbitsAndOrcs#3#2#2" {
   ./color-unfolder hobbitsAndOrcs#3#2#2 --output=none --target=goal
