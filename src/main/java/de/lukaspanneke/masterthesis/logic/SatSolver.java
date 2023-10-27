@@ -95,14 +95,20 @@ public class SatSolver {
 			BoolExpr z3Formula = new ToZ3Visitor(ctx,
 					v -> atoms.computeIfAbsent(v, variable -> (IntExpr) ctx.mkConst(variable.name(), ctx.getIntSort()))
 			).visit(formula);
-			com.microsoft.z3.Solver solver = ctx.mkSolver();
-			Status result = solver.check(z3Formula);
-			return switch (result) {
-				case UNSATISFIABLE -> false;
-				case UNKNOWN ->
-						throw new AssertionError("SAT result is " + result + ". formula was " + formula + ", encoded as " + z3Formula);
-				case SATISFIABLE -> true;
-			};
+			Boolean ans = null;
+			while (ans == null) {
+				com.microsoft.z3.Solver solver = ctx.mkSolver();
+				Status result = solver.check(z3Formula);
+				if (SHOW_MODEL && result == Status.SATISFIABLE) {
+					System.err.println(solver.getModel().toString());
+				}
+				ans = switch (result) {
+					case UNSATISFIABLE -> false;
+					case UNKNOWN -> null;
+					case SATISFIABLE -> true;
+				};
+			}
+			return ans;
 		}
 	}
 }
