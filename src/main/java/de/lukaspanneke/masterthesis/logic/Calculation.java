@@ -39,6 +39,8 @@ import java.util.Set;
 			case PLUS -> e1 + e2;
 			case MINUS -> e1 - e2;
 			case TIMES -> e1 * e2;
+			case INT_DIV -> e1 / e2;
+			case MOD -> e1 % e2;
 		};
 	}
 
@@ -62,7 +64,9 @@ import java.util.Set;
 
 		PLUS("+"),
 		MINUS("-"),
-		TIMES("*");
+		TIMES("*"),
+		INT_DIV("//"),
+		MOD(" mod ");
 
 		private final String symbol;
 

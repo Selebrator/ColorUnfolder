@@ -82,4 +82,20 @@ public sealed interface ArithmeticExpression permits ArithmeticBoolean, Calculat
 	default ArithmeticExpression times(int other) {
 		return this.times(Constant.of(other));
 	}
+
+	default ArithmeticExpression mod(ArithmeticExpression other) {
+		return Calculation.of(this, Calculation.Operator.MOD, other);
+	}
+
+	default ArithmeticExpression mod(int other) {
+		return this.mod(Constant.of(other));
+	}
+
+	default ArithmeticExpression div_int(ArithmeticExpression other) {
+		return Calculation.of(this, Calculation.Operator.INT_DIV, other);
+	}
+
+	default ArithmeticExpression div_int(int other) {
+		return this.div_int(Constant.of(other));
+	}
 }

@@ -44,6 +44,8 @@ public record ToCvc5Visitor(
 					case PLUS -> Kind.ADD;
 					case MINUS -> Kind.SUB;
 					case TIMES -> Kind.MULT;
+					case INT_DIV -> Kind.INTS_DIVISION;
+					case MOD -> Kind.INTS_MODULUS;
 				},
 				this.visit(it.lhs()),
 				this.visit(it.rhs())

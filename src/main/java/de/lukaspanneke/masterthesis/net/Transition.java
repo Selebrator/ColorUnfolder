@@ -44,7 +44,7 @@ public record Transition(
 		Set<Variable> adjacent = Stream.concat(preSet.values().stream(), postSet.values().stream()).collect(Collectors.toSet());
 		support.removeAll(adjacent);
 		if (!support.isEmpty()) {
-			throw new IllegalArgumentException("guard uses undeclared variable: " + support);
+			throw new IllegalArgumentException("guard of " + this + " uses undeclared variable: " + support);
 		}
 	}
 

@@ -95,6 +95,18 @@
   [ "$result" -eq 1220 ]
 }
 
+# bats test_tags=symbolic,gcd
+@test "full symbolic gcd(12, 9) size" {
+  result=$(./color-unfolder gcd#12#9 | wc -l)
+  [ "$result" -eq 25 ]
+}
+
+# bats test_tags=expand,gcd
+@test "full expanded gcd(12, 9) size" {
+  result=$(./color-unfolder gcd#12#9 --expand | wc -l)
+  [ "$result" -eq 25 ]
+}
+
 # bats test_tags=expand,gcd
 @test "full expanded gcd(12, 9) output 3" {
   ./color-unfolder gcd#12#9 --expand | grep p3#3
@@ -104,6 +116,18 @@
 @test "full expanded gcd(12, 9) outputs nothing except 3" {
   run bash -c './color-unfolder gcd#12#9 --expand | grep "(p3#[^3])"'
   [ "$status" -ne 0 ]
+}
+
+# bats test_tags=symbolic,gcd
+@test "full symbolic isqrt(100) size" {
+  result=$(./color-unfolder isqrt#100 | wc -l)
+  [ "$result" -eq 101 ]
+}
+
+# bats test_tags=expand,gcd
+@test "full expanded isqrt(100) size" {
+  result=$(./color-unfolder isqrt#100 --expand | wc -l)
+  [ "$result" -eq 101 ]
 }
 
 # bats test_tags=symbolic,target,hobbits

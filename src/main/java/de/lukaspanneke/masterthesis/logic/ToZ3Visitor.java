@@ -43,6 +43,8 @@ public record ToZ3Visitor(
 			case PLUS -> solver.mkAdd(lhs, rhs);
 			case MINUS -> solver.mkSub(lhs, rhs);
 			case TIMES -> solver.mkMul(lhs, rhs);
+			case INT_DIV -> solver.mkDiv(lhs, rhs);
+			case MOD -> solver.mkMod(lhs, rhs);
 		};
 	}
 

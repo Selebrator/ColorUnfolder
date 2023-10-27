@@ -305,7 +305,21 @@ public class Unfolding {
 				: VariableAssignment.itr(postOnlyVariables.stream())
 				.peek(postAssignment -> postAssignment.putAll(preAssignment));
 		return assignments
-				.filter(guard::evaluate)
+				.filter(assignment1 -> {
+					try {
+						return guard.evaluate(assignment1);
+					} catch (ArithmeticException e) {
+						// if calculation fails, for example divide by zero,
+						// then this was not a satisfying assignment,
+						// so returning false is reasonable.
+						return false;
+						// however, when such a transition exists there is a good chance
+						// we will spend an eternity catching all those exceptions.
+						//throw new IllegalArgumentException(
+						//		"the guard of " + hlTransition + " cannot be evaluated under assignment "
+						//				+ assignment1 + ". consider rewriting it.", e);
+					}
+				})
 				.map(assignment -> {
 					Map<Place, Variable> newTransitionPreset = preset.stream()
 							.collect(Collectors.toMap(Condition::place, pre -> hlTransition.preSet().get(llToHlPlace.get(pre.place()))));

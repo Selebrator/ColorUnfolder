@@ -43,6 +43,10 @@ public class Examples {
 	}
 
 	public static Net isqrt(int i) {
+		return isqrt_mod(i);
+	}
+
+	public static Net isqrt_quantified(int i) {
 		int p = 1;
 		Place
 				p1 = new Place(p++, "p1"),
@@ -127,6 +131,88 @@ public class Examples {
 		return new Net(new Marking(Map.of(p1, 1, p_s, i)));
 	}
 
+	public static Net isqrt_mod(int i) {
+		int p = 1;
+		Place
+				p1 = new Place(p++, "p1"),
+				p2 = new Place(p++, "p2"),
+				p3 = new Place(p++, "p3"),
+				p4 = new Place(p++, "p4"),
+				p_s = new Place(p++, "p_s"),
+				p_x0 = new Place(p++, "p_x0"),
+				p_x1 = new Place(p++, "p_x1");
+
+		Variable
+				s = new Variable("s", FiniteDomain.fullRange(i, i)),
+				x0 = new Variable("x0", FiniteDomain.fullRange(0, i)),
+				x1 = new Variable("x1", FiniteDomain.fullRange(0, i)),
+				token = new Variable("token", FiniteDomain.fullRange(1, 1));
+		int t = 1;
+		newTransition(t++, "guess",
+				Map.of(
+						p1, token,
+						p_s, s
+				),
+				Map.of(
+						p2, token,
+						p_s, s,
+						p_x0, x0
+				),
+				x0.eq(s.div_int(2))
+		);
+		newTransition(t++, "update",
+				Map.of(
+						p2, token,
+						p_s, s,
+						p_x0, x0
+				),
+				Map.of(
+						p_s, s,
+						p_x0, x0,
+						p3, token,
+						p_x1, x1
+				),
+				x1.eq(x0.plus(s.div_int(x0)).div_int(2))
+		);
+		newTransition(t++, "loop",
+				Map.of(
+						p3, token,
+						p_x0, x0,
+						p_x1, x1
+				),
+				Map.of(
+						p_x0, x1, // not a typo: x0 gets the value of x1.
+						p2, token
+				),
+				x1.lt(x0)
+		);
+		newTransition(t++, "return_x0",
+				Map.of(
+						p3, token,
+						p_x0, x0,
+						p_x1, x1
+				),
+				Map.of(
+						p_x0, x1, // not a typo: x0 gets the value of x1.
+						p4, token
+				),
+				x1.geq(x0)
+		);
+		Formula goodResult = x0.times(x0).leq(s).and(s.lt(x0.plus(1).times(x0.plus(1))));
+		newTransition(t++, "verify_ok",
+				Map.of(p4, token, p_s, s, p_x0, x0),
+				Map.of(p_x0, x0),
+				goodResult
+		);
+		newTransition(t++, "verify_error",
+				Map.of(p4, token, p_s, s, p_x0, x0),
+				Map.of(p_x0, x0),
+				goodResult.not()
+		);
+
+		return new Net(new Marking(Map.of(p1, 1, p_s, i)));
+	}
+
 	public static Net gcd(int a0, int b0) {
 		Place p1 = new Place(1);
 		Place p2 = new Place(2);
@@ -138,7 +224,7 @@ public class Examples {
 		newTransition(1, "step",
 				Map.of(p1, a, p2, b),
 				Map.of(p1, b, p2, r),
-				r.geq(0).and(r.lt(b)).and(QuantifiedFormula.of(EXISTS, Set.of(q), b.times(q).plus(r).eq(a)))
+				b.neq(0).and(r.eq(a.mod(b)))
 		);
 		newTransition(2, "end",
 				Map.of(p1, a, p2, b),
