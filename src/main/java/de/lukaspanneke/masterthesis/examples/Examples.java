@@ -751,4 +751,38 @@ public class Examples {
 				h.geq(groupSize).and(o.geq(groupSize)));
 		return new Net(new Marking(Map.of(lhShore, groupSize, loShore, groupSize, rhShore, 0, roShore, 0, lhBoat, 0, loBoat, 0)));
 	}
+
+	public static Net running() {
+		int p = 1;
+		int t = 1;
+		Place p1 = new Place(p++);
+		Place p2 = new Place(p++);
+		Place p3 = new Place(p++);
+		Place p4 = new Place(p++);
+
+		Variable x = new Variable("x");
+		Variable y = new Variable("y");
+
+		newTransition(t++, "a",
+				Map.of(p1, x),
+				Map.of(p2, y),
+				y.lt(0)
+		);
+		newTransition(t++, "b",
+				Map.of(p1, x),
+				Map.of(p2, y),
+				y.gt(0)
+		);
+		newTransition(t++, "c",
+				Map.of(p2, x, p3, x),
+				Map.of(p4, y),
+				x.neq(y)
+		);
+		newTransition(t++, "d",
+				Map.of(p4, x),
+				Map.of(p1, y, p3, x),
+				Formula.top()
+		);
+		return new Net(new Marking(Map.of(p1, 0, p3, 1)));
+	}
 }
