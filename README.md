@@ -73,7 +73,7 @@ Related Publications
   Low-level unfolding algorithm that the symbolic approach is based on.
 
 - Victor Khomenko and Maciej Koutny.
-  “Branching Processes of High- Level Petri Nets”.
+  “Branching Processes of High-Level Petri Nets”.
   In: TACAS ’03. LNCS 2619. 2003, pp. 458–472.
   doi: [10.1007/3-540-36577-X_34](https://www.doi.org/10.1007/3-540-36577-X_34).\
   Introducing an efficient algorithm to build
