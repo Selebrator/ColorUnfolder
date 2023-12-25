@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tag="cvc5-1.0.8"
+tag="cvc5-1.1.0"
 
 mkdir -p build
 cd build || exit 1
