@@ -128,6 +128,8 @@ public class Main implements Callable<Integer> {
 
 		if (this.inputFile.startsWith("isqrt#")) {
 			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
+		} else if (this.inputFile.startsWith("mutex")) {
+			net = Examples.mutex();
 		} else if (this.inputFile.startsWith("running")) {
 			net = Examples.running();
 		} else if (this.inputFile.startsWith("gcd#")) {

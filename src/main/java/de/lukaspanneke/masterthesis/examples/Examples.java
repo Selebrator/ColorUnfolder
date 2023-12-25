@@ -787,4 +787,38 @@ public class Examples {
 		);
 		return new Net(new Marking(Map.of(p1, 0, p3, 1)));
 	}
+
+	public static Net mutex() {
+		int p = 1;
+		int t = 1;
+		Variable token = new Variable("", FiniteDomain.fullRange(0, 0));
+		Variable x = new Variable("x", FiniteDomain.fullRange(1, 2));
+		Place p1 = new Place(p++, "p1");
+		Place p2 = new Place(p++, "p2");
+		Place c1 = new Place(p++, "c1");
+		Place c2 = new Place(p++, "c2");
+		Place m = new Place(p++, "m");
+
+		newTransition(t++, "a1",
+				Map.of(m, x, p1, token),
+				Map.of(c1, token),
+				x.eq(1)
+		);
+		newTransition(t++, "a2",
+				Map.of(m, x, p2, token),
+				Map.of(c2, token),
+				x.eq(2)
+		);
+		newTransition(t++, "r1",
+				Map.of(c1, token),
+				Map.of(m, x, p1, token),
+				x.eq(2)
+		);
+		newTransition(t++, "r2",
+				Map.of(c2, token),
+				Map.of(m, x, p2, token),
+				x.eq(1)
+		);
+		return new Net(new Marking(Map.of(m, 1, p1, 0, p2, 0)));
+	}
 }
