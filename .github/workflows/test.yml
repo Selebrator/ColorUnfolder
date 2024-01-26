@@ -1,8 +1,7 @@
-name: Run tests on push
+name: Run tests
 
 on:
   push:
-    branches: [ "main" ]
   schedule:
     # first day of every month at 10:00 UTC
     - cron: 0 10 1 * *
@@ -19,7 +18,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python3 -m pip install --user tomli
           sudo apt update -y
           sudo apt install -y bats
 
@@ -29,32 +27,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Load cvc5 from cache
-        id: cvc5-lib-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            lib/cvc5.jar
-            lib/libcvc5jni.so
-            lib/libcvc5.so.1
-          key: cvc5-libs-${{ hashFiles('get-cvc5.sh') }}
-
-      - if: ${{ steps.cvc5-lib-cache.outputs.cache-hit != 'true' }}
-        name: Install cvc5
+      - name: Install cvc5
         run: ./get-cvc5.sh
 
-      - name: Load z3 from cache
-        id: z3-lib-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            lib/com.microsoft.z3.jar
-            lib/libz3java.so
-            lib/libz3.so
-          key: z3-libs-${{ hashFiles('get-z3.sh') }}
-
-      - if: ${{ steps.z3-lib-cache.outputs.cache-hit != 'true' }}
-        name: Install z3
+      - name: Install z3
         run: ./get-z3.sh
 
       - name: gradle test
