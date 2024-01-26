@@ -9,7 +9,7 @@ to refer to the low-level net expressed through the high-level net.
 We call that low-level net the expansion of the high-level net
 and also implement an algorithm to calculate the expansion.
 
-We also implement an just-in-time expansion algorithm
+We also implement a just-in-time expansion algorithm
 for building the low-level unfolding of the expansion of a high-level net
 without building the expansion.
 
@@ -82,8 +82,8 @@ Building
 --------
 
 ```sh
-./get-cvc5.sh                 # build cvc5 with java bindings. Takes a long time ~10 minutes
-./get-z3.sh                   # build z3 with java bindings. Takes a long time ~10 minutes
+./get-cvc5.sh                 # install cvc5 with java bindings
+./get-z3.sh                   # install z3 with java bindings
 ./gradlew buildExecutableApp  # build color-unfolder
 ./color-unfolder --help       # start using it
 ```

@@ -6,8 +6,7 @@ If you have a system-wide installation,
 that should work for executing `ColorUnfolder`,
 but for compiling it the necessary files must be present in this directory (`lib`).
 You can use the `get-cvc5.sh` and `get-z3.sh` script in the project root directory
-to automatically build an SMT solver locally.
-If the script worked, no manual intervention is needed.
+to automatically obtain either SMT solver locally.
 Verify the installation by checking that you have these files for cvc5:
 ```
 lib
@@ -23,3 +22,11 @@ lib
 └── libz3.so
 ```
 Now you can proceed with `./gradlew buildExecutableApp`.
+
+# Troubleshooting
+By default, these scripts download a prebuilt distribution of the SMT solvers.
+If your system libraries are incompatible with the downloaded versions,
+you can attempt to build the problematic library yourself.
+Change the last line of the provided scripts `get-cvc5.sh` and `get-z3.sh`
+from `download` to `build`. For an automated build of the library,
+given that the required build tools are installed.
