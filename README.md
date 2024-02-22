@@ -24,7 +24,7 @@ Features
 - [x] Unfolding up to bounded depth
 - [x] Reachability of target transitions
 - [x] Command-line user interface
-- [x] Net parser
+- [x] Net parser (`hllola` format)
 - [x] Unfolding/prefix renderer
 - [x] Internal structure renderer
 - [ ] Tuples
@@ -78,7 +78,7 @@ Related Publications
   Introducing an efficient algorithm to build
   complete finite prefixes of low-level unfoldings for high-level Petri nets.
 
-Building
+Building on Linux
 --------
 
 ```sh
@@ -87,3 +87,22 @@ Building
 ./gradlew buildExecutableApp  # build color-unfolder
 ./color-unfolder --help       # start using it
 ```
+
+Bring your own net
+-------------------
+
+There are two ways to have `ColorUnfolder` read in your net:
+
+1. **Give a file path or pipe a file into the program.**
+   The format supported by `ColorUnfolder` is similar to `hllola`,
+   the high-level format of LoLA,
+   a well known low-level Petri net analysis tool.
+   The documentation of this format is found in the archive
+   provided at [LoLA's webpage](https://theo.informatik.uni-rostock.de/theo-forschung/tools/lola/).
+   However, they seem to not be using the `hllola` format
+   and instead rely on some other tool translating a high-level net into their low-level format.
+2. **Write your net as code.**
+   Since we care most about parametrized nets for our research,
+   we generate all nets programmatically.
+   The code for our nets is found in `de.lukaspanneke.masterthesis.examples.Examples`.
+   To make the program aware of your net, add it to `de.lukaspanneke.masterthesis.ui.Main#getBuiltinNet`.

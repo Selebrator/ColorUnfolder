@@ -109,6 +109,64 @@ public class Main implements Callable<Integer> {
 			description = "Output the number of conditions and events in the prefix that would be rendered.")
 	private boolean countNodes;
 
+	private static Optional<Net> getBuiltinNet(String name) {
+		Net net;
+		if (name.startsWith("isqrt#")) {
+			return Optional.of(Examples.isqrt(Integer.parseInt(name.substring("isqrt#".length()))));
+		} else if (name.startsWith("mutex")) {
+			return Optional.of(Examples.mutex());
+		} else if (name.startsWith("running")) {
+			return Optional.of(Examples.running());
+		} else if (name.startsWith("gcd#")) {
+			String[] split = name.split("#");
+			return Optional.of(Examples.gcd(Integer.parseInt(split[1]), Integer.parseInt(split[2])));
+		} else if (name.equals("restaurant")) {
+			return Optional.of(Examples.restaurant());
+		} else if (name.startsWith("mastermind-judge#")) {
+			//                 code guess
+			//                 |    |
+			//mastermind-judge#4182#6123
+			String[] split = name.split("#");
+			return Optional.of(Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray()));
+
+		} else if (name.startsWith("mastermind-game#")) {
+			//                code length
+			//                | available colors
+			//                | | number of guesses
+			//                | | |
+			//mastermind-game#4#8#12
+			String[] split = name.split("#");
+			return Optional.of(Examples.mastermindNoDuplicateColors(Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3])));
+		} else if (name.startsWith("buckets")) {
+			String[] split = name.split("#");
+			int goal = Integer.parseInt(split[1]);
+			int[] buckets = IntStream.range(2, split.length)
+					.map(i -> Integer.parseInt(split[i]))
+					.toArray();
+			return Optional.of(Examples.buckets(buckets, goal));
+		} else if (name.startsWith("parallel-amnesia#")) {
+			return Optional.of(Examples.parallelAmnesia(Integer.parseInt(name.substring("parallel-amnesia#".length()))));
+		} else if (name.startsWith("independent-diamond#")) {
+			return Optional.of(Examples.independentDiamond(Integer.parseInt(name.substring("independent-diamond#".length()))));
+		} else if (name.startsWith("fast-growing#")) {
+			String params = name.substring("fast-growing#".length());
+			String[] split = params.split("#");
+			return Optional.of(Examples.fastGrowing(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
+		} else if (name.startsWith("hobbitsAndOrcsAlternative")) {
+			String[] split = name.split("#");
+			int groupSize = Integer.parseInt(split[1]);
+			int boatCapacity = Integer.parseInt(split[2]);
+			return Optional.of(Examples.hobbitsAndOrcsAlternative(groupSize, boatCapacity, 2));
+		} else if (name.startsWith("hobbitsAndOrcs")) {
+			String[] split = name.split("#");
+			int groupSize = Integer.parseInt(split[1]);
+			int boatCapacity = Integer.parseInt(split[2]);
+			int islands = Integer.parseInt(split[3]);
+			return Optional.of(Examples.hobbitsAndOrcs(groupSize, boatCapacity, islands));
+		} else {
+			return Optional.empty();
+		}
+	}
 
 	@Override
 	public Integer call() throws IOException {
@@ -125,76 +183,28 @@ public class Main implements Callable<Integer> {
 			Options.PRINT_COLOR_CONFLICT_INFO = true;
 		}
 		Net net;
-
-		if (this.inputFile.startsWith("isqrt#")) {
-			net = Examples.isqrt(Integer.parseInt(this.inputFile.substring("isqrt#".length())));
-		} else if (this.inputFile.startsWith("mutex")) {
-			net = Examples.mutex();
-		} else if (this.inputFile.startsWith("running")) {
-			net = Examples.running();
-		} else if (this.inputFile.startsWith("gcd#")) {
-			String[] split = this.inputFile.split("#");
-			net = Examples.gcd(Integer.parseInt(split[1]), Integer.parseInt(split[2]));
-		} else if (this.inputFile.equals("restaurant")) {
-			net = Examples.restaurant();
-		} else if (this.inputFile.startsWith("mastermind-judge#")) {
-			//                 code guess
-			//                 |    |
-			//mastermind-judge#4182#6123
-			String[] split = this.inputFile.split("#");
-			net = Examples.mastermind(split[1].chars().map(c -> c - '0').toArray(), split[2].chars().map(c -> c - '0').toArray());
-
-		} else if (this.inputFile.startsWith("mastermind-game#")) {
-			//                code length
-			//                | available colors
-			//                | | number of guesses
-			//                | | |
-			//mastermind-game#4#8#12
-			String[] split = this.inputFile.split("#");
-			net = Examples.mastermindNoDuplicateColors(Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3]));
-		} else if (this.inputFile.startsWith("buckets")) {
-			String[] split = this.inputFile.split("#");
-			int goal = Integer.parseInt(split[1]);
-			int[] buckets = IntStream.range(2, split.length)
-					.map(i -> Integer.parseInt(split[i]))
-					.toArray();
-			net = Examples.buckets(buckets, goal);
-		} else if (this.inputFile.startsWith("parallel-amnesia#")) {
-			net = Examples.parallelAmnesia(Integer.parseInt(this.inputFile.substring("parallel-amnesia#".length())));
-		} else if (this.inputFile.startsWith("independent-diamond#")) {
-			net = Examples.independentDiamond(Integer.parseInt(this.inputFile.substring("independent-diamond#".length())));
-		} else if (this.inputFile.startsWith("fast-growing#")) {
-			String params = this.inputFile.substring("fast-growing#".length());
-			String[] split = params.split("#");
-			net = Examples.fastGrowing(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-		} else if (this.inputFile.startsWith("hobbitsAndOrcsAlternative")) {
-			String[] split = this.inputFile.split("#");
-			int groupSize = Integer.parseInt(split[1]);
-			int boatCapacity = Integer.parseInt(split[2]);
-			net = Examples.hobbitsAndOrcsAlternative(groupSize, boatCapacity, 2);
-		} else if (this.inputFile.startsWith("hobbitsAndOrcs")) {
-			String[] split = this.inputFile.split("#");
-			int groupSize = Integer.parseInt(split[1]);
-			int boatCapacity = Integer.parseInt(split[2]);
-			int islands = Integer.parseInt(split[3]);
-			net = Examples.hobbitsAndOrcs(groupSize, boatCapacity, islands);
-		} else {
-			InputStream is;
-			if (this.inputFile.equals("-")) {
-				is = System.in;
+		{
+			Optional<Net> optNet = getBuiltinNet(this.inputFile);
+			if (optNet.isPresent()) {
+				net = optNet.get();
 			} else {
-				try {
-					is = new FileInputStream(inputFile);
-				} catch (FileNotFoundException e) {
-					System.err.println("no such file or directory: " + this.inputFile);
-					return 2;
+				InputStream is;
+				if (this.inputFile.equals("-")) {
+					is = System.in;
+				} else {
+					try {
+						is = new FileInputStream(inputFile);
+					} catch (FileNotFoundException e) {
+						System.err.println("no such file or directory: " + this.inputFile);
+						return 2;
+					}
+					if (!this.inputFile.endsWith(".hllola")) {
+						System.err.println("encountered possibly unsupported input format (determined by file name extension). Assuming HlLoLA format.");
+					}
 				}
-				if (!this.inputFile.endsWith(".hllola")) {
-					System.err.println("encountered possibly unsupported input format (determined by file name extension). Assuming HlLoLA format.");
+				try (is) {
+					net = new HlLolaParser().parse(is);
 				}
-			}
-			try (is) {
-				net = new HlLolaParser().parse(is);
 			}
 		}
 		if (expansionRange != null) {
