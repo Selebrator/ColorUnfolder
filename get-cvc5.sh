@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tag="cvc5-1.1.1"
+tag="cvc5-1.1.2"
 
 build() {
   mkdir -p build
