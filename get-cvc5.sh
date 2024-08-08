@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tag="cvc5-1.1.2"
+tag="cvc5-1.2.0"
 
 build() {
   mkdir -p build
@@ -34,19 +34,20 @@ build() {
   cp -L build/cvc5/build/install/share/java/cvc5.jar lib/
   cp -L build/cvc5/build/install/lib/libcvc5.so.1 lib/
   cp -L build/cvc5/build/install/lib/libcvc5jni.so lib/
+  cp -L build/cvc5/build/install/lib/libcvc5parser.so.1 lib/
 }
 
 download() {
   cd lib || exit 1
-  curl -LO "https://github.com/cvc5/cvc5/releases/download/$tag/cvc5-Linux-shared.zip"
-  unzip -oj "cvc5-Linux-shared.zip" \
-  	"cvc5-Linux-shared/lib/libcvc5jni.so" \
-  	"cvc5-Linux-shared/lib/libcvc5.so.1" \
-  	"cvc5-Linux-shared/lib/libcvc5parser.so.1" \
-  	"cvc5-Linux-shared/lib/libpoly.so.0" \
-  	"cvc5-Linux-shared/lib/libpolyxx.so.0" \
-  	"cvc5-Linux-shared/share/java/cvc5.jar"
-  rm "cvc5-Linux-shared.zip"
+  curl -LO "https://github.com/cvc5/cvc5/releases/download/$tag/cvc5-Linux-x86_64-shared.zip" || exit 1
+  unzip -oj "cvc5-Linux-x86_64-shared.zip" \
+       "cvc5-Linux-x86_64-shared/lib/libcvc5jni.so" \
+       "cvc5-Linux-x86_64-shared/lib/libcvc5.so.1" \
+       "cvc5-Linux-x86_64-shared/lib/libcvc5parser.so.1" \
+       "cvc5-Linux-x86_64-shared/lib/libpoly.so.0" \
+       "cvc5-Linux-x86_64-shared/lib/libpolyxx.so.0" \
+       "cvc5-Linux-x86_64-shared/share/java/cvc5.jar" || exit 1
+  rm "cvc5-Linux-x86_64-shared.zip"
 }
 
 download
