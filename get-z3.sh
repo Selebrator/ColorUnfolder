@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="4.12.5"
+version="4.13.0"
 tag="z3-$version"
 
 build() {
