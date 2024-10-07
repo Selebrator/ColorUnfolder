@@ -21,8 +21,11 @@ preferred-citation:
   - family-names: "Panneke"
     given-names: "Lukas"
     orcid: "https://orcid.org/0009-0008-9241-5583"
-  doi: "10.48550/ARXIV.2311.11443"
-  journal: "arXiv Computing Research Repository"
+  doi: "10.3233/FI-242196"
   title: "Taking Complete Finite Prefixes To High Level, Symbolically"
-  year: 2023
-  month: 11
+  journal: "Fundamenta Informaticae"
+  volume: 192
+  issue: "3-4"
+  start: 313
+  end: 361
+  year: 2024

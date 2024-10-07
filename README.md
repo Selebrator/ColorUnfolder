@@ -50,6 +50,13 @@ Related Tools
 Related Publications
 --------------------
 
+- Nick Würdemann, Thomas Chatain, Stefan Haar, and Lukas Panneke.
+  “Taking Complete Finite Prefixes to High Level, Symbolically”.
+  In: Fundamenta Informaticae, vol. 192, iss. 3-4, pp. 313-361.
+  doi: [10.3233/FI-242196](https://www.doi.org/10.3233/FI-242196).
+  [Open Access](https://arxiv.org/abs/2311.11443).\
+  Journal article about the theory and this tool.
+
 - Nick Würdemann, Thomas Chatain, and Stefan Haar.
   “Taking Complete Finite Prefixes to High Level, Symbolically”.
   In: PETRI NETS ’23. LNCS 13929. 2023, pp. 123–144.
